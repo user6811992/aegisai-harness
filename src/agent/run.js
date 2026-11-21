@@ -7,6 +7,7 @@ const hooks = require('../hooks');
 const { Tracer } = require('../tracing');
 const { DoomLoopDetector, fingerprint } = require('../doomloop');
 const stopConditions = require('../stopconditions');
+const asyncTools = require('../async_tools');
 const { OFFLINE: CONFIG_OFFLINE } = require('../core/config');
 const dbModule = require('../storage/db');
 
@@ -44,6 +45,7 @@ async function runAgent(opts) {
     stateAccessor = null,
     toolContext = null,
     sharedContext = null,
+    backgroundTools = [],
   } = opts;
 
   const toolLog = [];
@@ -57,6 +59,7 @@ async function runAgent(opts) {
   const archive = [];
   const tracer = trace ? new Tracer() : null;
   const detector = doomLoop ? new DoomLoopDetector(typeof doomLoop === 'object' ? doomLoop : {}) : null;
+  const bgPool = new asyncTools.BackgroundPool();
   let stepCount = 0;
   const allToolCalls = [];
   if (compact && msgs.length > compactThreshold) {
@@ -90,6 +93,7 @@ async function runAgent(opts) {
     tools.push({ type: 'function', function: { name: 'search_codebase', description: 'Search indexed codebase symbols by name/path.', parameters: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'number' } }, required: ['query'] } } });
   } catch (e) {}
   tools.push({ type: 'function', function: { name: 'delegate_to_agent', description: 'Delegate a task to a named sub-agent (default, coder, researcher, clean-room).', parameters: { type: 'object', properties: { agent: { type: 'string' }, task: { type: 'string' }, model: { type: 'string' }, maxTokens: { type: 'number' } }, required: ['task'] } } });
+  tools.push(asyncTools.TASK_TOOL_DEF);
 
   let totalTokens = 0;
   let iterations = 0;
@@ -209,7 +213,16 @@ async function runAgent(opts) {
       onEvent({ type: 'tool_call', name, args });
       let result;
       try {
-        if (name === 'search_codebase') {
+        if (name === 'task') {
+          result = asyncTools.handleTask(bgPool, args);
+        } else if (Array.isArray(backgroundTools) && backgroundTools.includes(name)) {
+          const r = await bgPool.run(name, async (log) => coding.execCodingTool(name, args, projectRoot, { sandbox, offline }), 250);
+          if (r.pending) {
+            result = { ok: true, output: JSON.stringify({ pending: true, taskId: r.taskId, message: 'background task started' }) };
+          } else {
+            result = r.result || { ok: true, output: JSON.stringify(r.result) };
+          }
+        } else if (name === 'search_codebase') {
           try {
             const ci = require('../indexing/codeindex');
             ci.ensureSchema(dbModule.get());

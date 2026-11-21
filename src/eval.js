@@ -4,15 +4,15 @@ const db = require('./storage/db');
 const { runAgent } = require('./agent/run');
 const profiles = require('./agents/profiles');
 
-function addEval(name, prompt, expected, agent, expectedTools, expectedStateValue) {
+function addEval(name, prompt, expected, agent, expectedTools, expectedStateValue, expectedState) {
   const id = 'eval_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   try {
-    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools, expected_state_value) VALUES (?,?,?,?,?,?,?,?)')
-      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null, expectedStateValue || null);
+    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools, expected_state_value, expected_state) VALUES (?,?,?,?,?,?,?,?,?)')
+      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null, expectedStateValue || null, expectedState ? JSON.stringify(expectedState) : null);
   } catch (e) {
     try {
-      db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools) VALUES (?,?,?,?,?,?,?)')
-        .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null);
+      db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools, expected_state_value) VALUES (?,?,?,?,?,?,?,?)')
+        .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null, expectedStateValue || null);
     } catch (e2) {
       db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created) VALUES (?,?,?,?,?,?)')
         .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString());
@@ -66,6 +66,19 @@ async function runEvals(opts) {
         return v === c.expected_state_value;
       });
       pass = pass && statePass;
+    }
+    // full state-diff grading via MOCK_STATE_FILE
+    if (c.expected_state) {
+      let expectedState = {};
+      try { expectedState = JSON.parse(c.expected_state); } catch (e) { expectedState = {}; }
+      const sf = process.env.MOCK_STATE_FILE;
+      if (sf && require('fs').existsSync(sf)) {
+        try {
+          const actual = JSON.parse(require('fs').readFileSync(sf, 'utf8'));
+          const statePass = Object.keys(expectedState).every((k) => JSON.stringify(actual[k]) === JSON.stringify(expectedState[k]));
+          pass = pass && statePass;
+        } catch (e) { pass = false; }
+      }
     }
     results.push({ id: c.id, name: c.name, pass, output: out.slice(0, 300), toolNames });
   }

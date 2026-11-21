@@ -29,6 +29,9 @@ rl.on('line', (line) => {
     } else if (name === 'set_state') {
       state.value = args.value;
       state.history.push(args.value);
+      if (process.env.MOCK_STATE_FILE) {
+        try { require('fs').writeFileSync(process.env.MOCK_STATE_FILE, JSON.stringify(state)); } catch (e) {}
+      }
       result = { content: [{ type: 'text', text: 'ok' }] };
     } else {
       result = { content: [{ type: 'text', text: 'unknown tool' }], isError: true };
