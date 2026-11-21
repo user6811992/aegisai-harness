@@ -43,7 +43,22 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## v0.5 — Reliability & evals (done)
 
-## v0.6 — Advanced (in progress)
+## v0.6 — Advanced (done)
+
+## v0.7 — Remaining from OpenRouterTeam re-evaluation
+- [ ] Async/background/deferred tools + universal `task` tool (from typescript-agent)
+- [ ] Tool context / shared context (from typescript-agent)
+- [ ] Tool sets — declarative activation by situation (from typescript-agent)
+- [ ] Format converters (OpenAI/Anthropic/Claude interop) (from typescript-agent)
+- [ ] Enhanced doom-loop: text-repetition, steer/block/escalate, RFC 8785 fingerprints
+- [ ] Richer hooks: PermissionRequest, SessionStart/End with usage, PostModelCall, mutatedInput/block
+- [ ] Full state-diff eval grading + seeded deterministic mocks (from tool-bench)
+- [ ] Large-tool-set stress test (1,595 tools) (from tool-bench)
+- [ ] Advanced routing: capability classifier, stage router, escalation, advisor gate (from Switchyard)
+- [ ] TOML route config + standalone OpenAI-compat proxy mode (from Switchyard)
+- [ ] Benchmark suites with model tiers + reporting (from benchmark-harness)
+- [ ] SKILL.md import + create-agent-tui patterns (from skills)
+- [ ] OpenTelemetry export for traces (from opik)
 - [x] Richer hooks with mutation/blocking (src/hooks.js)
 - [x] Enhanced doom-loop (text repetition, escalate)
 - [x] State-diff eval grading + seeded mocks (mockmcp, expectedStateValue)
