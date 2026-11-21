@@ -125,6 +125,51 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ### From opencode-ai/opencode
 - [ ] Richer TUI patterns (multiline editing, slash-command autocomplete)
 
+## v0.12 — From second ecosystem exploration (RyanAlberts, earendil-works, aaif-goose, cline, OpenHands)
+### From earendil-works/pi
+- [ ] TUI library with differential rendering (pi-tui)
+- [ ] Prompt templates (reusable prompt snippets)
+- [ ] Themes (terminal theming)
+- [ ] Extension packages (npm/git-based) with hot reload
+- [ ] RPC mode (control harness over RPC)
+- [ ] Durable runtime (pi-durable: conversations, tasks, documents)
+- [ ] Agent core as reusable library (pi-agent-core)
+- [ ] MicroVM sandboxing (gondolin) — Linux micro-VM with TS control plane
+- [ ] Durable JS execution (dquickts: suspend/snapshot/resume JS)
+- [ ] Sandboxed shell (psh: bash in a box)
+### From aaif-goose/goose
+- [ ] Agent Client Protocol (ACP) — integrate harness as backend for apps
+- [ ] In-process model loading (no separate inference server)
+- [ ] State machine architecture (operation-based)
+- [ ] Custom distributions (preconfigured providers/extensions/branding)
+- [ ] oi-kit Rust runtime (for native performance)
+### From cline/cline
+- [ ] Plan and Act modes (explore/plan then execute)
+- [ ] Multi-agent teams (coordinator + specialists)
+- [ ] Scheduled agents (cron-based recurring runs)
+- [ ] Messaging platform integration (Slack/Telegram/Discord/WhatsApp)
+- [ ] Headless CLI for CI/CD (JSON output, piping)
+- [ ] MCP marketplace (discover/install MCP servers)
+- [ ] SDK for building custom agents
+- [ ] Real-world coding benchmarks (cline-bench)
+- [ ] Semantic repository search (kamibiki)
+### From OpenHands
+- [ ] Self-hosted control center (web UI for agents)
+- [ ] Modular SDK (software-agent-sdk)
+- [ ] Sandbox server (hosted sandboxes)
+- [ ] Evaluation harness (benchmarks)
+- [ ] Binary CLI packaging (OpenHands-CLI)
+- [ ] Extension registry
+- [ ] Automation service (scheduling + webhooks)
+- [ ] Trajectory visualization
+- [ ] Agentic code search (codescout)
+### From RyanAlberts
+- [ ] Harness comparison/positioning (best-of-Agent-Harnesses catalog)
+- [ ] MCP Apps protocol (UIs embedded in chatbots via MCP)
+- [ ] Persistent decision memory (agentlog — Karpathy LLM Wiki productized)
+- [ ] Opinionated tool sets (gstack-style role-based tools)
+- [ ] Windows/FS robustness (from claude-code-issues-analyzer findings)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
