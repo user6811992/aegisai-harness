@@ -225,6 +225,32 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Local ASR/TTS models (Qwen3-ASR/TTS) for capture
 - [ ] Simulated browser for web agents (WebWorld)
 
+## v0.15 — From own repos (aegisai-next, MyTunesReduxReborn, LocalAI)
+### From aegisai-next (web UI / infra patterns to port to harness)
+- [ ] Conversation branching (fork chat at any message point)
+- [ ] PWA: installable + service worker + safe-area/mobile-friendly
+- [ ] Voice: STT (mic) + TTS (speaker) via Web Speech API
+- [ ] Pending-actions UI (human-in-the-loop approve/reject in web UI)
+- [ ] Model management UI (pull models, scan drives for GGUF/Ollama stores)
+- [ ] Runtime backend switcher (change backend type/URL from UI)
+- [ ] Integration status panel + install buttons (REA/Ghidra/Craft)
+- [ ] Skills + memory panels in web UI (add/delete/run; add/delete/RAG reindex)
+- [ ] Version checking UI (harness, Node, Ollama)
+- [ ] Error log viewer
+- [ ] Full backup export/import as JSON (already have CLI backup)
+- [ ] Auth token + rate limiting (LOCALAI_TOKEN/AEGISAI_TOKEN, rate limit)
+- [ ] Project root allowlist
+- [ ] Docker + docker-compose
+- [ ] Cross-platform installers (Inno Setup Windows, DMG macOS, AppImage Linux)
+- [ ] Real REA/Ghidra/Craft tool wiring (currently "external tool not wired" stubs)
+### From MyTunesReduxReborn
+- [ ] Standalone Windows executable with no Node install
+- [ ] Dark/light theme toggle
+- [ ] Connection profiles (pattern for MCP/backend profiles)
+- [ ] mDNS/Bonjour discovery pattern (for local MCP/backend discovery)
+### From LocalAI
+- [ ] (predecessor — superseded by aegisai-next, no new items)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
