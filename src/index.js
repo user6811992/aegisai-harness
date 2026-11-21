@@ -132,6 +132,11 @@ async function main() {
       if (t === '/index') { const ci = require('./indexing/codeindex'); ci.ensureSchema(db.get()); const n = ci.indexProject(root, db.get()); console.log('indexed symbols:', n); rl.prompt(); return; }
       if (t.startsWith('/replay ')) { const r = require('./replay'); const res = await r.replaySession(t.slice(8).trim(), { projectRoot: root }); console.log(JSON.stringify(res.replayed.final, null, 2).slice(0, 500)); rl.prompt(); return; }
       if (t.startsWith('/skill import ')) { const r = skillsImport.importSkill(t.slice(14).trim()); console.log('imported skill:', r.name); rl.prompt(); return; }
+      if (t.startsWith('/skill auto ')) { const name = t.slice(12).trim(); const r = require('./skill_auto').autoCreateSkill(name, [], 'auto'); console.log('auto skill:', r); rl.prompt(); return; }
+      if (t.startsWith('/policy')) { console.log(JSON.stringify(require('./policy').loadPolicies(), null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t.startsWith('/capture ')) { const parts = t.slice(9).trim().split('|').map((s) => s.trim()); const id = require('./capture').recordEpisode(parts[0] || 'note', parts[1] || '', parts[2] || ''); console.log('recorded', id); rl.prompt(); return; }
+      if (t === '/episodes') { console.log(JSON.stringify(require('./capture').listEpisodes(20), null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }
       if (t.startsWith('/restore ')) { const p = t.slice(9).trim(); backup.restore(p); console.log('restored:', p); rl.prompt(); return; }

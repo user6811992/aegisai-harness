@@ -46,6 +46,8 @@ async function runAgent(opts) {
     toolContext = null,
     sharedContext = null,
     backgroundTools = [],
+    policy = null,
+    currentRing = 1,
   } = opts;
 
   const toolLog = [];
@@ -180,6 +182,22 @@ async function runAgent(opts) {
       if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = {}; } }
       args = args || {};
 
+      // policy engine check
+      if (policy) {
+        const pol = require('../policy');
+        const verdict = pol.evaluate(policy, { tool_name: name, args });
+        if (!verdict.allowed) {
+          const blocked = 'BLOCKED (policy): ' + (verdict.rule || name);
+          return { name, args, policyBlocked: blocked };
+        }
+      }
+      // sandbox ring check
+      const rings = require('../sandbox_rings');
+      const toolRing = rings.ringOf(name);
+      if (!rings.allowed(currentRing, toolRing)) {
+        const blocked = 'BLOCKED (ring): ' + name + ' requires ring ' + rings.describe(toolRing);
+        return { name, args, ringBlocked: blocked };
+      }
       if (cleanRoom && registry.isCleanRoomBlocked(name)) {
         const blocked = 'BLOCKED (clean room): ' + name;
         return { name, args, blocked };
@@ -278,6 +296,20 @@ async function runAgent(opts) {
     }));
 
     for (const r of results) {
+      if (r.policyBlocked) {
+        const preview = r.policyBlocked;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
+      if (r.ringBlocked) {
+        const preview = r.ringBlocked;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
       if (r.hookBlocked) {
         const preview = r.hookBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });

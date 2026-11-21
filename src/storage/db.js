@@ -71,6 +71,9 @@ function open(dbPath) {
     function v4() {
       try { db.exec('ALTER TABLE evals ADD COLUMN expected_state TEXT'); } catch (e) {}
     },
+    function v5() {
+      db.exec(`CREATE TABLE IF NOT EXISTS context_episodes (id TEXT PRIMARY KEY, type TEXT, content TEXT, app TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();
