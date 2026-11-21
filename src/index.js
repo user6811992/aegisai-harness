@@ -160,6 +160,83 @@ async function main() {
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
+      try {
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/integrations') {
+          sendJson(res, 200, require('./integrations/retools').status());
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/skills') {
+          let rows = [];
+          try { rows = db.get().prepare('SELECT name, description, created, updated FROM skills ORDER BY updated DESC').all(); } catch (e) {}
+          sendJson(res, 200, { skills: rows });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/skills') {
+          const parsed = await readJson(req);
+          let ok = false;
+          try {
+            db.get().prepare('INSERT OR REPLACE INTO skills (name, description, code, created, updated) VALUES (?,?,?,?,?)')
+              .run(parsed.name, parsed.description || '', parsed.code || '', new Date().toISOString(), new Date().toISOString());
+            ok = true;
+          } catch (e) {}
+          sendJson(res, 200, { ok });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/memories') {
+          let rows = [];
+          try { rows = db.listMemories(); } catch (e) {}
+          sendJson(res, 200, { memories: rows });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/memories') {
+          const parsed = await readJson(req);
+          let ok = false;
+          try { db.saveMemory({ text: parsed.text, tags: parsed.tags || [] }); ok = true; } catch (e) {}
+          sendJson(res, 200, { ok });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/version') {
+          const v = require('./updater');
+          let info = v.checkLocal();
+          try { info.node = process.version; } catch (e) {}
+          sendJson(res, 200, info);
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/errors') {
+          let lines = [];
+          try {
+            const logPath = path.join(DATA_DIR, 'error.log');
+            if (fs.existsSync(logPath)) lines = fs.readFileSync(logPath, 'utf8').split(/\r?\n/).slice(-50);
+          } catch (e) {}
+          sendJson(res, 200, { errors: lines });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/backup') {
+          let data = { ok: false };
+          try { data = require('./backup').exportState(); } catch (e) { data = { ok: false, error: String(e.message || e) }; }
+          sendJson(res, 200, { backup: data });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/backup/import') {
+          const parsed = await readJson(req);
+          let ok = false;
+          try { require('./backup').importState(parsed.data); ok = true; } catch (e) {}
+          sendJson(res, 200, { ok });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/config') {
+          const cfg = require('./core/config');
+          sendJson(res, 200, { projectRootAllowlist: process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '' });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/config') {
+          const parsed = await readJson(req);
+          if (parsed.projectRootAllowlist) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
+          sendJson(res, 200, { ok: true });
+          return;
+        }
+      } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
+
       // serve static
       let urlPath = req.url.split('?')[0];
       let filePath = path.join(__dirname, '..', 'public', urlPath === '/' ? 'index.html' : urlPath);

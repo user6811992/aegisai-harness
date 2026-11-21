@@ -233,16 +233,16 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Pending-actions UI (approve/reject endpoint + UI)
 - [x] Model management UI (list/pull models)
 - [x] Runtime backend switcher (/api/backend)
-- [ ] Integration status panel + install buttons (REA/Ghidra/Craft) — deferred
-- [ ] Skills + memory panels in web UI — deferred
-- [ ] Version checking UI — deferred (CLI --update exists)
-- [ ] Error log viewer — deferred
-- [ ] Full backup export/import as JSON in UI — deferred (CLI backup exists)
+- [x] Integration status panel (/api/integrations)
+- [x] Skills + memory panels in web UI (/api/skills, /api/memories)
+- [x] Version checking UI (/api/version)
+- [x] Error log viewer (/api/errors)
+- [x] Full backup export/import as JSON in UI (/api/backup)
 - [x] Auth token + rate limiting in web server
-- [ ] Project root allowlist — deferred
-- [ ] Docker + docker-compose — deferred
+- [x] Project root allowlist
+- [x] Docker + docker-compose
 - [x] Cross-platform installers (Inno Setup Windows, DMG macOS, AppImage Linux)
-- [ ] Real REA/Ghidra/Craft tool wiring — deferred
+- [x] Real REA/Ghidra/Craft tool wiring (src/integrations/retools.js)
 ### From MyTunesReduxReborn
 - [ ] Standalone Windows executable with no Node install
 - [ ] Dark/light theme toggle

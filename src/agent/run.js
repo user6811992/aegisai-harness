@@ -10,6 +10,7 @@ const stopConditions = require('../stopconditions');
 const asyncTools = require('../async_tools');
 const { OFFLINE: CONFIG_OFFLINE } = require('../core/config');
 const dbModule = require('../storage/db');
+const path = require('path');
 
 const DESTRUCTIVE = new Set(['write_file', 'delete_file', 'run_command', 'run_python']);
 
@@ -50,6 +51,12 @@ async function runAgent(opts) {
     currentRing = 1,
     guardrails = null,
   } = opts;
+
+  // project root allowlist
+  const allowlist = (process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '').split(',').map((s) => s.trim()).filter(Boolean);
+  if (allowlist.length > 0 && !allowlist.some((r) => projectRoot === r || projectRoot.startsWith(r + path.sep))) {
+    return { final: { type: 'done', final: '(blocked: project root not allowlisted)', toolLog: [] }, toolLog: [] };
+  }
 
   const toolLog = [];
   let msgs = [...(messages || [])];
@@ -311,7 +318,8 @@ async function runAgent(opts) {
             result = { ok: false, output: String(e.message || e) };
           }
         } else if (name.startsWith('rea_') || name.startsWith('ghidra_') || name.startsWith('craft_') || name.startsWith('are_')) {
-          result = { ok: true, output: 'external tool not wired: ' + name };
+          const prefix = name.slice(0, name.indexOf('_') + 1);
+          result = require('../integrations/retools').runTool(prefix, name, args);
         } else {
           result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline, toolContext, sharedContext });
         }
