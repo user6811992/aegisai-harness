@@ -2,24 +2,26 @@
 
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
-## v0.1 — Scaffold (in progress)
+## v0.1 — Scaffold (done)
 - [x] Create private repo `aegisai-harness`
 - [x] Initial project scaffold (package.json, .gitignore, README, ROADMAP)
-- [ ] Core modules: config, logger, security, capabilities
-- [ ] Backend adapter (Ollama + OpenAI-compat) with streaming
-- [ ] Agent loop (tool calls, fallback, budget, clean-room)
-- [ ] Tool registry + coding tools (file ops, shell, python, search)
-- [ ] SQLite persistence (sessions, memories, skills)
-- [ ] Basic CLI entry point
-- [ ] Smoke test: run agent against local Ollama
+- [x] Core modules: config, logger, security, capabilities
+- [x] Backend adapter (Ollama + OpenAI-compat) with streaming
+- [x] Agent loop (tool calls, fallback, budget, clean-room)
+- [x] Tool registry + coding tools (file ops, shell, python, search)
+- [x] SQLite persistence (sessions, memories)
+- [x] Basic CLI entry point
+- [x] Smoke test: run agent against local Ollama
 
 ## v0.2 — Safety & context (P0)
-- [ ] Sandboxed tool execution (process isolation; no in-process plugin require)
-- [ ] Human-in-the-loop approval gates for destructive tools
-- [ ] Full MCP client (stdio + HTTP, discovery, reconnect)
-- [ ] Context compaction + retrievable archive (replace last-N truncation)
-- [ ] Token budgeting & accounting per run
-- [ ] Offline mode toggle (disable network tools by default)
+- [x] Sandboxed tool execution (process isolation for run_command; no shell in sandbox mode)
+- [x] Human-in-the-loop approval gates for destructive tools (approvalHandler + --auto-approve)
+- [x] MCP client (stdio transport: initialize, tools/list, tools/call)
+- [x] Context compaction (summarize older messages; replaces last-N truncation)
+- [x] Token budgeting & accounting per run (tokenBudgetTotal + total stats)
+- [x] Offline mode toggle (removes network tools; --offline flag)
+- [ ] HTTP MCP transport + reconnect (deferred)
+- [ ] Retrievable archive / expand-on-demand (deferred)
 
 ## v0.3 — Capability (P1)
 - [ ] Named agents/profiles (prompt + tools + permissions + model)

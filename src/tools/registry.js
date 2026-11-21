@@ -20,9 +20,16 @@ function assemble(opts) {
   const allowedTools = opts.allowedTools;
   const deniedTools = opts.deniedTools;
   const includeCoding = opts.includeCoding !== false;
+  const offline = !!opts.offline;
   let tools = [];
-  if (includeCoding) tools = tools.concat(coding.codingToolsAsOllama());
-  // external tools (MCP/plugins) can be injected via opts.externalTools
+  if (includeCoding) {
+    let codingTools = coding.codingToolsAsOllama();
+    if (offline) {
+      // remove network-dependent tools in offline mode
+      codingTools = codingTools.filter((t) => t.function.name !== 'web_search');
+    }
+    tools = tools.concat(codingTools);
+  }
   const ext = opts.externalTools || {};
   for (const src of Object.keys(ext)) {
     for (const t of (ext[src] || [])) {

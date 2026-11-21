@@ -9,7 +9,10 @@ function isDangerousCmd(cmd) {
   return bad.some((r) => r.test(cmd));
 }
 
-async function execCodingTool(name, args, projectRoot) {
+async function execCodingTool(name, args, projectRoot, opts) {
+  opts = opts || {};
+  const offline = (opts.offline !== undefined) ? opts.offline : (process.env.AEGISAI_OFFLINE === 'true');
+  const sandbox = !!opts.sandbox;
   const a = args || {};
   switch (name) {
     case 'list_files': {
@@ -87,7 +90,11 @@ async function execCodingTool(name, args, projectRoot) {
       }
       if (cur) parts.push(cur);
       if (parts.length === 0) return { ok: false, output: 'BLOCKED: empty command' };
-      const useShell = process.platform === 'win32';
+      const useShell = process.platform === 'win32' && !sandbox;
+      if (sandbox) {
+        // sandbox: no shell, minimal env, strict timeout cap
+        return security.runProcess(parts[0], parts.slice(1), { cwd: projectRoot, timeout: Math.min(a.timeout || 30000, 30000), shell: false, env: { PATH: process.env.PATH } });
+      }
       if (useShell) return security.runProcess(cmd, [], { cwd: projectRoot, timeout: a.timeout || 60000, shell: true });
       return security.runProcess(parts[0], parts.slice(1), { cwd: projectRoot, timeout: a.timeout || 60000, shell: false });
     }

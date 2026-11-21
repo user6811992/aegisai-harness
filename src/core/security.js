@@ -18,10 +18,11 @@ function runProcess(cmd, args, opts) {
   const cwd = opts.cwd || process.cwd();
   const timeout = opts.timeout || 60000;
   const shell = !!opts.shell;
+  const env = opts.env || process.env;
   return new Promise((resolve) => {
     let stdout = '', stderr = '';
     let killed = false;
-    const proc = spawn(cmd, args || [], { cwd, shell, windowsHide: true });
+    const proc = spawn(cmd, args || [], { cwd, shell, windowsHide: true, env });
     const timer = setTimeout(() => { killed = true; try { proc.kill('SIGKILL'); } catch (e) {} }, timeout);
     proc.stdout.on('data', (d) => { stdout += d.toString(); });
     proc.stderr.on('data', (d) => { stderr += d.toString(); });
