@@ -50,6 +50,9 @@ class Tracer {
       try { db.run('INSERT INTO traces (id, started, ended, data) VALUES (?,?,?,?)', [this.runId, this.started, new Date().toISOString(), JSON.stringify(this.toJSON())]); } catch (e2) {}
     }
   }
+  exportOtel(outPath) {
+    try { require('./telemetry').exportSpans(this.spans, outPath); } catch (e) {}
+  }
 }
 
 module.exports = { Tracer };

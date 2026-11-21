@@ -2,14 +2,23 @@
 // Doom-loop detection: repeated tool-call fingerprints + text repetition.
 const crypto = require('crypto');
 
+function canonical(obj) {
+  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+  if (Array.isArray(obj)) return '[' + obj.map(canonical).join(',') + ']';
+  const keys = Object.keys(obj).sort();
+  return '{' + keys.map((k) => JSON.stringify(k) + ':' + canonical(obj[k])).join(',') + '}';
+}
+
 function fingerprint(name, args, loopKey) {
-  let key;
+  let val = args || {};
   if (typeof loopKey === 'function') {
-    try { key = JSON.stringify(loopKey(args || {})); } catch (e) { key = null; }
+    try { val = loopKey(args || {}); } catch (e) { val = args || {}; }
+  } else if (Array.isArray(loopKey)) {
+    const out = {};
+    for (const k of loopKey) out[k] = (args || {})[k];
+    val = out;
   }
-  if (key == null) {
-    try { key = JSON.stringify(args || {}); } catch (e) { key = String(args); }
-  }
+  const key = canonical(val);
   return crypto.createHash('sha256').update(name + '|' + key).digest('hex').slice(0, 16);
 }
 

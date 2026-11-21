@@ -42,6 +42,8 @@ async function runAgent(opts) {
     doomLoop = false,
     stopWhen = null,
     stateAccessor = null,
+    toolContext = null,
+    sharedContext = null,
   } = opts;
 
   const toolLog = [];
@@ -102,16 +104,17 @@ async function runAgent(opts) {
           const r = await backends.backendChat({ model, messages: msgs, tools: [], stream: true, maxTokens }, (e) => onEvent(e), signal);
           const d = r && r.data ? r.data : r;
           const m = (d && d.message) || {};
-          if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+          if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
           return { final: { type: 'done', final: m.content || '', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
         } catch (e) {}
-        if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+        if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
         return { final: { type: 'done', final: '(stopped)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
       }
     }
     iterations += 1;
     onEvent({ type: 'status', message: 'calling model' });
     const iterSpan = tracer ? tracer.startSpan('iteration', { iteration: iterations }) : null;
+    if (iterations === 1) await hooks.run('SessionStart', { hasTools: tools.length > 0, hasApproval: !!approvalHandler });
     await hooks.run('beforeModel', { messages: msgs, tools, iteration: iterations });
     let resp;
     const modelsToTry = [model].concat(Array.isArray(fallbackModels) ? fallbackModels : []).filter(Boolean);
@@ -138,11 +141,12 @@ async function runAgent(opts) {
       }
     }
     if (!resp) {
-      if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+      if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
       return { final: { type: 'done', final: 'error: ' + ((lastErr && (lastErr.message || lastErr)) || 'all models failed'), toolLog, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
     await hooks.run('afterModel', { response: resp, iteration: iterations });
     const data = resp && resp.data ? resp.data : resp;
+    await hooks.run('PostModelCall', { responseId: (data && data.id) || null, model, durationMs: 0, turnType: iterations === 1 ? 'initial' : 'tool_round', turnNumber: iterations, usage: { inputTokens: data.prompt_eval_count || 0, outputTokens: data.eval_count || 0 } });
     const msg = (data && data.message) || {};
     const toolCalls = msg.tool_calls;
     const thinking = msg.thinking || msg.reasoning_content || '';
@@ -152,12 +156,13 @@ async function runAgent(opts) {
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
       const finalText = msg.content || '';
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
-      if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+      await hooks.run('SessionEnd', { reason: 'complete', totalUsage: { totalTokens } });
+      if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
       return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
 
     if (tokenBudgetTotal > 0 && totalTokens > tokenBudgetTotal) {
-      if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+      if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
       return { final: { type: 'done', final: '(token budget exceeded)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
 
@@ -176,11 +181,18 @@ async function runAgent(opts) {
         return { name, args, blocked };
       }
       if (DESTRUCTIVE.has(name) && !autoApprove) {
-        let approved = true;
-        if (typeof approvalHandler === 'function') {
-          try { approved = await approvalHandler(name, args); } catch (e) { approved = false; }
-        } else {
-          approved = false;
+        // PermissionRequest hook
+        const pr = await hooks.run('PermissionRequest', { toolName: name, toolInput: args, riskLevel: 'high' });
+        let approved;
+        if (pr && pr.decision === 'allow') approved = true;
+        else if (pr && pr.decision === 'deny') approved = false;
+        else {
+          approved = true;
+          if (typeof approvalHandler === 'function') {
+            try { approved = await approvalHandler(name, args); } catch (e) { approved = false; }
+          } else {
+            approved = false;
+          }
         }
         if (!approved) {
           return { name, args, denied: true };
@@ -239,7 +251,7 @@ async function runAgent(opts) {
         } else if (name.startsWith('rea_') || name.startsWith('ghidra_') || name.startsWith('craft_') || name.startsWith('are_')) {
           result = { ok: true, output: 'external tool not wired: ' + name };
         } else {
-          result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline });
+          result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline, toolContext, sharedContext });
         }
       } catch (e) {
         result = { ok: false, output: String(e.message || e) };
@@ -293,7 +305,7 @@ async function runAgent(opts) {
       allToolCalls.push(...toolCalls.map((tc) => (tc.function || tc).name));
       const stopVerdict = verdicts.find((v) => v.action === 'stop');
       if (stopVerdict) {
-        if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+        if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
         return { final: { type: 'done', final: '(doom loop stopped)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
       }
       if (verdicts.some((v) => v.action === 'block')) {
@@ -308,7 +320,7 @@ async function runAgent(opts) {
     }
   }
 
-  if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+  if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
   onEvent({ type: 'done', final: '(max iterations reached)', toolLog });
   return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
 }
