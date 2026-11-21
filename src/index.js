@@ -62,6 +62,9 @@ async function main() {
   const proxyFlag = args.includes('--proxy');
   const updateFlag = args.includes('--update');
   const webFlag = args.includes('--web');
+  const jsonFlag = args.includes('--json');
+  const contextFlag = args.includes('--context');
+  const readOnlyFlag = args.includes('--read-only');
 
   if (webFlag) {
     const http = require('http');
@@ -351,6 +354,7 @@ async function main() {
         mcpTools, sandbox, autoApprove, offline,
         approvalHandler: autoApprove ? null : askApproval,
         tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
+        contextFiles: true,
       });
       lastToolLog = result.toolLog || [];
       process.stdout.write('\n');
@@ -401,6 +405,10 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/team-create ')) { const parts = t.slice(13).trim().split('|').map((x) => x.trim()); const def = JSON.parse(parts[1] || '{}'); require('./teams').create(parts[0], def); console.log('created team', parts[0]); rl.prompt(); return; }
+      if (t.startsWith('/team-run ')) { const parts = t.slice(10).trim().split('|').map((x) => x.trim()); const r = await require('./teams').run(parts[0], parts[1] || '', { projectRoot: root }); console.log(r.final || JSON.stringify(r)); rl.prompt(); return; }
+      if (t === '/teams') { console.log(JSON.stringify(require('./teams').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/extract ')) { const out = await require('./markdown_extract').fromUrl(t.slice(9).trim()); console.log(out.slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/schedule ')) { const parts = t.slice(10).trim().split('|').map((x) => x.trim()); const r = require('./scheduler').schedule(parts[0], parts[1], parts[2] || ''); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/sched-tick') { const r = await require('./scheduler').tick({ projectRoot: root }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/optimize') { const r = require('./optimizer').analyze(); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
@@ -490,6 +498,7 @@ async function main() {
   if (profile.sandbox) sandbox = true;
 
   const onEvent = (e) => {
+    if (jsonFlag) return;
     if (e.type === 'token') process.stdout.write(e.content || '');
     else if (e.type === 'tool_call') console.error('\n[tool]', e.name, JSON.stringify(e.args || {}).slice(0, 200));
     else if (e.type === 'tool_result') console.error('[result]', (e.preview || '').slice(0, 200));
@@ -514,11 +523,17 @@ async function main() {
     tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
     trace,
     doomLoop,
+    contextFiles: contextFlag,
+    readOnly: readOnlyFlag,
   });
 
-  console.log('\n\n--- final ---');
-  console.log(result.final.final);
-  if (result.final.tokenStats) console.log('tokens:', JSON.stringify(result.final.tokenStats));
+  if (jsonFlag) {
+    console.log(JSON.stringify({ final: result.final.final, tokenStats: result.final.tokenStats || null, toolLog: result.toolLog || [] }));
+  } else {
+    console.log('\n\n--- final ---');
+    console.log(result.final.final);
+    if (result.final.tokenStats) console.log('tokens:', JSON.stringify(result.final.tokenStats));
+  }
   db.close();
 }
 

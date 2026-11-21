@@ -87,6 +87,9 @@ function open(dbPath) {
     function v8() {
       db.exec(`CREATE TABLE IF NOT EXISTS contracts (name TEXT PRIMARY KEY, created TEXT, chain TEXT)`);
     },
+    function v9() {
+      db.exec(`CREATE TABLE IF NOT EXISTS teams (name TEXT PRIMARY KEY, created TEXT, data TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

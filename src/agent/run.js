@@ -55,6 +55,8 @@ async function runAgent(opts) {
     verifyWork = false,
     planMode = false,
     browserTools = false,
+    contextFiles = false,
+    readOnly = false,
   } = opts;
 
   // project root allowlist
@@ -68,6 +70,7 @@ async function runAgent(opts) {
   const capture = (finalText) => { try { require('../observability').captureRun({ model, prompt: (messages || []).map((m) => (typeof m.content === 'string' ? m.content : '')).join(' ').slice(0, 500), final: finalText || '', toolLog, tokenStats: { total: totalTokensRef }, durationMs: Date.now() - runStart }); } catch (e) {} };
   const toolLog = [];
   let msgs = [...(messages || [])];
+  if (contextFiles) msgs = require('../context_files').inject(msgs, projectRoot);
   if (guardrails && guardrails.input) {
     const gr = require('../guardrails');
     for (const m of msgs) {
@@ -233,6 +236,9 @@ async function runAgent(opts) {
       if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = {}; } }
       args = args || {};
 
+      // read-only boundary
+      const ro = require('../read_only').enforce(name, readOnly);
+      if (!ro.allowed) return { name, args, readOnlyBlocked: ro.reason };
       // policy engine check
       if (policy) {
         const pol = require('../policy');
@@ -362,6 +368,13 @@ async function runAgent(opts) {
     }));
 
     for (const r of results) {
+      if (r.readOnlyBlocked) {
+        const preview = r.readOnlyBlocked;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
       if (r.policyBlocked) {
         const preview = r.policyBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
