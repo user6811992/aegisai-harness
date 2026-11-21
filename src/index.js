@@ -198,6 +198,16 @@ async function main() {
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
       try {
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/dag-runs') {
+          sendJson(res, 200, { runs: require('./dag').listRuns() });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/dag-run') {
+          const parsed = await readJson(req);
+          const r = await require('./orchestrator').run(parsed.nodes || [], { projectRoot: process.cwd() });
+          sendJson(res, 200, { id: r.id, waves: r.waves, nodes: r.nodes });
+          return;
+        }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/integrations') {
           sendJson(res, 200, require('./integrations/retools').status());
           return;
@@ -432,6 +442,15 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t === '/a2a-card') { console.log(JSON.stringify(require('./a2a').agentCard(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/a2a-task ')) { const r = await require('./a2a').sendTask({ prompt: t.slice(10).trim() }); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/voice-status') { console.log(JSON.stringify(require('./voice_adapter').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/sealed-check') { console.log(JSON.stringify({ docker: require('./sealed').available() })); rl.prompt(); return; }
+      if (t.startsWith('/sealed-run ')) { console.log(JSON.stringify(require('./sealed').run(t.slice(12).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/tenants') { console.log(JSON.stringify(require('./tenants').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/tenant-create ')) { console.log(JSON.stringify(require('./tenants').create(t.slice(14).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/tenant-use ')) { console.log(JSON.stringify(require('./tenants').use(t.slice(12).trim()))); rl.prompt(); return; }
+      if (t === '/dag-ui') { console.log('Open /dag.html in the web UI (--web)'); rl.prompt(); return; }
       if (t.startsWith('/board-add ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); const task = require('./task_board').add(p[0], p[1] || '', (p[2] || '').split(',').filter(Boolean)); console.log(JSON.stringify(task)); rl.prompt(); return; }
       if (t === '/board') { console.log(JSON.stringify(require('./task_board').list(), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/board-done ')) { console.log(JSON.stringify(require('./task_board').complete(t.slice(12).trim()))); rl.prompt(); return; }

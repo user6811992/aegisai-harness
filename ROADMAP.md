@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.30 (30 milestones). v0.30 (P2 set) added parallel task board, unified context filesystem, event-driven plugins, ACP adapter, real-world benchmarks, harness docs, and local pentest pipeline. 28 issues closed, 57 tests passing.
+- **Shipped:** v0.1–v0.31 (31 milestones). v0.31 added A2A adapter, visual DAG editor UI, local ASR/TTS adapter, sealed Docker execution, and multi-tenant isolation. 29 issues closed, 61 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** A2A adapter, visual DAG editor, local ASR/TTS, simulated browser, sealed containers, event-driven plugin UI, multi-tenant isolation, in-process model loading, Rust SDK.
+- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK — all needing concrete need or native toolchains.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -39,6 +39,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.28 Ecosystem & tooling** — runtime manager, shadow AI, skill packages, MCP marketplace, self-improvement, templates/themes/RPC, harness-as-code, config discovery.
 - **v0.29 Security & local inference** — hardware detection, credentialless gateway, admission gate, local vuln scanner, security KB, CRAAP research, continual learning, memory hierarchy.
 - **v0.30 P2 platform** — parallel task board, unified context filesystem, event bus, ACP adapter, real-world benchmarks, harness docs, pentest pipeline.
+- **v0.31 Protocol & isolation** — A2A adapter, visual DAG editor, local ASR/TTS adapter, sealed Docker execution, multi-tenant isolation.
 
 ## Active backlog by theme
 
@@ -70,13 +71,13 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ### P2 — heavier / needs a concrete need
 - [x] ACP adapter (integrate harness as backend for apps) — src/acp.js, --acp
-- [ ] A2A protocol adapter
-- [ ] Visual DAG editor UI
+- [x] A2A protocol adapter — src/a2a.js
+- [x] Visual DAG editor UI — public/dag.html + /api/dag-runs
 - [x] Event-driven plugin architecture — src/event_bus.js
 - [ ] Extension registry / custom distributions
 - [x] Shadow AI discovery — src/shadow_ai.js (governance dashboard still deferred)
 - [x] Parallel task board with worktrees + dependency chains — src/task_board.js
-- [ ] Local ASR/TTS models for capture (Qwen3-ASR/TTS)
+- [x] Local ASR/TTS adapter (whisper.cpp/piper endpoints) — src/voice_adapter.js (models external)
 - [ ] Multimodal realtime harness (see/hear/act + memory)
 - [ ] Simulated browser for web agents
 - [ ] Selection quoting for UI
@@ -86,7 +87,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ### Deferred — platform-scale
 - [ ] In-process model loading (no separate inference server)
 - [ ] MicroVM sandboxing / K8s sandbox backend / eBPF enforcement
-- [ ] Multi-tenant isolation + 5-layer security
+- [x] Multi-tenant isolation — src/tenants.js (5-layer security still deferred)
 - [ ] Rust SDK / Rust runtime
 - [ ] Deterministic durable execution (Temporal-style)
 
@@ -176,7 +177,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Real-time shared context for local agents (gatherthread)
 ### Local inference & governance
 - [x] Local hardware detection (GPU/RAM) + engine/model recommendation — src/hardware.js
-- [x] Credentialless agent gateway — src/gateway.js (sealed containers still deferred)
+- [x] Credentialless agent gateway — src/gateway.js; sealed execution — src/sealed.js (Docker, default-deny)
 - [ ] Permission-first third-party integration runtime (gws-harness)
 - [x] Admission gate in front of every consequential action — src/admission.js
 - [ ] Spec-driven "dark factory" fully autonomous pipeline (fspec)
