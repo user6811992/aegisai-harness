@@ -118,6 +118,11 @@ function open(dbPath) {
     function v18() {
       db.exec(`CREATE TABLE IF NOT EXISTS auto_rules (id TEXT PRIMARY KEY, expression TEXT, source TEXT, created TEXT, active INTEGER)`);
     },
+    function v19() {
+      db.exec(`CREATE TABLE IF NOT EXISTS contest_nodes (id TEXT PRIMARY KEY, kind TEXT, created TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS contest_edges (a TEXT, b TEXT, graph TEXT, weight REAL, PRIMARY KEY(a,b,graph))`);
+      db.exec(`CREATE TABLE IF NOT EXISTS constitution (id TEXT PRIMARY KEY, text TEXT, status TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

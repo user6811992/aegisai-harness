@@ -197,6 +197,10 @@ async function main() {
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/events') {
+        require('./event_stream').subscribe(res);
+        return;
+      }
       try {
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/dag-runs') {
           sendJson(res, 200, { runs: require('./dag').listRuns() });
@@ -444,6 +448,18 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/contest-observe ')) { console.log(JSON.stringify(require('./contest_memory').observe(t.slice(15).trim(), t.slice(15).trim().split(/\s+/)))); rl.prompt(); return; }
+      if (t === '/habits') { console.log(JSON.stringify(require('./contest_memory').habits(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t.startsWith('/constitution-propose ')) { console.log(JSON.stringify(require('./constitution').propose(t.slice(21).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/constitution-decide ')) { const p = t.slice(20).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./constitution').decide(p[0], p[1] || 'approve'))); rl.prompt(); return; }
+      if (t === '/constitution') { console.log(JSON.stringify(require('./constitution').all(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t.startsWith('/bidi-nav ')) { const b = new (require('./integrations/bidi').BiDi)(); console.log(JSON.stringify(await b.navigate(t.slice(10).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/install-preview ')) { console.log(JSON.stringify(require('./config_installer').preview(t.slice(16).trim()), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/install-config ')) { console.log(JSON.stringify(require('./config_installer').install(t.slice(15).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/multi-search ')) { const r = await require('./multi_search').search(t.slice(14).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/routing-eval') { console.log(JSON.stringify(require('./routing_eval').evaluate(), null, 2)); rl.prompt(); return; }
+      if (t === '/cp-trace') { console.log(JSON.stringify(require('./control_plane').trace(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/cp-govern ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./control_plane').govern(p[0], p[1] ? JSON.parse(p[1]) : {}))); rl.prompt(); return; }
       if (t.startsWith('/graph-observe ')) { console.log(JSON.stringify(require('./graph_memory').observe(t.slice(14).trim()))); rl.prompt(); return; }
       if (t.startsWith('/graph-recall ')) { console.log(JSON.stringify(require('./graph_memory').recall(t.slice(13).trim()), null, 2).slice(0, 1200)); rl.prompt(); return; }
       if (t === '/graph-prompt') { console.log(require('./graph_memory').evolvePrompt('You are a helpful assistant.', '')); rl.prompt(); return; }

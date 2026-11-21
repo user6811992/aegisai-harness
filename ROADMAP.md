@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.32 (32 milestones). v0.32 added graph memory, UI replay, executor/verifier separation, self-writing policy, debugger control, cheapest-model finder, and code-flow map. 30 issues closed, 68 tests passing.
+- **Shipped:** v0.1–v0.33 (33 milestones). v0.33 added dual-graph memory, constitution evolution, WebDriver BiDi, SSE event stream, one-click config installer, multi-engine search, routing eval, and governed control plane. 31 issues closed, 76 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, contest memory, constitution evolution, WebDriver BiDi — each needing concrete need or native toolchains.
+- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK — each needing a concrete need or native toolchain.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -41,6 +41,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.30 P2 platform** — parallel task board, unified context filesystem, event bus, ACP adapter, real-world benchmarks, harness docs, pentest pipeline.
 - **v0.31 Protocol & isolation** — A2A adapter, visual DAG editor, local ASR/TTS adapter, sealed Docker execution, multi-tenant isolation.
 - **v0.32 Memory & control** — graph memory, UI replay, executor/verifier separation, self-writing policy, debugger, cheapest-model finder, code-flow map.
+- **v0.33 Interfaces & governance** — dual-graph memory, constitution, WebDriver BiDi, SSE stream, config installer, multi-engine search, routing eval, control plane.
 
 ## Active backlog by theme
 
@@ -186,27 +187,27 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ## v0.32 — From GitHub harness search pages 14–15
 ### Memory & learning
 - [x] Graph memory with extraction loop + prompt evolution — src/graph_memory.js
-- [ ] Contest-based memory (dual-cypher graphs, habit formation) (Habitus-AI)
+- [x] Contest-based memory (dual graphs, habit formation) — src/contest_memory.js
 - [ ] Hippocampus memory: spreading activation, Hebbian writeback, post-turn consolidation (constellation-engine)
 - [ ] Skill factory with autoresearch loop + multi-agent consensus verification (agent-skills-harness)
-- [ ] Constitution evolution with human approval + public adopted history (contemplative-agent)
+- [x] Constitution evolution with human approval + adopted history — src/constitution.js
 ### Verification & evidence
 - [x] Evidence-first UI automation with replay — src/ui_replay.js (web)
 - [x] Executor/verifier separation gate — src/separation.js
 - [x] Self-writing policy from detected attacks — src/auto_policy.js
 - [x] Debugger-like execution control — src/debugger.js (/bp, /step, /resume)
 ### Interfaces & protocols
-- [ ] WebDriver BiDi browser backend (browser-harness-bidi)
-- [ ] SSE / WebSocket interfaces for agent events (Bamboo-agent)
-- [ ] One-click MCP/skills/rules installer across harnesses (Plexus)
-- [ ] Multi-engine web search + evidence synthesis (search-boost)
+- [x] WebDriver BiDi browser backend — src/integrations/bidi.js
+- [x] SSE event stream interface — src/event_stream.js + /api/events
+- [x] One-click config installer — src/config_installer.js
+- [x] Multi-engine web search + evidence synthesis — src/multi_search.js
 ### Evaluation & routing
 - [x] Cheapest-model finder — src/cheapest_model.js
-- [ ] Routing evaluation harness for multi-agent systems (support-agent)
+- [x] Routing evaluation harness — src/routing_eval.js
 ### Code intelligence & mobile
 - [x] Code map with call/data/control-flow + class hierarchy — src/code_map.js
 - [ ] Mobile device harness: device logs, network interception, UI automation via MCP (quern)
-- [ ] Governed tool control plane with resumable execution + trace-driven eval (NanoHarness)
+- [x] Governed tool control plane with checkpoints + trace — src/control_plane.js
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
