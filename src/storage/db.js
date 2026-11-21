@@ -60,6 +60,10 @@ function open(dbPath) {
         CREATE INDEX IF NOT EXISTS idx_code_symbols_symbol ON code_symbols(symbol);
       `);
     },
+    function v2() {
+      db.exec(`CREATE TABLE IF NOT EXISTS traces (id TEXT PRIMARY KEY, started TEXT NOT NULL, ended TEXT, data TEXT NOT NULL)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS evals (id TEXT PRIMARY KEY, name TEXT NOT NULL, prompt TEXT NOT NULL, expected TEXT, agent TEXT, created TEXT NOT NULL)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

@@ -4,6 +4,7 @@ const coding = require('../tools/coding');
 const registry = require('../tools/registry');
 const compactMod = require('./compact');
 const hooks = require('../hooks');
+const { Tracer } = require('../tracing');
 const { OFFLINE: CONFIG_OFFLINE } = require('../core/config');
 const dbModule = require('../storage/db');
 
@@ -35,11 +36,13 @@ async function runAgent(opts) {
     autoApprove = false,
     sandbox = false,
     offline = CONFIG_OFFLINE,
+    trace = false,
   } = opts;
 
   const toolLog = [];
   let msgs = [...(messages || [])];
   const archive = [];
+  const tracer = trace ? new Tracer() : null;
   if (compact && msgs.length > compactThreshold) {
     const res = await compactMod.compactMessages({ messages: msgs, model, keep: compactKeep, threshold: compactThreshold });
     msgs = res.messages;
@@ -78,6 +81,7 @@ async function runAgent(opts) {
   while (iterations < MAX_ITERS) {
     iterations += 1;
     onEvent({ type: 'status', message: 'calling model' });
+    const iterSpan = tracer ? tracer.startSpan('iteration', { iteration: iterations }) : null;
     await hooks.run('beforeModel', { messages: msgs, tools, iteration: iterations });
     let resp;
     const modelsToTry = [model].concat(Array.isArray(fallbackModels) ? fallbackModels : []).filter(Boolean);
@@ -104,7 +108,8 @@ async function runAgent(opts) {
       }
     }
     if (!resp) {
-      return { final: { type: 'done', final: 'error: ' + ((lastErr && (lastErr.message || lastErr)) || 'all models failed'), toolLog }, toolLog };
+      if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+      return { final: { type: 'done', final: 'error: ' + ((lastErr && (lastErr.message || lastErr)) || 'all models failed'), toolLog, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
     await hooks.run('afterModel', { response: resp, iteration: iterations });
     const data = resp && resp.data ? resp.data : resp;
@@ -112,14 +117,17 @@ async function runAgent(opts) {
     const toolCalls = msg.tool_calls;
     const thinking = msg.thinking || msg.reasoning_content || '';
     totalTokens += (data.prompt_eval_count || 0) + (data.eval_count || 0);
+    if (iterSpan) tracer.endSpan(iterSpan, { tokens: data.eval_count || 0 });
 
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
       const finalText = msg.content || '';
-      return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens } }, toolLog };
+      if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+      return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
 
     if (tokenBudgetTotal > 0 && totalTokens > tokenBudgetTotal) {
-      return { final: { type: 'done', final: '(token budget exceeded)', toolLog, tokenStats: { total: totalTokens } }, toolLog };
+      if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+      return { final: { type: 'done', final: '(token budget exceeded)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
 
     msgs.push({ role: 'assistant', content: msg.content || '', tool_calls: toolCalls });
@@ -147,6 +155,7 @@ async function runAgent(opts) {
           return { name, args, denied: true };
         }
       }
+      const toolSpan = tracer ? tracer.startSpan('tool:' + name, { name }) : null;
       await hooks.run('beforeTool', { name, args });
       onEvent({ type: 'tool_call', name, args });
       let result;
@@ -199,6 +208,10 @@ async function runAgent(opts) {
         result = { ok: false, output: String(e.message || e) };
       }
       await hooks.run('afterTool', { name, args, result });
+      if (toolSpan) {
+        if (result && result.ok === false) tracer.failSpan(toolSpan, result.output);
+        else tracer.endSpan(toolSpan);
+      }
       return { name, args, result };
     }));
 
@@ -225,8 +238,9 @@ async function runAgent(opts) {
     }
   }
 
+  if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
   onEvent({ type: 'done', final: '(max iterations reached)', toolLog });
-  return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens } }, toolLog };
+  return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
 }
 
 module.exports = { runAgent };

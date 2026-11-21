@@ -7,6 +7,15 @@ const state = {
   explicit: !!(process.env.BACKEND_TYPE || process.env.BACKEND_URL || process.env.OLLAMA_URL),
 };
 
+// circuit breaker
+const cb = { failures: 0, openUntil: 0, threshold: 5, cooldownMs: 30000 };
+function isCircuitOpen() { return Date.now() < cb.openUntil; }
+function recordSuccess() { cb.failures = 0; cb.openUntil = 0; }
+function recordFailure() {
+  cb.failures += 1;
+  if (cb.failures >= cb.threshold) cb.openUntil = Date.now() + cb.cooldownMs;
+}
+
 function mergeToolCalls(existing, incoming) {
   if (!incoming) return existing;
   const parts = Array.isArray(incoming) ? incoming : [incoming];
@@ -66,7 +75,7 @@ async function detectBackend() {
   if (!state.type) { state.type = 'ollama'; state.url = state.url || 'http://127.0.0.1:11434'; }
 }
 
-async function backendChat(bodyObj, onChunk, signal) {
+async function backendChatImpl(bodyObj, onChunk, signal) {
   if (!isOpenaiCompat()) {
     const ollamaBody = Object.assign({}, bodyObj);
     if (bodyObj.maxTokens && bodyObj.maxTokens > 0) {
@@ -157,4 +166,29 @@ async function backendListModels() {
   return { models };
 }
 
-module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels };
+async function backendChat(bodyObj, onChunk, signal) {
+  if (isCircuitOpen()) throw new Error('circuit breaker open');
+  const retries = 3;
+  let lastErr;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const r = await backendChatImpl(bodyObj, onChunk, signal);
+      recordSuccess();
+      return r;
+    } catch (e) {
+      lastErr = e;
+      recordFailure();
+      if (i < retries - 1) await new Promise((res) => setTimeout(res, 500 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
+async function healthCheck() {
+  try {
+    const r = await fetch(state.url + (isOpenaiCompat() ? '/v1/models' : '/api/version'), { signal: AbortSignal.timeout(3000) });
+    return r.ok;
+  } catch (e) { return false; }
+}
+
+module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen };

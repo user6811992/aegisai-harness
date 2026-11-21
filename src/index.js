@@ -8,6 +8,10 @@ const fs = require('fs');
 const readline = require('readline');
 const { DATA_DIR, OFFLINE } = require('./core/config');
 const profiles = require('./agents/profiles');
+const vault = require('./vault');
+const backup = require('./backup');
+const evalMod = require('./eval');
+const { healthCheck, isCircuitOpen } = require('./backends');
 const logger = require('./core/logger');
 
 function askApproval(name, args) {
@@ -72,7 +76,7 @@ async function main() {
       const t = line.trim();
       if (!t) { rl.prompt(); return; }
       if (t === '/exit' || t === '/quit') { rl.close(); return; }
-      if (t === '/help') { console.log('Commands: /exit, /model <name>, /root <path>, /sandbox on|off, /autoapprove on|off, /offline on|off, /agent <name>, /index, /replay <sessionId>'); rl.prompt(); return; }
+      if (t === '/help') { console.log('Commands: /exit, /model <name>, /root <path>, /sandbox on|off, /autoapprove on|off, /offline on|off, /agent <name>, /index, /replay <sessionId>, /health, /backup <file>, /restore <file>, /vault set|get|list|delete ..., /eval add|run|list, /traces'); rl.prompt(); return; }
       if (t.startsWith('/model ')) { model = t.slice(7).trim(); console.log('model =', model); rl.prompt(); return; }
       if (t.startsWith('/root ')) { root = t.slice(6).trim(); console.log('root =', root); rl.prompt(); return; }
       if (t.startsWith('/sandbox ')) { sandbox = t.slice(9).trim() === 'on'; console.log('sandbox =', sandbox); rl.prompt(); return; }
@@ -81,6 +85,42 @@ async function main() {
       if (t.startsWith('/agent ')) { const p = profiles.getProfile(t.slice(7).trim()); model = p.model || model; /* apply profile defaults */ console.log('agent =', p.name); rl.prompt(); return; }
       if (t === '/index') { const ci = require('./indexing/codeindex'); ci.ensureSchema(db.get()); const n = ci.indexProject(root, db.get()); console.log('indexed symbols:', n); rl.prompt(); return; }
       if (t.startsWith('/replay ')) { const r = require('./replay'); const res = await r.replaySession(t.slice(8).trim(), { projectRoot: root }); console.log(JSON.stringify(res.replayed.final, null, 2).slice(0, 500)); rl.prompt(); return; }
+      if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
+      if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }
+      if (t.startsWith('/restore ')) { const p = t.slice(9).trim(); backup.restore(p); console.log('restored:', p); rl.prompt(); return; }
+      if (t.startsWith('/vault ')) {
+        const parts = t.slice(7).trim().split(/\s+/);
+        const cmd = parts[0];
+        if (cmd === 'set') { vault.setSecret(parts[1], parts.slice(2).join(' ')); console.log('set', parts[1]); }
+        else if (cmd === 'get') { console.log(vault.getSecret(parts[1])); }
+        else if (cmd === 'list') { console.log(vault.listSecrets().join(', ')); }
+        else if (cmd === 'delete') { vault.deleteSecret(parts[1]); console.log('deleted', parts[1]); }
+        rl.prompt(); return;
+      }
+      if (t.startsWith('/eval ')) {
+        const parts = t.slice(6).trim().split(/\s+/);
+        const cmd = parts[0];
+        if (cmd === 'add') {
+          // /eval add name | prompt | expected
+          const rest = t.slice(6).trim().slice(4).trim();
+          const segs = rest.split('|').map((s) => s.trim());
+          const id = evalMod.addEval(segs[0] || 'case', segs[1] || '', segs[2] || '', 'default');
+          console.log('added eval', id);
+        } else if (cmd === 'run') {
+          const r = await evalMod.runEvals({ projectRoot: root, model });
+          console.log(JSON.stringify(r, null, 2).slice(0, 1000));
+        } else if (cmd === 'list') {
+          console.log(JSON.stringify(evalMod.listEvals(), null, 2).slice(0, 1000));
+        }
+        rl.prompt(); return;
+      }
+      if (t === '/traces') {
+        try {
+          const rows = db.get().prepare('SELECT id, started, ended FROM traces ORDER BY started DESC LIMIT 10').all();
+          console.log(JSON.stringify(rows, null, 2));
+        } catch (e) { console.log('no traces'); }
+        rl.prompt(); return;
+      }
       try { await runOne(t); } catch (e) { console.error('error:', e.message || e); }
       rl.prompt();
     });
@@ -94,6 +134,7 @@ async function main() {
   let autoApprove = process.env.AEGISAI_AUTO_APPROVE === 'true';
   let offline = OFFLINE;
   let agentName = 'default';
+  let trace = false;
   const promptParts = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--model') { model = args[++i]; continue; }
@@ -102,6 +143,7 @@ async function main() {
     if (args[i] === '--auto-approve') { autoApprove = true; continue; }
     if (args[i] === '--offline') { offline = true; continue; }
     if (args[i] === '--agent') { agentName = args[++i]; continue; }
+    if (args[i] === '--trace') { trace = true; continue; }
     promptParts.push(args[i]);
   }
   const prompt = promptParts.join(' ');
@@ -132,6 +174,7 @@ async function main() {
     deniedTools: profile.deniedTools,
     approvalHandler: autoApprove ? null : askApproval,
     tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
+    trace,
   });
 
   console.log('\n\n--- final ---');

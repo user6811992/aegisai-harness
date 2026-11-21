@@ -33,13 +33,13 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] CLI/TUI for headless operation — REPL + --agent flag
 
 ## v0.4 — Quality & polish (P2)
-- [ ] Tracing (per-iteration, per-tool timing, errors)
-- [ ] Agent eval harness with rubrics
-- [ ] Backend resilience (retries, circuit breakers, health checks)
-- [ ] Encrypted local secret vault
-- [ ] Full-state backup/restore
-- [ ] Desktop packaging + offline auto-update
-- [ ] Accessibility & theming
+- [x] Tracing (per-iteration, per-tool timing, errors) — src/tracing.js + /traces
+- [x] Agent eval harness with rubrics — src/eval.js + /eval
+- [x] Backend resilience (retries, circuit breakers, health checks) — backends/index.js
+- [x] Encrypted local secret vault — src/vault.js + /vault
+- [x] Full-state backup/restore — src/backup.js + /backup /restore
+- [ ] Desktop packaging + offline auto-update (deferred — CLI only)
+- [ ] Accessibility & theming (N/A for CLI; deferred for future web UI)
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
