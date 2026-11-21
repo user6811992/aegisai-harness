@@ -54,6 +54,50 @@ async function main() {
   const replFlag = args.includes('--repl');
   const proxyFlag = args.includes('--proxy');
   const updateFlag = args.includes('--update');
+  const webFlag = args.includes('--web');
+
+  if (webFlag) {
+    const http = require('http');
+    const fs = require('fs');
+    const path = require('path');
+    const port = parseInt(process.env.PORT || '8080', 10);
+    const server = http.createServer(async (req, res) => {
+      if (req.method === 'POST' && req.url === '/api/chat') {
+        let body = '';
+        req.on('data', (c) => { body += c; });
+        req.on('end', async () => {
+          try {
+            const parsed = JSON.parse(body);
+            const result = await runAgent({
+              model: process.env.AEGISAI_MODEL || 'llama3.2:3b',
+              messages: [{ role: 'user', content: parsed.message || '' }],
+              projectRoot: process.cwd(),
+              onEvent: () => {},
+              autoApprove: true,
+            });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ reply: (result.final && result.final.final) || '', toolLog: result.toolLog || [] }));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: String(e.message || e) }));
+          }
+        });
+        return;
+      }
+      // serve static
+      let filePath = path.join(__dirname, '..', 'public', req.url === '/' ? 'index.html' : req.url);
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        const ext = path.extname(filePath);
+        const ct = ext === '.html' ? 'text/html' : ext === '.js' ? 'text/javascript' : ext === '.css' ? 'text/css' : 'text/plain';
+        res.writeHead(200, { 'Content-Type': ct });
+        res.end(fs.readFileSync(filePath));
+      } else {
+        res.writeHead(404); res.end();
+      }
+    });
+    server.listen(port, () => console.log('Web UI at http://127.0.0.1:' + port));
+    return;
+  }
 
   if (updateFlag) {
     const url = process.env.AEGISAI_UPDATE_URL;

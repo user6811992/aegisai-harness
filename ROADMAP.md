@@ -74,11 +74,12 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] v0.9.4 TOML route config
 - [x] v0.9.5 Benchmark suites with model tiers + reporting
 
-## v0.11 — Packaging (in progress)
+## v0.11 — Packaging (done)
 - [x] Build script (packaging/build.ps1)
 - [x] Install script (packaging/install.ps1)
 - [x] Offline update checker (src/updater.js, --update, /update)
-- [ ] Desktop packaging (Electron/Tauri) — deferred
+- [x] Web UI (public/index.html) + --web mode
+- [x] Tauri desktop scaffold (packaging/tauri/)
 - [ ] Offline auto-update download — deferred
 - [ ] Accessibility & theming — deferred
 
