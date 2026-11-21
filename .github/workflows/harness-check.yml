@@ -1,0 +1,13 @@
+name: harness-check
+on: [push, pull_request]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm test
+      - run: node -e "const r=require('./src/harness_lint').lint(); console.log(JSON.stringify(r)); if(!r.ok) process.exit(1)"
+      - run: node -e "const r=require('./src/adversarial').run(); console.log(JSON.stringify(r)); if(!r.pass) process.exit(1)"

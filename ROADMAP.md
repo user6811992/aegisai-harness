@@ -305,11 +305,11 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## v0.22 — From GitHub harness search pages 4–6
 ### Eval & quality gates
-- [ ] Skill/plugin evaluator — quality gates, security scanning, harness compatibility, semantic overlap detection (NVIDIA SkillEvaluator)
-- [ ] Harness lint/review/security-audit command (harness-eval)
-- [ ] Adversarial multi-turn stress tests in CI (ProofAgent)
-- [ ] Requirement-driven eval generation + OTel-traced eval (ASSERT)
-- [ ] CI templates for all checks
+- [x] Skill/plugin evaluator (src/skill_eval.js)
+- [x] Harness lint/review/security-audit command (src/harness_lint.js)
+- [x] Adversarial multi-turn stress tests (src/adversarial.js)
+- [ ] Requirement-driven eval generation + OTel-traced eval (ASSERT) — deferred
+- [x] CI templates for all checks (.github/workflows/harness-check.yml)
 ### Harness optimization
 - [ ] Harness optimizer — tunable Formulas optimized from rollout trajectories (strands-labs/harness-optimizer)
 - [ ] Self-healing skills via CI (aeon)

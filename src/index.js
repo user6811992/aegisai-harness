@@ -392,6 +392,9 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/skill-eval ')) { const r = require('./skill_eval').evaluateFile(t.slice(12).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/lint') { const r = require('./harness_lint').lint(); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/stress') { const r = require('./adversarial').run(); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }
