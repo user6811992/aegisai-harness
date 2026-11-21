@@ -257,6 +257,13 @@ async function main() {
     console.log(JSON.stringify(info, null, 2));
     process.exit(0);
   }
+  const dl = args.indexOf('--update-download');
+  if (dl >= 0 && args[dl + 1]) {
+    const out = args[dl + 2] || path.join(process.cwd(), 'update-download.bin');
+    const r = await updater.downloadUpdate(args[dl + 1], out);
+    console.log(JSON.stringify(r));
+    process.exit(0);
+  }
   // --config <file>
   const ci = args.indexOf('--config');
   if (ci >= 0 && args[ci + 1]) {
@@ -348,6 +355,10 @@ async function main() {
       if (t === '/timers') { console.log(JSON.stringify(require('./alwayson').dueTimers())); rl.prompt(); return; }
       if (t === '/outbox') { console.log(JSON.stringify(require('./alwayson').outboxItems())); rl.prompt(); return; }
       if (t.startsWith('/emit ')) { const id = require('./alwayson').emit(t.slice(6).trim().split(' ')[0], { text: t.slice(6).trim() }); console.log('emitted', id); rl.prompt(); return; }
+      if (t.startsWith('/remember ')) { const r = require('./decision_memory').remember(t.slice(10).trim()); console.log('remembered', r.id); rl.prompt(); return; }
+      if (t.startsWith('/recall ')) { const r = await require('./decision_memory').recall(t.slice(8).trim()); console.log(r); rl.prompt(); return; }
+      if (t === '/reflect') { const r = await require('./decision_memory').reflect(); console.log(r); rl.prompt(); return; }
+      if (t.startsWith('/plan ')) { const r = await runAgent({ model: process.env.AEGISAI_MODEL || 'llama3.2:3b', messages: [{ role: 'user', content: t.slice(6).trim() }], projectRoot: root, planMode: true, onEvent: () => {}, autoApprove: true }); console.log(r.final.final); rl.prompt(); return; }
       if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }

@@ -2,6 +2,16 @@
 
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
+## v0.18 — Focused improvements (done)
+- [x] Progressive tool discovery (src/tool_discovery.js)
+- [x] Tool-output compression (src/output_compress.js)
+- [x] Independent verification of work (src/verifier.js)
+- [x] Decision memory remember/recall/reflect (src/decision_memory.js)
+- [x] Plan/Act mode (planMode, /plan)
+- [x] Offline auto-update download (--update-download)
+- [x] Single-binary build script (packaging/build-binary.sh)
+- [ ] Voice STT/TTS in web UI — deferred
+
 ## Current status & next (v0.18 recommendation)
 - **Shipped:** v0.1–v0.17 (17 milestones). Core agent loop, safety, tools, MCP, memory, web UI, packaging, observability, always-on layer — all landed.
 - **Roadmap has grown stale:** many "deferred" items below were later implemented in another section (e.g. policy engine, sandbox rings, session search, skill auto-create, llms.txt, web UI, dark/light theme, Windows installer). Duplicates are being marked done.

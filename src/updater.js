@@ -39,4 +39,13 @@ async function checkRemote(url) {
   }
 }
 
-module.exports = { currentVersion, checkLocal, checkRemote, writeManifest, MANIFEST_PATH };
+async function downloadUpdate(url, outPath) {
+  const r = await fetch(url, { signal: AbortSignal.timeout(60000) });
+  if (!r.ok) throw new Error('download failed: ' + r.status);
+  const buf = Buffer.from(await r.arrayBuffer());
+  fs.mkdirSync(path.dirname(outPath), { recursive: true });
+  fs.writeFileSync(outPath, buf);
+  return { path: outPath, bytes: buf.length };
+}
+
+module.exports = { currentVersion, checkLocal, checkRemote, writeManifest, downloadUpdate, MANIFEST_PATH };

@@ -50,6 +50,10 @@ async function runAgent(opts) {
     policy = null,
     currentRing = 1,
     guardrails = null,
+    progressiveTools = 0,
+    toolOutputCompression = 0,
+    verifyWork = false,
+    planMode = false,
   } = opts;
 
   // project root allowlist
@@ -106,7 +110,7 @@ async function runAgent(opts) {
     mergedExternal[src].push(t);
     mcpLookup.set(`${src}_${t.name}`, t);
   }
-  const tools = registry.assemble({ includeCoding, toolBudget, allowedTools, deniedTools, externalTools: mergedExternal, offline });
+  let tools = registry.assemble({ includeCoding, toolBudget, allowedTools, deniedTools, externalTools: mergedExternal, offline });
   if (archive.length > 0) {
     tools.push({ type: 'function', function: { name: 'recall_archived_context', description: 'Search compacted/archived conversation context by keyword.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } } });
   }
@@ -120,6 +124,16 @@ async function runAgent(opts) {
   tools.push(asyncTools.TASK_TOOL_DEF);
   tools.push({ type: 'function', function: { name: 'get_repo_map', description: 'Return a compact repo map: files, symbols, imports.', parameters: { type: 'object', properties: { maxFiles: { type: 'number' } } } } });
   tools.push({ type: 'function', function: { name: 'handoff_to_agent', description: 'Hand off task with full conversation context to a named agent.', parameters: { type: 'object', properties: { agent: { type: 'string' }, instruction: { type: 'string' } }, required: ['instruction'] } } });
+
+  if (progressiveTools > 0) {
+    const lastUser = [...msgs].reverse().find((m) => m.role === 'user');
+    const q = typeof lastUser?.content === 'string' ? lastUser.content : '';
+    const core = new Set(['task', 'get_repo_map', 'handoff_to_agent', 'search_codebase', 'recall_archived_context']);
+    const discovered = require('../tool_discovery').discover(tools, q, progressiveTools);
+    const selected = discovered.filter((t) => core.has((t.function || t).name));
+    tools = selected.length ? selected : discovered;
+  }
+  if (planMode) tools = [];
 
   let totalTokens = 0;
   let iterations = 0;
@@ -186,6 +200,10 @@ async function runAgent(opts) {
 
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
       let finalText = msg.content || '';
+      if (verifyWork) {
+        const vr = require('../verifier').verify(finalText, toolLog);
+        finalText += '\n\n[verification] ' + (vr.verified ? 'verified' : 'UNVERIFIED: ' + vr.issues.join('; '));
+      }
       if (guardrails && guardrails.output) {
         const gr = require('../guardrails');
         const check = gr.checkOutput(finalText, guardrails.output === true ? {} : guardrails.output);
@@ -376,7 +394,8 @@ async function runAgent(opts) {
         continue;
       }
       const preview = (r.result && (r.result.output || r.result.out)) || '';
-      const previewStr = String(preview).slice(0, 500);
+      let previewStr = String(preview).slice(0, 500);
+      if (toolOutputCompression > 0) previewStr = require('../output_compress').compress(String(preview), toolOutputCompression);
       toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr });
       onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
       msgs.push({ role: 'tool', content: previewStr, name: r.name });
