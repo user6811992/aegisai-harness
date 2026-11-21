@@ -421,6 +421,18 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t === '/hardware') { const hw = require('./hardware').detect(); console.log(JSON.stringify({ hw, recommend: require('./hardware').recommend(hw) }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/gw-allow ')) { const p = t.slice(10).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./gateway').allow(p[0], p[1], p[2] || 'read'))); rl.prompt(); return; }
+      if (t.startsWith('/gw-auth ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./gateway').authorize(p[0], p[1], p[2] || 'read'))); rl.prompt(); return; }
+      if (t === '/gw-rules') { console.log(JSON.stringify(require('./gateway').rules(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/admit ')) { console.log(JSON.stringify(require('./admission').request(t.slice(7).trim(), {}))); rl.prompt(); return; }
+      if (t.startsWith('/admit-confirm ')) { console.log(JSON.stringify(require('./admission').admit(t.slice(15).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/research ')) { const r = await require('./deep_research').research(t.slice(10).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2500)); rl.prompt(); return; }
+      if (t === '/continual') { const r = require('./continual').cycle('', []); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/memory-hierarchy') { console.log(JSON.stringify(require('./memory_hierarchy').status(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/vuln-scan ')) { const r = require('./vuln_scan').scan(t.slice(11).trim() || root); console.log(JSON.stringify(r, null, 2).slice(0, 2500)); rl.prompt(); return; }
+      if (t === '/security-kb') { console.log(JSON.stringify(require('./security_kb').list())); rl.prompt(); return; }
+      if (t.startsWith('/sec-match ')) { console.log(JSON.stringify(require('./security_kb').match(t.slice(11).trim()), null, 2)); rl.prompt(); return; }
       if (t === '/runtimes') { console.log(JSON.stringify(require('./runtime_manager').detect(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/runtime-register ')) { const parts = t.slice(17).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./runtime_manager').register(parts[0], parts[1]))); rl.prompt(); return; }
       if (t === '/shadow-ai') { console.log(JSON.stringify(require('./shadow_ai').scan(), null, 2).slice(0, 1500)); rl.prompt(); return; }

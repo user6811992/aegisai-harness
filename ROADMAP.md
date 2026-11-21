@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.28 (28 milestones). v0.28 added runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, declarative harness-as-code, and multi-harness config discovery. 26 issues closed, 44 tests passing.
+- **Shipped:** v0.1–v0.29 (29 milestones). v0.29 added local hardware detection, credentialless gateway, admission gate, local vulnerability scanner, security KB, CRAAP deep research, continual learning, and memory hierarchy. 27 issues closed, 51 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining P2 candidates:** parallel task board, unified context filesystem, ACP/A2A adapters, visual DAG editor, event-driven plugins, local ASR/TTS, simulated browser, real-world coding benchmarks, harness docs.
+- **Remaining P2 candidates:** parallel task board, unified context filesystem, ACP/A2A adapters, visual DAG editor, event-driven plugins, local ASR/TTS, simulated browser, real-world coding benchmarks, harness docs, pentest pipeline, sealed containers.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -37,6 +37,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.26 Audit & evolution** — hash-chained ledger, action guardrails, counterfactual evolution, file-first verification, waste detection, agent mailbox.
 - **v0.27 Context & control** — AX-first browser, context capsules + auto-compaction, action rollback, task state, web search, slop filter, peer review.
 - **v0.28 Ecosystem & tooling** — runtime manager, shadow AI, skill packages, MCP marketplace, self-improvement, templates/themes/RPC, harness-as-code, config discovery.
+- **v0.29 Security & local inference** — hardware detection, credentialless gateway, admission gate, local vuln scanner, security KB, CRAAP research, continual learning, memory hierarchy.
 
 ## Active backlog by theme
 
@@ -154,8 +155,8 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ## v0.29 — From bughunter searches + harness search page 13
 ### Security & bug hunting
 - [ ] Security skill library / vulnerability knowledge base (82 skills, 681 report patterns across 24 vuln classes — Claude-BugHunter)
-- [ ] Local-only vulnerability scanner (no API keys, no data sent) (bughunter-copg)
-- [ ] Local-LLM pentest pipeline: recon → probe → sqlmap/dalfox/nuclei → report (bughunter-harness)
+- [x] Local-only vulnerability scanner (no API keys, no data sent) — src/vuln_scan.js
+- [ ] Local-LLM pentest pipeline: recon → probe → sqlmap/dalfox/nuclei → report (bughunter-harness) — deferred
 - [ ] Bug-hunting agent team + Burp Suite MCP integration (bughunter-ai)
 - [ ] Code bug graph (Neo4j-style) + semantic search over findings
 - [ ] Phase-based recon workflow + auto HTML report (BugHunterX)
@@ -166,17 +167,17 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] tmux-based agent fleet orchestration, each pane siloed to a project (tmux-harness)
 - [ ] Long-lived agent runtime (norns)
 ### Memory & learning
-- [ ] Continual learning + review-and-refine workflow + auto rollback (dsh-continual-harness)
-- [ ] Memory hierarchy + verification ladder (AMH)
-- [ ] Deep research with CRAAP source-credibility scoring + cross-verification (harness-research)
+- [x] Continual learning + review-and-refine workflow + auto rollback — src/continual.js
+- [x] Memory hierarchy + verification ladder — src/memory_hierarchy.js
+- [x] Deep research with CRAAP source-credibility scoring + cross-verification — src/deep_research.js
 ### Interfaces
 - [ ] Semantic browser snapshots + semantic-locate click + form fill (ego-browser)
 - [ ] Real-time shared context for local agents (gatherthread)
 ### Local inference & governance
-- [ ] Local hardware detection (GPU/RAM) + engine/model recommendation (local-ai-harness)
-- [ ] Credentialless agent gateway + sealed containers for sensitive data (minervacomputing/harness)
+- [x] Local hardware detection (GPU/RAM) + engine/model recommendation — src/hardware.js
+- [x] Credentialless agent gateway — src/gateway.js (sealed containers still deferred)
 - [ ] Permission-first third-party integration runtime (gws-harness)
-- [ ] Admission gate in front of every consequential action (oracle/locus)
+- [x] Admission gate in front of every consequential action — src/admission.js
 - [ ] Spec-driven "dark factory" fully autonomous pipeline (fspec)
 
 ## Non-goals

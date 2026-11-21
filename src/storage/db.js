@@ -105,6 +105,9 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS runtimes (name TEXT PRIMARY KEY, command TEXT, created TEXT)`);
       db.exec(`CREATE TABLE IF NOT EXISTS skill_packages (name TEXT PRIMARY KEY, source TEXT, created TEXT)`);
     },
+    function v14() {
+      db.exec(`CREATE TABLE IF NOT EXISTS gateway_rules (agent TEXT, resource TEXT, action TEXT, created TEXT, PRIMARY KEY(agent, resource, action))`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();
