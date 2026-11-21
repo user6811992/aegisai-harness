@@ -10,6 +10,7 @@ const { DATA_DIR, OFFLINE } = require('./core/config');
 const profiles = require('./agents/profiles');
 const vault = require('./vault');
 const skillsImport = require('./skills_import');
+const updater = require('./updater');
 const backup = require('./backup');
 const evalMod = require('./eval');
 const { healthCheck, isCircuitOpen } = require('./backends');
@@ -52,6 +53,14 @@ async function main() {
   const args = process.argv.slice(2);
   const replFlag = args.includes('--repl');
   const proxyFlag = args.includes('--proxy');
+  const updateFlag = args.includes('--update');
+
+  if (updateFlag) {
+    const url = process.env.AEGISAI_UPDATE_URL;
+    const info = url ? await updater.checkRemote(url) : updater.checkLocal();
+    console.log(JSON.stringify(info, null, 2));
+    process.exit(0);
+  }
   // --config <file>
   const ci = args.indexOf('--config');
   if (ci >= 0 && args[ci + 1]) {
@@ -136,6 +145,7 @@ async function main() {
       if (t.startsWith('/policy')) { console.log(JSON.stringify(require('./policy').loadPolicies(), null, 2).slice(0, 1000)); rl.prompt(); return; }
       if (t.startsWith('/capture ')) { const parts = t.slice(9).trim().split('|').map((s) => s.trim()); const id = require('./capture').recordEpisode(parts[0] || 'note', parts[1] || '', parts[2] || ''); console.log('recorded', id); rl.prompt(); return; }
       if (t === '/episodes') { console.log(JSON.stringify(require('./capture').listEpisodes(20), null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t === '/update') { const info = updater.checkLocal(); console.log(JSON.stringify(info)); rl.prompt(); return; }
       if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }
