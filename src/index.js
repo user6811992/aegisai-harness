@@ -135,6 +135,7 @@ async function main() {
   let offline = OFFLINE;
   let agentName = 'default';
   let trace = false;
+  let doomLoop = false;
   const promptParts = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--model') { model = args[++i]; continue; }
@@ -144,6 +145,7 @@ async function main() {
     if (args[i] === '--offline') { offline = true; continue; }
     if (args[i] === '--agent') { agentName = args[++i]; continue; }
     if (args[i] === '--trace') { trace = true; continue; }
+    if (args[i] === '--doomloop') { doomLoop = true; continue; }
     promptParts.push(args[i]);
   }
   const prompt = promptParts.join(' ');
@@ -175,6 +177,7 @@ async function main() {
     approvalHandler: autoApprove ? null : askApproval,
     tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
     trace,
+    doomLoop,
   });
 
   console.log('\n\n--- final ---');

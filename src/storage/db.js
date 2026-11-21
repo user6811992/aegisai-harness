@@ -64,6 +64,9 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS traces (id TEXT PRIMARY KEY, started TEXT NOT NULL, ended TEXT, data TEXT NOT NULL)`);
       db.exec(`CREATE TABLE IF NOT EXISTS evals (id TEXT PRIMARY KEY, name TEXT NOT NULL, prompt TEXT NOT NULL, expected TEXT, agent TEXT, created TEXT NOT NULL)`);
     },
+    function v3() {
+      try { db.exec('ALTER TABLE evals ADD COLUMN expected_tools TEXT'); } catch (e) {}
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

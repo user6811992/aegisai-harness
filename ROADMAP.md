@@ -41,6 +41,17 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Desktop packaging + offline auto-update (deferred — CLI only)
 - [ ] Accessibility & theming (N/A for CLI; deferred for future web UI)
 
+## v0.5 — Reliability & evals (in progress)
+- [x] Doom-loop detection (fingerprint-based, graduated ladder)
+- [x] Composable stop conditions (stepCountIs, maxTokensUsed, maxCost, hasToolCall)
+- [x] Multi-backend router (round-robin/random, OpenAI-compat + Ollama)
+- [x] State-diff eval grading (tool-sequence subsequence matching)
+- [x] Mock MCP fixture (src/testing/mockmcp.js)
+- [ ] Outcome/state grading (full state diff) — deferred
+- [ ] Benchmark suites + cost tiers (from benchmark-harness) — deferred
+- [ ] Conversation state accessor (load/save) — deferred
+- [ ] Tool context / shared context — deferred
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.

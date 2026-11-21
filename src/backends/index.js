@@ -5,7 +5,29 @@ const state = {
   url: process.env.BACKEND_URL || process.env.OLLAMA_URL || 'http://127.0.0.1:11434',
   apiKey: process.env.BACKEND_API_KEY || '',
   explicit: !!(process.env.BACKEND_TYPE || process.env.BACKEND_URL || process.env.OLLAMA_URL),
+  routerUrls: [],
+  routerStrategy: process.env.BACKEND_ROUTER_STRATEGY || 'round-robin',
+  routerIndex: 0,
 };
+
+function pickRouterUrl() {
+  if (!state.routerUrls.length) return state.url;
+  let u;
+  if (state.routerStrategy === 'random') {
+    u = state.routerUrls[Math.floor(Math.random() * state.routerUrls.length)];
+  } else {
+    u = state.routerUrls[state.routerIndex % state.routerUrls.length];
+    state.routerIndex += 1;
+  }
+  state._routerCompat = !/11434/.test(u);
+  return u;
+}
+
+function isOpenaiCompat() {
+  if (state.type === 'router') return !!state._routerCompat;
+  const t = state.type;
+  return ['llamacpp','lmstudio','openai','strata','robin','hyperqwen','exllamav3'].includes(t);
+}
 
 // circuit breaker
 const cb = { failures: 0, openUntil: 0, threshold: 5, cooldownMs: 30000 };
@@ -45,6 +67,7 @@ function getType() { return state.type; }
 function getUrl() { return state.url; }
 function getApiKey() { return state.apiKey; }
 function isOpenaiCompat() {
+  if (state.type === 'router') return !!state._routerCompat;
   const t = state.type;
   return ['llamacpp','lmstudio','openai','strata','robin','hyperqwen','exllamav3'].includes(t);
 }
@@ -55,6 +78,12 @@ function setBackend(type, url) {
 }
 
 async function detectBackend() {
+  if (state.type === 'router') {
+    state.routerUrls = (state.url || '').split(',').map((s) => s.trim()).filter(Boolean);
+    if (state.routerUrls.length === 0) state.routerUrls = ['http://127.0.0.1:11434'];
+    state.explicit = true;
+    return;
+  }
   if (state.explicit) {
     if (!state.type) state.type = 'ollama';
     if (!state.url) state.url = 'http://127.0.0.1:11434';
@@ -76,6 +105,7 @@ async function detectBackend() {
 }
 
 async function backendChatImpl(bodyObj, onChunk, signal) {
+  if (state.type === 'router') state.url = pickRouterUrl();
   if (!isOpenaiCompat()) {
     const ollamaBody = Object.assign({}, bodyObj);
     if (bodyObj.maxTokens && bodyObj.maxTokens > 0) {

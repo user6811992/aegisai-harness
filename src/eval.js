@@ -4,10 +4,15 @@ const db = require('./storage/db');
 const { runAgent } = require('./agent/run');
 const profiles = require('./agents/profiles');
 
-function addEval(name, prompt, expected, agent) {
+function addEval(name, prompt, expected, agent, expectedTools) {
   const id = 'eval_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
-  db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created) VALUES (?,?,?,?,?,?)')
-    .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString());
+  try {
+    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools) VALUES (?,?,?,?,?,?,?)')
+      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null);
+  } catch (e) {
+    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created) VALUES (?,?,?,?,?,?)')
+      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString());
+  }
   return id;
 }
 
@@ -34,9 +39,22 @@ async function runEvals(opts) {
       autoApprove: true,
     });
     const out = (res.final && res.final.final) || '';
+    const toolNames = (res.toolLog || []).map((t) => t.name);
     const expected = (c.expected || '').toLowerCase();
-    const pass = expected ? out.toLowerCase().includes(expected) : true;
-    results.push({ id: c.id, name: c.name, pass, output: out.slice(0, 300) });
+    let pass = expected ? out.toLowerCase().includes(expected) : true;
+    // tool-sequence grading
+    let expectedTools = [];
+    try { expectedTools = c.expected_tools ? JSON.parse(c.expected_tools) : []; } catch (e) { expectedTools = []; }
+    if (expectedTools.length > 0) {
+      // check that expected tools appear in order as subsequence
+      let i = 0;
+      for (const tn of toolNames) {
+        if (i < expectedTools.length && tn === expectedTools[i]) i += 1;
+      }
+      const seqPass = i === expectedTools.length;
+      pass = pass && seqPass;
+    }
+    results.push({ id: c.id, name: c.name, pass, output: out.slice(0, 300), toolNames });
   }
   const passed = results.filter((r) => r.pass).length;
   return { total: results.length, passed, failed: results.length - passed, results };

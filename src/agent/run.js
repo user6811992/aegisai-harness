@@ -5,6 +5,8 @@ const registry = require('../tools/registry');
 const compactMod = require('./compact');
 const hooks = require('../hooks');
 const { Tracer } = require('../tracing');
+const { DoomLoopDetector, fingerprint } = require('../doomloop');
+const stopConditions = require('../stopconditions');
 const { OFFLINE: CONFIG_OFFLINE } = require('../core/config');
 const dbModule = require('../storage/db');
 
@@ -37,12 +39,17 @@ async function runAgent(opts) {
     sandbox = false,
     offline = CONFIG_OFFLINE,
     trace = false,
+    doomLoop = false,
+    stopWhen = null,
   } = opts;
 
   const toolLog = [];
   let msgs = [...(messages || [])];
   const archive = [];
   const tracer = trace ? new Tracer() : null;
+  const detector = doomLoop ? new DoomLoopDetector(typeof doomLoop === 'object' ? doomLoop : {}) : null;
+  let stepCount = 0;
+  const allToolCalls = [];
   if (compact && msgs.length > compactThreshold) {
     const res = await compactMod.compactMessages({ messages: msgs, model, keep: compactKeep, threshold: compactThreshold });
     msgs = res.messages;
@@ -79,6 +86,22 @@ async function runAgent(opts) {
   let iterations = 0;
   const MAX_ITERS = 25;
   while (iterations < MAX_ITERS) {
+    // stop conditions
+    if (stopWhen) {
+      const ctx = { stepCount, totalTokens, totalCost: 0, toolCalls: allToolCalls };
+      if (stopConditions.evaluate(stopWhen, ctx)) {
+        // final turn without tools
+        try {
+          const r = await backends.backendChat({ model, messages: msgs, tools: [], stream: true, maxTokens }, (e) => onEvent(e), signal);
+          const d = r && r.data ? r.data : r;
+          const m = (d && d.message) || {};
+          if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+          return { final: { type: 'done', final: m.content || '', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
+        } catch (e) {}
+        if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+        return { final: { type: 'done', final: '(stopped)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
+      }
+    }
     iterations += 1;
     onEvent({ type: 'status', message: 'calling model' });
     const iterSpan = tracer ? tracer.startSpan('iteration', { iteration: iterations }) : null;
@@ -235,6 +258,32 @@ async function runAgent(opts) {
       toolLog.push({ name: r.name, resultPreview: previewStr });
       onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
       msgs.push({ role: 'tool', content: previewStr, name: r.name });
+    }
+    // doom-loop detection
+    if (detector) {
+      const roundFps = toolCalls.map((tc) => {
+        const fn = tc.function || tc;
+        let a = fn.arguments;
+        if (typeof a === 'string') { try { a = JSON.parse(a); } catch (e) { a = {}; } }
+        return fingerprint(fn.name, a || {});
+      });
+      const verdicts = detector.record(roundFps);
+      stepCount += 1;
+      allToolCalls.push(...toolCalls.map((tc) => (tc.function || tc).name));
+      const stopVerdict = verdicts.find((v) => v.action === 'stop');
+      if (stopVerdict) {
+        if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
+        return { final: { type: 'done', final: '(doom loop stopped)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
+      }
+      if (verdicts.some((v) => v.action === 'block')) {
+        msgs.push({ role: 'system', content: 'Doom loop detected: repeated identical tool calls. Change your approach.' });
+      }
+      if (verdicts.some((v) => v.action === 'observe')) {
+        onEvent({ type: 'status', message: 'doom loop observed' });
+      }
+    } else {
+      stepCount += 1;
+      allToolCalls.push(...toolCalls.map((tc) => (tc.function || tc).name));
     }
   }
 
