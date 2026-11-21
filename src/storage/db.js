@@ -108,6 +108,9 @@ function open(dbPath) {
     function v14() {
       db.exec(`CREATE TABLE IF NOT EXISTS gateway_rules (agent TEXT, resource TEXT, action TEXT, created TEXT, PRIMARY KEY(agent, resource, action))`);
     },
+    function v15() {
+      db.exec(`CREATE TABLE IF NOT EXISTS board_tasks (id TEXT PRIMARY KEY, created TEXT, data TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

@@ -69,6 +69,17 @@ async function main() {
   const charterFlag = args.includes('--charter');
   const actionGuardFlag = args.includes('--action-guard');
   const rpcFlag = args.includes('--rpc');
+  const acpFlag = args.includes('--acp');
+
+  if (acpFlag) {
+    const acp = require('./acp').createServer();
+    const rlAcp = require('readline').createInterface({ input: process.stdin });
+    rlAcp.on('line', async (line) => {
+      try { const res = await acp.handle(JSON.parse(line)); process.stdout.write(JSON.stringify(res) + '\n'); }
+      catch (e) { process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32700, message: 'parse error' } }) + '\n'); }
+    });
+    return;
+  }
 
   if (rpcFlag) {
     const readlineRPC = require('readline').createInterface({ input: process.stdin });
@@ -421,6 +432,14 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/board-add ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); const task = require('./task_board').add(p[0], p[1] || '', (p[2] || '').split(',').filter(Boolean)); console.log(JSON.stringify(task)); rl.prompt(); return; }
+      if (t === '/board') { console.log(JSON.stringify(require('./task_board').list(), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/board-done ')) { console.log(JSON.stringify(require('./task_board').complete(t.slice(12).trim()))); rl.prompt(); return; }
+      if (t === '/ctxfs') { console.log(JSON.stringify(require('./context_fs').list('/'), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/ctxfs-read ')) { console.log(JSON.stringify(require('./context_fs').read(t.slice(12).trim()), null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t.startsWith('/ctxfs-search ')) { console.log(JSON.stringify(require('./context_fs').search(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/bench-real ')) { const r = await require('./benchmarks_real').run(t.slice(12).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/pentest ')) { const r = await require('./pentest_pipeline').run(t.slice(9).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/hardware') { const hw = require('./hardware').detect(); console.log(JSON.stringify({ hw, recommend: require('./hardware').recommend(hw) }, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/gw-allow ')) { const p = t.slice(10).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./gateway').allow(p[0], p[1], p[2] || 'read'))); rl.prompt(); return; }
       if (t.startsWith('/gw-auth ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./gateway').authorize(p[0], p[1], p[2] || 'read'))); rl.prompt(); return; }

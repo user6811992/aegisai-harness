@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.29 (29 milestones). v0.29 added local hardware detection, credentialless gateway, admission gate, local vulnerability scanner, security KB, CRAAP deep research, continual learning, and memory hierarchy. 27 issues closed, 51 tests passing.
+- **Shipped:** v0.1–v0.30 (30 milestones). v0.30 (P2 set) added parallel task board, unified context filesystem, event-driven plugins, ACP adapter, real-world benchmarks, harness docs, and local pentest pipeline. 28 issues closed, 57 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining P2 candidates:** parallel task board, unified context filesystem, ACP/A2A adapters, visual DAG editor, event-driven plugins, local ASR/TTS, simulated browser, real-world coding benchmarks, harness docs, pentest pipeline, sealed containers.
+- **Remaining deferred:** A2A adapter, visual DAG editor, local ASR/TTS, simulated browser, sealed containers, event-driven plugin UI, multi-tenant isolation, in-process model loading, Rust SDK.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -38,6 +38,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.27 Context & control** — AX-first browser, context capsules + auto-compaction, action rollback, task state, web search, slop filter, peer review.
 - **v0.28 Ecosystem & tooling** — runtime manager, shadow AI, skill packages, MCP marketplace, self-improvement, templates/themes/RPC, harness-as-code, config discovery.
 - **v0.29 Security & local inference** — hardware detection, credentialless gateway, admission gate, local vuln scanner, security KB, CRAAP research, continual learning, memory hierarchy.
+- **v0.30 P2 platform** — parallel task board, unified context filesystem, event bus, ACP adapter, real-world benchmarks, harness docs, pentest pipeline.
 
 ## Active backlog by theme
 
@@ -68,19 +69,19 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Connection profiles + mDNS discovery for local MCP/backend servers
 
 ### P2 — heavier / needs a concrete need
-- [ ] ACP adapter (integrate harness as backend for apps)
+- [x] ACP adapter (integrate harness as backend for apps) — src/acp.js, --acp
 - [ ] A2A protocol adapter
 - [ ] Visual DAG editor UI
-- [ ] Event-driven plugin architecture (Cordis-style)
+- [x] Event-driven plugin architecture — src/event_bus.js
 - [ ] Extension registry / custom distributions
 - [x] Shadow AI discovery — src/shadow_ai.js (governance dashboard still deferred)
-- [ ] Parallel task board with worktrees + dependency chains
+- [x] Parallel task board with worktrees + dependency chains — src/task_board.js
 - [ ] Local ASR/TTS models for capture (Qwen3-ASR/TTS)
 - [ ] Multimodal realtime harness (see/hear/act + memory)
 - [ ] Simulated browser for web agents
 - [ ] Selection quoting for UI
-- [ ] Real-world coding benchmarks (cline-bench, polyglot, long-horizon)
-- [ ] Harness engineering docs: guides, teardowns, templates, playbooks
+- [x] Real-world coding benchmarks (polyglot, long-horizon) — src/benchmarks_real.js
+- [x] Harness engineering docs — HARNESS_DOCS.md
 
 ### Deferred — platform-scale
 - [ ] In-process model loading (no separate inference server)
@@ -108,7 +109,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Meta-harness local hooks + developer observability (interlinked-cli)
 - [ ] Prompt-cache optimization patches (prompt-cache-skills)
 ### Context & memory
-- [ ] Unified context filesystem: code/memory/docs/DB/SaaS in one interface (zilliztech/mfs)
+- [x] Unified context filesystem: code/memory/docs/sessions in one interface — src/context_fs.js
 - [ ] Explainable retrieval + portable context across harnesses (ContextLattice)
 - [ ] Git history + blame code-map integration (basemind)
 - [ ] Ambient self-learning memory (syke)
@@ -156,7 +157,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ### Security & bug hunting
 - [ ] Security skill library / vulnerability knowledge base (82 skills, 681 report patterns across 24 vuln classes — Claude-BugHunter)
 - [x] Local-only vulnerability scanner (no API keys, no data sent) — src/vuln_scan.js
-- [ ] Local-LLM pentest pipeline: recon → probe → sqlmap/dalfox/nuclei → report (bughunter-harness) — deferred
+- [x] Local pentest pipeline: recon → probe → scan → report — src/pentest_pipeline.js (external tool chaining still deferred)
 - [ ] Bug-hunting agent team + Burp Suite MCP integration (bughunter-ai)
 - [ ] Code bug graph (Neo4j-style) + semantic search over findings
 - [ ] Phase-based recon workflow + auto HTML report (BugHunterX)
