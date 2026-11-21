@@ -46,6 +46,18 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ## v0.6 — Advanced (done)
 
 ## v0.7 — Advanced polish (done)
+
+## v0.8 — Deferred backlog (in progress)
+- [x] Tool sets — declarative activation (src/toolsets.js)
+- [x] SKILL.md import (src/skills_import.js)
+- [x] Standalone OpenAI-compat proxy mode (--proxy)
+- [ ] Async/background/deferred tools + universal `task` tool — deferred
+- [ ] Full state-diff eval grading + seeded mocks — deferred
+- [ ] Large-tool-set stress test (1,595 tools) — deferred
+- [ ] Advanced routing: stage router, advisor gate — deferred (capability + escalation done)
+- [ ] TOML route config — deferred
+- [ ] Benchmark suites with model tiers — deferred
+- [ ] OpenTelemetry export — done (v0.7)
 - [x] Enhanced doom-loop: canonical fingerprints (sorted keys), text repetition, escalate action
 - [x] Richer hooks: PermissionRequest, SessionStart/End, PostModelCall, mutatedInput/block
 - [x] Tool context / shared context (plumbed via opts)

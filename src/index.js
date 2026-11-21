@@ -9,6 +9,7 @@ const readline = require('readline');
 const { DATA_DIR, OFFLINE } = require('./core/config');
 const profiles = require('./agents/profiles');
 const vault = require('./vault');
+const skillsImport = require('./skills_import');
 const backup = require('./backup');
 const evalMod = require('./eval');
 const { healthCheck, isCircuitOpen } = require('./backends');
@@ -50,6 +51,40 @@ async function main() {
 
   const args = process.argv.slice(2);
   const replFlag = args.includes('--repl');
+  const proxyFlag = args.includes('--proxy');
+
+  if (proxyFlag) {
+    const http = require('http');
+    const port = parseInt(process.env.AEGISAI_PROXY_PORT || '4000', 10);
+    const server = http.createServer(async (req, res) => {
+      if (req.method === 'POST' && req.url.includes('/chat/completions')) {
+        let body = '';
+        req.on('data', (c) => { body += c; });
+        req.on('end', async () => {
+          try {
+            const parsed = JSON.parse(body);
+            const result = await runAgent({
+              model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
+              messages: parsed.messages || [],
+              projectRoot: process.cwd(),
+              onEvent: () => {},
+              autoApprove: true,
+            });
+            const resp = { id: 'chatcmpl-' + Date.now(), object: 'chat.completion', created: Math.floor(Date.now() / 1000), model: parsed.model, choices: [{ index: 0, message: { role: 'assistant', content: (result.final && result.final.final) || '' }, finish_reason: 'stop' }] };
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(resp));
+          } catch (e) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: String(e.message || e) }));
+          }
+        });
+      } else {
+        res.writeHead(404); res.end();
+      }
+    });
+    server.listen(port, () => console.log('Proxy listening on :' + port));
+    return;
+  }
 
   if (args.length === 0 || replFlag) {
     console.log('AegisAi Harness v0.3.0 REPL. Type /exit to quit, /help for commands.');
@@ -85,6 +120,7 @@ async function main() {
       if (t.startsWith('/agent ')) { const p = profiles.getProfile(t.slice(7).trim()); model = p.model || model; /* apply profile defaults */ console.log('agent =', p.name); rl.prompt(); return; }
       if (t === '/index') { const ci = require('./indexing/codeindex'); ci.ensureSchema(db.get()); const n = ci.indexProject(root, db.get()); console.log('indexed symbols:', n); rl.prompt(); return; }
       if (t.startsWith('/replay ')) { const r = require('./replay'); const res = await r.replaySession(t.slice(8).trim(), { projectRoot: root }); console.log(JSON.stringify(res.replayed.final, null, 2).slice(0, 500)); rl.prompt(); return; }
+      if (t.startsWith('/skill import ')) { const r = skillsImport.importSkill(t.slice(14).trim()); console.log('imported skill:', r.name); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }
       if (t.startsWith('/restore ')) { const p = t.slice(9).trim(); backup.restore(p); console.log('restored:', p); rl.prompt(); return; }
