@@ -60,6 +60,9 @@ async function runAgent(opts) {
     piiProtection = false,
     charter = null,
     actionGuard = false,
+    capsuleSession = null,
+    agentCompact = false,
+    rollback = false,
   } = opts;
 
   // project root allowlist
@@ -73,6 +76,10 @@ async function runAgent(opts) {
   const capture = (finalText) => { try { require('../observability').captureRun({ model, prompt: (messages || []).map((m) => (typeof m.content === 'string' ? m.content : '')).join(' ').slice(0, 500), final: finalText || '', toolLog, tokenStats: { total: totalTokensRef }, durationMs: Date.now() - runStart }); } catch (e) {} };
   const toolLog = [];
   let msgs = [...(messages || [])];
+  if (capsuleSession) {
+    const cap = require('../capsule').latest(capsuleSession);
+    if (cap && Array.isArray(cap.messages)) msgs = cap.messages.filter((m) => m.role === 'system').concat(msgs);
+  }
   if (piiProtection) {
     const pii = require('../pii');
     msgs = msgs.map((m) => {
@@ -156,6 +163,13 @@ async function runAgent(opts) {
   let iterations = 0;
   const MAX_ITERS = 25;
   while (iterations < MAX_ITERS) {
+    // agent-decided / threshold compaction into a capsule
+    if (agentCompact && iterations > 1 && require('../capsule').shouldCompact(msgs, typeof agentCompact === 'number' ? agentCompact : 0.8)) {
+      require('../capsule').write(capsuleSession || 'default', msgs, { reason: 'auto-compact', iteration: iterations });
+      const system = msgs.filter((m) => m.role === 'system');
+      msgs = system.concat(msgs.slice(-6));
+      archive.push(...(system.length ? [] : []));
+    }
     // stop conditions
     if (stopWhen) {
       const ctx = { stepCount, totalTokens, totalCost: 0, toolCalls: allToolCalls };
@@ -228,6 +242,7 @@ async function runAgent(opts) {
       }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
       capture(finalText);
+      if (capsuleSession) { try { require('../capsule').write(capsuleSession, msgs, { reason: 'complete', final: String(finalText).slice(0, 200) }); } catch (e) {} }
       try { require('../ledger').append('run_complete', { model, prompt: String((messages || [])[0]?.content || '').slice(0, 200), final: String(finalText).slice(0, 500), tools: toolLog.length }); } catch (e) {}
       await hooks.run('SessionEnd', { reason: 'complete', totalUsage: { totalTokens } });
       if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
@@ -378,6 +393,9 @@ async function runAgent(opts) {
           const prefix = name.slice(0, name.indexOf('_') + 1);
           result = require('../integrations/retools').runTool(prefix, name, args);
         } else {
+          if (rollback && (name === 'write_file' || name === 'delete_file')) {
+            try { const rbId = require('../rollback').snapshotFile(args.path, projectRoot); toolLog.push({ name: '__rollback__', args: { path: args.path }, resultPreview: rbId }); } catch (e) {}
+          }
           result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline, toolContext, sharedContext });
         }
       } catch (e) {

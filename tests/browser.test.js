@@ -4,7 +4,9 @@ const browser = require('../src/integrations/browser');
 
 test('browser tool definitions present', () => {
   const names = browser.TOOLS.map((t) => t.function.name);
-  assert.deepEqual(names, ['browser_navigate', 'browser_snapshot', 'browser_click', 'browser_type', 'browser_eval']);
+  for (const n of ['browser_navigate', 'browser_snapshot', 'browser_click', 'browser_type', 'browser_eval', 'browser_ax', 'browser_click_ref', 'browser_type_ref']) {
+    assert.ok(names.includes(n), 'missing ' + n);
+  }
 });
 
 test('CDP client parses messages', async () => {

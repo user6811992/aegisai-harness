@@ -2,6 +2,7 @@
 // Computer-use / browser-use via Chrome DevTools Protocol (CDP).
 // Connects to a local Chrome started with --remote-debugging-port=9222.
 const BASE = process.env.CDP_URL || 'http://127.0.0.1:9222';
+const lastAX = new Map(); // session -> array of { ref, role, name }
 
 function targets() {
   return fetch(BASE + '/json/list').then((r) => r.json()).catch(() => []);
@@ -65,6 +66,9 @@ const TOOLS = [
   { type: 'function', function: { name: 'browser_click', description: 'Click an element by CSS selector.', parameters: { type: 'object', properties: { selector: { type: 'string' } }, required: ['selector'] } } },
   { type: 'function', function: { name: 'browser_type', description: 'Type text into an element by CSS selector.', parameters: { type: 'object', properties: { selector: { type: 'string' }, text: { type: 'string' } }, required: ['selector', 'text'] } } },
   { type: 'function', function: { name: 'browser_eval', description: 'Evaluate JavaScript in the page.', parameters: { type: 'object', properties: { expression: { type: 'string' } }, required: ['expression'] } } },
+  { type: 'function', function: { name: 'browser_ax', description: 'Accessibility-first snapshot with stable refs and optional diff.', parameters: { type: 'object', properties: { diff: { type: 'boolean' }, limit: { type: 'number' } } } } },
+  { type: 'function', function: { name: 'browser_click_ref', description: 'Click an element by stable AX ref.', parameters: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } } },
+  { type: 'function', function: { name: 'browser_type_ref', description: 'Type into an element by stable AX ref.', parameters: { type: 'object', properties: { ref: { type: 'string' }, text: { type: 'string' } }, required: ['ref', 'text'] } } },
 ];
 
 async function handle(name, args, cdp) {
@@ -87,6 +91,39 @@ async function handle(name, args, cdp) {
     if (name === 'browser_type') {
       const out = await evaluate(c, `(()=>{const e=document.querySelector(${JSON.stringify(args.selector)});if(!e)return 'no element';e.value=${JSON.stringify(args.text)};e.dispatchEvent(new Event('input',{bubbles:true}));return 'typed'})()`);
       return { ok: true, output: String(out) };
+    }
+    if (name === 'browser_ax') {
+      const r = await c.call('Accessibility.getFullAXTree');
+      const nodes = (r.nodes || []).filter((n) => n.role && n.name && n.backendDOMNodeId).slice(0, args.limit || 120);
+      const ax = nodes.map((n, i) => ({ ref: 'r' + i, role: n.role.value, name: n.name.value, domId: n.backendDOMNodeId }));
+      // bind refs into DOM elements for stable subsequent actions
+      for (const n of ax) {
+        try {
+          const obj = await c.call('DOM.resolveNode', { backendNodeId: n.domId });
+          if (obj && obj.object) await c.call('Runtime.callFunctionOn', { objectId: obj.object.objectId, functionDeclaration: 'function(){this.setAttribute("data-aegisai-ref", arguments[0]);}', arguments: [{ value: n.ref }] });
+        } catch (e) {}
+      }
+      const key = c.wsUrl || 'default';
+      const prev = lastAX.get(key) || [];
+      const prevNames = new Set(prev.map((p) => p.role + ':' + p.name));
+      const curNames = new Set(ax.map((p) => p.role + ':' + p.name));
+      const added = ax.filter((p) => !prevNames.has(p.role + ':' + p.name));
+      const removed = prev.filter((p) => !curNames.has(p.role + ':' + p.name));
+      lastAX.set(key, ax);
+      const lines = args.diff
+        ? added.map((p) => '+ ' + p.ref + ' ' + p.role + ': ' + p.name).concat(removed.map((p) => '- ' + p.role + ': ' + p.name))
+        : ax.map((p) => p.ref + ' ' + p.role + ': ' + p.name);
+      return { ok: true, output: lines.join('\n') || '(no AX changes)', ax };
+    }
+    if (name === 'browser_click_ref' || name === 'browser_type_ref') {
+      const ref = String(args.ref || '');
+      if (!/^r\d+$/.test(ref)) return { ok: false, output: 'invalid ref' };
+      const sel = '[data-aegisai-ref="' + ref + '"]';
+      const js = name === 'browser_click_ref'
+        ? `document.querySelector(${JSON.stringify(sel)})?.click(); 'clicked'`
+        : `(()=>{const e=document.querySelector(${JSON.stringify(sel)});if(!e)return 'no element';e.value=${JSON.stringify(args.text)};e.dispatchEvent(new Event('input',{bubbles:true}));return 'typed'})()`;
+      const out = await evaluate(c, js);
+      return { ok: String(out) !== 'no element', output: String(out) };
     }
     if (name === 'browser_eval') {
       const out = await evaluate(c, args.expression);

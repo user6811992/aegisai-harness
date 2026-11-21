@@ -408,6 +408,14 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/peer-review ')) { const r = await require('./peer_review').review(t.slice(13).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/review ')) { const r = require('./content_review').review(t.slice(8).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/search ')) { const r = await require('./web_search').search(t.slice(8).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/task-create ')) { const s = require('./task_state').create(t.slice(13).trim()); console.log(JSON.stringify(s, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/task-update ')) { const parts = t.slice(13).trim().split('|').map((x) => x.trim()); const s = require('./task_state').update(parts[0], JSON.parse(parts[1] || '{}')); console.log(JSON.stringify(s, null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t === '/tasks') { console.log(JSON.stringify(require('./task_state').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/rollback ')) { const r = require('./rollback').restore(t.slice(10).trim()); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t === '/rollbacks') { console.log(JSON.stringify(require('./rollback').list(), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/mail ')) { const parts = t.slice(6).trim().split('|').map((x) => x.trim()); const id = require('./mailbox').send(parts[0], 'user', parts[1] || '', parts[2] || ''); console.log('sent', id); rl.prompt(); return; }
       if (t.startsWith('/inbox ')) { const r = require('./mailbox').inbox(t.slice(7).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/waste') { const r = require('./waste').detect(lastToolLog); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }

@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.26 (26 milestones). v0.26 added hash-chained ledger, evidence-based action guardrails, counterfactual harness evolution, file-first verification, waste detection, and async agent mailbox. 24 issues closed, 31 tests passing.
+- **Shipped:** v0.1–v0.27 (27 milestones). v0.27 added AX-first browser use, context capsules + auto-compaction, action rollback, structured task state, keyless web search, content slop filter, and cross-LLM peer review. 25 issues closed, 36 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Next candidates (v0.27):** remaining P1/P2 items — agent runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, parallel task board, declarative harness-as-code, unified context filesystem.
+- **Next candidates (v0.28):** remaining P1/P2 items — agent runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, parallel task board, declarative harness-as-code, unified context filesystem, multi-harness config discovery.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -35,6 +35,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.24 Teams & interfaces** — multi-agent teams, headless JSON CLI, context files, read-only mode, Markdown extraction.
 - **v0.25 Trust & governance** — agent lifecycle, PII redaction, governance charter, Windows/FS robustness, pairing evals, bi-temporal memory.
 - **v0.26 Audit & evolution** — hash-chained ledger, action guardrails, counterfactual evolution, file-first verification, waste detection, agent mailbox.
+- **v0.27 Context & control** — AX-first browser, context capsules + auto-compaction, action rollback, task state, web search, slop filter, peer review.
 
 ## Active backlog by theme
 
@@ -122,29 +123,29 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## v0.27 — From GitHub harness search pages 10–12
 ### Browser & computer use
-- [ ] Accessibility-first browser use: diffed AX-tree snapshots, stable element refs, typed errors (axuse)
+- [x] Accessibility-first browser use: diffed AX-tree snapshots, stable element refs (axuse) — browser_ax/click_ref/type_ref
 - [ ] Drive real logged-in Chrome from any harness (open-web-bridge)
 - [ ] Interactive PTY terminal tool for agents (term-cli)
 ### Context & compaction
-- [ ] Context capsule checkpointing at threshold + resume (aigent-os)
-- [ ] Agent-decided auto-compaction (agent chooses when/what to retain) (dsh-block-ptc)
+- [x] Context capsule checkpointing at threshold + resume — src/capsule.js
+- [x] Agent-decided auto-compaction (agent chooses when/what to retain) — agentCompact option
 - [ ] Cross-device, cross-agent session sync (agentctxsync)
 - [ ] Harness-based RAG without embeddings/vector DB — LLM reads all (sourcelens)
 ### Orchestration & process
 - [ ] Design contracts before implementation (dely)
-- [ ] Structured task state instead of chat history (loom)
+- [x] Structured task state instead of chat history — src/task_state.js
 - [ ] Goals + Heartbeat + Dream background agent loop (talon)
 - [ ] Five-agent pipeline (scope/plan/build/verify/learn) with proof chain (anatomia)
 - [ ] Thinking/acting model routing (loom)
 - [ ] Persistent task graph + worktree isolation (q-code)
 ### Verification & security
-- [ ] Cross-LLM peer review before completion/PR (harness-engineering-skills)
+- [x] Cross-LLM peer review before completion/PR — src/peer_review.js
 - [ ] Red-team/blue-team test suite: MCP, A2A, governance, supply chain (msaleme fabric)
-- [ ] Content review / slop filter (vectorlint)
-- [ ] Action rollback capability (devops-agent-harness)
+- [x] Content review / slop filter — src/content_review.js
+- [x] Action rollback capability — src/rollback.js
 - [ ] Ablatable memory for evals + deterministic simulations (Durable-agent-harness)
 ### Tooling & discovery
-- [ ] Agent-native multi-provider web search with keyless defaults (agent-web-search)
+- [x] Agent-native web search with keyless defaults — src/web_search.js
 - [ ] Agent asset package manager (harness-ai-kit)
 - [ ] Multi-harness config/path/MCP discovery library (harness-barn)
 - [ ] Interoperability with any harness via ACP/protocol bridges (multiple)

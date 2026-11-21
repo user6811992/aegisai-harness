@@ -98,6 +98,9 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS ledger (seq INTEGER PRIMARY KEY, event TEXT, payload TEXT, prev TEXT, hash TEXT)`);
       db.exec(`CREATE TABLE IF NOT EXISTS mailbox (id TEXT PRIMARY KEY, recipient TEXT, sender TEXT, subject TEXT, body TEXT, status TEXT, created TEXT)`);
     },
+    function v12() {
+      db.exec(`CREATE TABLE IF NOT EXISTS task_states (id TEXT PRIMARY KEY, created TEXT, data TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();
