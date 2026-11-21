@@ -113,8 +113,21 @@ async function backendChatImpl(bodyObj, onChunk, signal) {
       const complex = text.length > 200 || (bodyObj.tools && bodyObj.tools.length > 5);
       state.url = complex ? state.routerUrls[state.routerUrls.length - 1] : state.routerUrls[0];
       state._routerCompat = !/11434/.test(state.url);
-    } else if (state.routerStrategy === 'escalation') {
-      state.url = state.routerUrls[0];
+    } else if (state.routerStrategy === 'escalation' || state.routerStrategy === 'stage' || state.routerStrategy === 'advisor') {
+      const msgs = bodyObj.messages || [];
+      if (state.routerStrategy === 'advisor') {
+        // advisor: use capable when tools present in last assistant turn, else efficient
+        const hasTools = msgs.some((m) => m.role === 'assistant' && m.tool_calls);
+        state.url = hasTools && state.routerUrls.length > 1 ? state.routerUrls[state.routerUrls.length - 1] : state.routerUrls[0];
+      } else {
+        const lastTool = [...msgs].reverse().find((m) => m.role === 'tool');
+        const failed = lastTool && /error|BLOCKED|failed|timeout/i.test(String(lastTool.content || ''));
+        if (failed && state.routerUrls.length > 1) {
+          state.url = state.routerUrls[state.routerUrls.length - 1];
+        } else {
+          state.url = state.routerUrls[0];
+        }
+      }
       state._routerCompat = !/11434/.test(state.url);
     } else {
       state.url = pickRouterUrl();
