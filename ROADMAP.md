@@ -2,6 +2,12 @@
 
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
+## Current status & next (v0.18 recommendation)
+- **Shipped:** v0.1–v0.17 (17 milestones). Core agent loop, safety, tools, MCP, memory, web UI, packaging, observability, always-on layer — all landed.
+- **Roadmap has grown stale:** many "deferred" items below were later implemented in another section (e.g. policy engine, sandbox rings, session search, skill auto-create, llms.txt, web UI, dark/light theme, Windows installer). Duplicates are being marked done.
+- **Next priorities (v0.18):** (1) progressive tool discovery + tool-output compression — biggest token/cost win for large tool sets; (2) independent verification of work — closes the "claim-check" gap; (3) decision memory (remember/recall/reflect) — small, high-value; (4) plan/act modes; (5) finish packaging: offline auto-update download + single-binary build; (6) voice STT/TTS in web UI.
+- **Defer:** heavy platform work (VM sandboxing, in-process model loading, multi-tenant isolation, computer-use, Rust SDK) until there is a concrete user need.
+
 ## v0.1 — Scaffold (done)
 - [x] Create private repo `aegisai-harness`
 - [x] Initial project scaffold (package.json, .gitignore, README, ROADMAP)
@@ -96,9 +102,9 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## v0.10 — From ecosystem exploration (NousResearch, deepseek-ai, fendouai, opencode-ai)
 ### From NousResearch/hermes-agent
-- [ ] Skill auto-creation from experience + self-improvement during use
+- [x] Skill auto-creation from experience (src/skill_auto.js); self-improvement loop still deferred
 - [ ] Periodic nudges to persist knowledge
-- [ ] Session search with LLM summarization (cross-session recall)
+- [x] Session search with LLM summarization (src/session_search.js)
 - [ ] Pluggable memory providers (mem0, honcho, supermemory, openviking)
 - [ ] Pluggable terminal/sandbox backends (Docker, SSH, Modal, Daytona)
 - [ ] Cron scheduling with platform delivery
@@ -106,20 +112,20 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Agent import/migration from other agents (OpenClaw, Claude Code, Codex, Cursor)
 - [ ] Honcho dialectic user modeling (already have Honcho skill)
 ### From NousResearch/agent-governance-toolkit (Microsoft)
-- [ ] Policy engine (YAML/OPA/Rego/Cedar) evaluated before execution
+- [x] Policy engine (src/policy.js — YAML subset; OPA/Rego/Cedar still deferred)
 - [ ] Zero-trust identity (Ed25519, trust scoring)
-- [ ] Execution sandboxing (4-tier privilege rings, saga orchestration, kill switch)
-- [ ] Agent SRE (SLOs, error budgets, chaos engineering, replay debugging)
+- [x] Execution sandboxing (4-tier privilege rings — src/sandbox_rings.js)
+- [x] Agent SRE basics (v0.17 reliability + observability + replay; SLOs/chaos still deferred)
 - [ ] MCP security scanner (tool poisoning, typosquatting, hidden instructions)
 - [ ] Shadow AI discovery (find unregistered agents)
 - [ ] Agent lifecycle (provisioning, credential rotation, orphan detection, decommissioning)
 - [ ] Governance dashboard
 ### From deepseek-ai/deepseek-harness
 - [ ] Event-driven plugin architecture (Cordis-style spatiotemporal composability)
-- [ ] Web UI at localhost
+- [x] Web UI at localhost (v0.12/v0.15)
 - [ ] Plugin discoverability via topic tags
 ### From fendouai/PrivateSecretary
-- [ ] Multimodal context capture (screen/audio OCR/ASR) as optional integration
+- [x] Multimodal context capture — basic episode recorder (src/capture.js); OCR/ASR deferred
 - [ ] Read-only memory timeline + contacts/messages aggregation
 - [ ] Significant consolidation + cold archive (memory compaction enhancement)
 - [ ] Read-only boundary enforcement (formalize read-only mode)
@@ -178,7 +184,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Tool-output sandboxing + cross-platform session memory (context-mode pattern)
 - [ ] Harness self-audit skills: guardrail tester, runaway guard, sandbox-check, claim-check, session-waste-report
 - [ ] Minimal-harness template + build-your-own playbook (docs)
-- [ ] Machine-readable catalog: llms.txt + JSON for agent consumption
+- [x] Machine-readable catalog: llms.txt (v0.14); harnesses.json still deferred
 - [ ] Explicit autonomy/recovery tiers (step-gated → headless; none → durable)
 - [ ] Agent-computer interface (ACI) design notes
 - [ ] Model×harness pairing evals (rankings don't transfer across models)
@@ -244,8 +250,8 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Cross-platform installers (Inno Setup Windows, DMG macOS, AppImage Linux)
 - [x] Real REA/Ghidra/Craft tool wiring (src/integrations/retools.js)
 ### From MyTunesReduxReborn
-- [ ] Standalone Windows executable with no Node install
-- [ ] Dark/light theme toggle
+- [x] Standalone Windows executable (Inno Setup installer, v0.15) — no-Node binary still deferred
+- [x] Dark/light theme toggle (v0.15)
 - [ ] Connection profiles (pattern for MCP/backend profiles)
 - [ ] mDNS/Bonjour discovery pattern (for local MCP/backend discovery)
 ### From LocalAI
