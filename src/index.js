@@ -161,6 +161,13 @@ async function main() {
         }
         rl.prompt(); return;
       }
+      if (t.startsWith('/bench')) {
+        const parts = t.slice(6).trim().split(/\s+/).filter(Boolean);
+        const models = parts.length ? parts : [process.env.AEGISAI_MODEL || 'llama3.2:3b'];
+        const r = await require('./benchmark').runBenchmark({ models, projectRoot: root });
+        console.log(JSON.stringify(r, null, 2).slice(0, 2000));
+        rl.prompt(); return;
+      }
       if (t === '/traces') {
         try {
           const rows = db.get().prepare('SELECT id, started, ended FROM traces ORDER BY started DESC LIMIT 10').all();
