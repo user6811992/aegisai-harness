@@ -171,6 +171,31 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Opinionated tool sets (gstack-style role-based tools)
 - [ ] Windows/FS robustness (from claude-code-issues-analyzer findings)
 
+## v0.13 — Deepened findings from second exploration
+### From RyanAlberts/best-of-Agent-Harnesses (187-harness catalog)
+- [ ] Progressive tool discovery — retrieve tools by requirement instead of stuffing schemas (MCP-Zero/ToolRAG pattern)
+- [ ] Content-aware tool output compression before model (Headroom pattern, ~20-60% fewer tokens)
+- [ ] Tool-output sandboxing + cross-platform session memory (context-mode pattern)
+- [ ] Harness self-audit skills: guardrail tester, runaway guard, sandbox-check, claim-check, session-waste-report
+- [ ] Minimal-harness template + build-your-own playbook (docs)
+- [ ] Machine-readable catalog: llms.txt + JSON for agent consumption
+- [ ] Explicit autonomy/recovery tiers (step-gated → headless; none → durable)
+- [ ] Agent-computer interface (ACI) design notes
+- [ ] Model×harness pairing evals (rankings don't transfer across models)
+### From RyanAlberts/agentlog
+- [ ] Decision memory — remember/recall/reflect over JSONL (LLM does heavy lifting, no vector DB)
+- [ ] Reflect: find patterns, contradictions, gaps across decision history
+### From cline/kanban
+- [ ] Parallel task board with ephemeral worktree per task
+- [ ] Task dependency chains + auto-commit
+- [ ] Hooks to display latest message/tool per task
+- [ ] Checkpointing + diff review + line comments
+- [ ] Script shortcuts (e.g. npm run dev) + embedded git interface
+### From earendil-works/pi (deeper)
+- [ ] Differential TUI rendering
+- [ ] Unified multi-provider LLM API (pi-ai)
+- [ ] Embeddable agent core library (pi-agent-core)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
