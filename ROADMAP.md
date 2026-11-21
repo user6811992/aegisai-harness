@@ -151,6 +151,34 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Multi-harness config/path/MCP discovery library (harness-barn)
 - [ ] Interoperability with any harness via ACP/protocol bridges (multiple)
 
+## v0.29 — From bughunter searches + harness search page 13
+### Security & bug hunting
+- [ ] Security skill library / vulnerability knowledge base (82 skills, 681 report patterns across 24 vuln classes — Claude-BugHunter)
+- [ ] Local-only vulnerability scanner (no API keys, no data sent) (bughunter-copg)
+- [ ] Local-LLM pentest pipeline: recon → probe → sqlmap/dalfox/nuclei → report (bughunter-harness)
+- [ ] Bug-hunting agent team + Burp Suite MCP integration (bughunter-ai)
+- [ ] Code bug graph (Neo4j-style) + semantic search over findings
+- [ ] Phase-based recon workflow + auto HTML report (BugHunterX)
+- [ ] Vulnerability-fixing benchmark (snyk-vulnbench)
+### Coordination & multi-agent
+- [ ] Live coordination protocol for parallel agents across harnesses (weft/WCP)
+- [ ] Multiplayer shared context + group routing topologies (pioneer, qunica)
+- [ ] tmux-based agent fleet orchestration, each pane siloed to a project (tmux-harness)
+- [ ] Long-lived agent runtime (norns)
+### Memory & learning
+- [ ] Continual learning + review-and-refine workflow + auto rollback (dsh-continual-harness)
+- [ ] Memory hierarchy + verification ladder (AMH)
+- [ ] Deep research with CRAAP source-credibility scoring + cross-verification (harness-research)
+### Interfaces
+- [ ] Semantic browser snapshots + semantic-locate click + form fill (ego-browser)
+- [ ] Real-time shared context for local agents (gatherthread)
+### Local inference & governance
+- [ ] Local hardware detection (GPU/RAM) + engine/model recommendation (local-ai-harness)
+- [ ] Credentialless agent gateway + sealed containers for sensitive data (minervacomputing/harness)
+- [ ] Permission-first third-party integration runtime (gws-harness)
+- [ ] Admission gate in front of every consequential action (oracle/locus)
+- [ ] Spec-driven "dark factory" fully autonomous pipeline (fspec)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
