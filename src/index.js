@@ -45,7 +45,14 @@ async function main() {
       src: t.src, name: t.name, description: t.description, inputSchema: t.inputSchema,
       remoteName: t.name, client: t.client,
     }));
-    if (mcpTools.length) logger.info('mcp tools loaded', { count: mcpTools.length });
+    if (mcpTools.length) {
+      const scan = require('./mcp_security').scanTools(mcpTools);
+      if (scan.unsafe.length) {
+        logger.warn('mcp tools blocked by security scanner', { count: scan.unsafe.length });
+        mcpTools = mcpTools.filter((t) => scan.results.find((r) => r.name === t.name)?.safe);
+      }
+      logger.info('mcp tools loaded', { count: mcpTools.length });
+    }
   } catch (e) {
     logger.warn('mcp connect failed', { error: String(e.message || e) });
   }
@@ -336,6 +343,7 @@ async function main() {
     let sandbox = false;
     let autoApprove = process.env.AEGISAI_AUTO_APPROVE === 'true';
     let offline = OFFLINE;
+    let lastToolLog = [];
     const runOne = async (prompt) => {
       const result = await runAgent({
         model, messages: [{ role: 'user', content: prompt }], projectRoot: root,
@@ -344,6 +352,7 @@ async function main() {
         approvalHandler: autoApprove ? null : askApproval,
         tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
       });
+      lastToolLog = result.toolLog || [];
       process.stdout.write('\n');
       console.log('--- final ---');
       console.log(result.final.final);
@@ -392,6 +401,15 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/schedule ')) { const parts = t.slice(10).trim().split('|').map((x) => x.trim()); const r = require('./scheduler').schedule(parts[0], parts[1], parts[2] || ''); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t === '/sched-tick') { const r = await require('./scheduler').tick({ projectRoot: root }); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t === '/optimize') { const r = require('./optimizer').analyze(); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/optimize-apply') { const r = require('./optimizer').analyze(); console.log(JSON.stringify(require('./optimizer').apply(r.suggestions), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/contract-save ')) { const r = require('./contracts').snapshot(t.slice(15).trim(), lastToolLog); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t.startsWith('/contract-check ')) { const r = require('./contracts').check(t.slice(15).trim(), lastToolLog); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/contracts') { console.log(JSON.stringify(require('./contracts').list(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/sremember ')) { const parts = t.slice(11).trim().split('|').map((x) => x.trim()); const id = require('./source_memory').remember(parts[0], parts[1] || 'manual'); console.log('remembered', id); rl.prompt(); return; }
+      if (t.startsWith('/srecall ')) { const r = require('./source_memory').recall(t.slice(9).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/skill-eval ')) { const r = require('./skill_eval').evaluateFile(t.slice(12).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
       if (t === '/lint') { const r = require('./harness_lint').lint(); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/stress') { const r = require('./adversarial').run(); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }

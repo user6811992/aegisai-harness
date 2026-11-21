@@ -84,6 +84,9 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS dag_runs (id TEXT PRIMARY KEY, created TEXT, data TEXT)`);
       db.exec(`CREATE TABLE IF NOT EXISTS critic_results (id TEXT PRIMARY KEY, target TEXT, created TEXT, data TEXT)`);
     },
+    function v8() {
+      db.exec(`CREATE TABLE IF NOT EXISTS contracts (name TEXT PRIMARY KEY, created TEXT, chain TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

@@ -2,15 +2,10 @@
 
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
-## Status & next (v0.23 recommendation)
-- **Shipped:** v0.1–v0.22 (22 milestones). Agent loop, safety, tools, MCP, memory, web UI, packaging, observability, DAG orchestration, browser use, quality gates — all landed. 20 issues closed, 13 tests passing.
-- **Roadmap cleanup (this revision):** collapsed stale duplicate sections, marked items that were implemented in later milestones, grouped the remaining backlog by theme and priority.
-- **Next priorities (v0.23):**
-  1. **MCP security scanner** — detect tool poisoning, typosquatting, hidden instructions before connecting a server (security-critical, low cost).
-  2. **Source-bound memory** — memory entries cite their source; improves reliability of recall.
-  3. **Contract-driven call-chain baselines** — snapshot valid tool call chains, diff on regression (shrt pattern).
-  4. **Harness optimizer** — tune harness parameters from captured rollout trajectories (we already collect runs).
-  5. **Scheduled agents / cron** — recurring runs with delivery (we already have the always-on event/timer layer).
+## Status & next (v0.24 recommendation)
+- **Shipped:** v0.1–v0.23 (23 milestones). Agent loop, safety, tools, MCP, memory, web UI, packaging, observability, DAG orchestration, browser use, quality gates, MCP security scanning, source-bound memory, contract baselines, rollout optimizer, cron scheduling — all landed. 21 issues closed, 18 tests passing.
+- **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
+- **Next priorities (v0.24):** multi-agent teams (coordinator + specialists), headless CLI JSON output for CI/CD, context files (AGENTS.md-style), read-only boundary enforcement, token-efficient Markdown web extraction.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -36,15 +31,16 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.20 Orchestration** — DAG waves + multi-critic evaluation.
 - **v0.21 Computer use** — CDP browser tools.
 - **v0.22 Quality gates** — skill evaluator, harness lint, adversarial tests, CI template.
+- **v0.23 Trust & tuning** — MCP security scanner, source-bound memory, contract baselines, rollout optimizer, cron scheduling.
 
 ## Active backlog by theme
 
 ### P0 — next up
-- [ ] MCP security scanner (tool poisoning, typosquatting, hidden instructions)
-- [ ] Source-bound memory (memory entries cite sources)
-- [ ] Contract-driven call-chain baselines + regression diff (shrt)
-- [ ] Harness optimizer from rollout trajectories
-- [ ] Scheduled agents / cron with delivery
+- [x] MCP security scanner (tool poisoning, typosquatting, hidden instructions) — src/mcp_security.js
+- [x] Source-bound memory (memory entries cite sources) — src/source_memory.js
+- [x] Contract-driven call-chain baselines + regression diff (shrt) — src/contracts.js
+- [x] Harness optimizer from rollout trajectories — src/optimizer.js
+- [x] Scheduled agents / cron with delivery — src/scheduler.js
 
 ### P1 — high value
 - [ ] Multi-agent teams (coordinator + specialists)
