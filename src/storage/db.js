@@ -123,6 +123,9 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS contest_edges (a TEXT, b TEXT, graph TEXT, weight REAL, PRIMARY KEY(a,b,graph))`);
       db.exec(`CREATE TABLE IF NOT EXISTS constitution (id TEXT PRIMARY KEY, text TEXT, status TEXT, created TEXT)`);
     },
+    function v20() {
+      db.exec(`CREATE TABLE IF NOT EXISTS geo_memory (id TEXT PRIMARY KEY, concept TEXT, text TEXT, vec TEXT, meta TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.34 (34 milestones). v0.34 added semantic tool retrieval, YAML evals, pass@k metrics, failure clustering, ledger rewind, portable Gems, AHP supervision gateway, and SARIF reporting. 32 issues closed, 84 tests passing.
+- **Shipped:** v0.1–v0.35 (35 milestones). v0.35 added decision gates, workflow state machine, two-bar goals, geometric memory, session converter, architecture rule checks, AIBOM, SSH bridge, and journaled persistence. 33 issues closed, 92 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, scheduled loops, Windows RPA, external trace export, 91-patterns catalog — each needing concrete need or native toolchain.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -43,6 +43,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.32 Memory & control** — graph memory, UI replay, executor/verifier separation, self-writing policy, debugger, cheapest-model finder, code-flow map.
 - **v0.33 Interfaces & governance** — dual-graph memory, constitution, WebDriver BiDi, SSE stream, config installer, multi-engine search, routing eval, control plane.
 - **v0.34 Retrieval & reporting** — semantic tool retrieval, YAML evals, pass@k, failure clustering, ledger rewind, Gems, AHP gateway, SARIF.
+- **v0.35 Decisions & interop** — decision gates, workflow state machine, two-bar goals, geometric memory, session converter, architecture rules, AIBOM, SSH bridge.
 
 ## Active backlog by theme
 
@@ -233,6 +234,22 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Trace export to external observability (thirdeye)
 ### Docs
 - [ ] 91 production patterns catalog (cauchyturing)
+
+## v0.35 — From GitHub harness search page 18
+### Decision & workflow
+- [x] Semantic decision gates — src/decision_gates.js
+- [x] Declarative workflow state machine — src/workflow.js
+- [x] Two-bar goal system — src/two_bar.js
+### Memory & sessions
+- [x] Geometric agent memory + session handoff injection — src/geometric_memory.js
+- [x] Session format converter — src/session_converter.js
+### Quality & supply chain
+- [x] Architecture import-boundary rule benchmark — src/arch_rules.js
+- [x] AIBOM / CycloneDX 1.6 generation — src/aibom.js
+- [ ] Adversarial "maker never grades its own done" framework (harness-studio)
+### Interop
+- [x] SSH-based push A2A bridge — src/ssh_bridge.js
+- [ ] Journaled persistence / durable resumable loop engine (looprig)
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).

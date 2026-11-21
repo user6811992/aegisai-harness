@@ -448,6 +448,15 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/gate-check ')) { console.log(JSON.stringify(require('./decision_gates').evaluate({ input: t.slice(12).trim() }), null, 2)); rl.prompt(); return; }
+      if (t === '/workflow-demo') { const wf = require('./workflow').create({ initial: 'start', states: { start: { next: [{ event: 'go', to: 'done' }] }, done: { next: [] } } }); console.log(JSON.stringify(require('./workflow').transition(wf, 'go'))); rl.prompt(); return; }
+      if (t === '/geo-wake') { console.log(require('./geometric_memory').wakeInjection('default') || '(no handoff)'); rl.prompt(); return; }
+      if (t === '/arch-layers') { console.log(JSON.stringify(require('./arch_rules').inferLayers(root), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/aibom') { console.log(JSON.stringify(require('./aibom').generate(), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/ssh-peers ')) { console.log(JSON.stringify(require('./ssh_bridge').send(t.slice(11).trim().split(' ')[0], '', t.slice(11).trim().split(' ').slice(1).join(' ')))); rl.prompt(); return; }
+      if (t === '/ssh-peers') { console.log(JSON.stringify(require('./ssh_bridge').peers())); rl.prompt(); return; }
+      if (t.startsWith('/session-export ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./session_converter').exportSession(p[0], p[1] || 'generic'), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/goal-set ')) { console.log(JSON.stringify(require('./two_bar').setGoal(t.slice(10).trim()))); rl.prompt(); return; }
       if (t.startsWith('/semantic-tools ')) { const tools = require('./tools/registry').assemble({ includeCoding: true }); const r = require('./semantic_tools').retrieve(tools, t.slice(15).trim(), 8); console.log(JSON.stringify(r.map((x) => (x.function || x).name))); rl.prompt(); return; }
       if (t === '/yaml-eval') { console.log('Use /eval; YAML eval specs supported via src/yaml_eval.js'); rl.prompt(); return; }
       if (t === '/pass-at-k') { console.log(JSON.stringify(require('./pass_at_k').compare({ a: [[true,false],[true,true]], b: [[false,false],[true,false]] }), null, 2)); rl.prompt(); return; }
