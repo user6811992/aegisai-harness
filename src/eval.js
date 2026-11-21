@@ -4,14 +4,19 @@ const db = require('./storage/db');
 const { runAgent } = require('./agent/run');
 const profiles = require('./agents/profiles');
 
-function addEval(name, prompt, expected, agent, expectedTools) {
+function addEval(name, prompt, expected, agent, expectedTools, expectedStateValue) {
   const id = 'eval_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
   try {
-    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools) VALUES (?,?,?,?,?,?,?)')
-      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null);
+    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools, expected_state_value) VALUES (?,?,?,?,?,?,?,?)')
+      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null, expectedStateValue || null);
   } catch (e) {
-    db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created) VALUES (?,?,?,?,?,?)')
-      .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString());
+    try {
+      db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created, expected_tools) VALUES (?,?,?,?,?,?,?)')
+        .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString(), expectedTools ? JSON.stringify(expectedTools) : null);
+    } catch (e2) {
+      db.get().prepare('INSERT INTO evals (id, name, prompt, expected, agent, created) VALUES (?,?,?,?,?,?)')
+        .run(id, name, prompt, expected || '', agent || 'default', new Date().toISOString());
+    }
   }
   return id;
 }
@@ -46,13 +51,21 @@ async function runEvals(opts) {
     let expectedTools = [];
     try { expectedTools = c.expected_tools ? JSON.parse(c.expected_tools) : []; } catch (e) { expectedTools = []; }
     if (expectedTools.length > 0) {
-      // check that expected tools appear in order as subsequence
       let i = 0;
       for (const tn of toolNames) {
         if (i < expectedTools.length && tn === expectedTools[i]) i += 1;
       }
       const seqPass = i === expectedTools.length;
       pass = pass && seqPass;
+    }
+    // state-diff grading: check set_state calls
+    if (c.expected_state_value) {
+      const stateCalls = (res.toolLog || []).filter((t) => (t.name || '').endsWith('set_state'));
+      const statePass = stateCalls.some((t) => {
+        const v = t.args && t.args.value;
+        return v === c.expected_state_value;
+      });
+      pass = pass && statePass;
     }
     results.push({ id: c.id, name: c.name, pass, output: out.slice(0, 300), toolNames });
   }

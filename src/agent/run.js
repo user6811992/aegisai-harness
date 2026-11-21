@@ -41,10 +41,17 @@ async function runAgent(opts) {
     trace = false,
     doomLoop = false,
     stopWhen = null,
+    stateAccessor = null,
   } = opts;
 
   const toolLog = [];
   let msgs = [...(messages || [])];
+  if (stateAccessor && typeof stateAccessor.load === 'function') {
+    try {
+      const st = await stateAccessor.load();
+      if (st && Array.isArray(st.messages)) msgs = [...st.messages, ...msgs];
+    } catch (e) {}
+  }
   const archive = [];
   const tracer = trace ? new Tracer() : null;
   const detector = doomLoop ? new DoomLoopDetector(typeof doomLoop === 'object' ? doomLoop : {}) : null;
@@ -144,6 +151,7 @@ async function runAgent(opts) {
 
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
       const finalText = msg.content || '';
+      if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
       if (tracer) { try { tracer.persist(dbModule.get()); } catch (e) {} }
       return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
@@ -179,7 +187,13 @@ async function runAgent(opts) {
         }
       }
       const toolSpan = tracer ? tracer.startSpan('tool:' + name, { name }) : null;
-      await hooks.run('beforeTool', { name, args });
+      const hr = await hooks.run('beforeTool', { toolName: name, toolInput: args, args });
+      if (hr && hr.blocked) {
+        const blocked = 'BLOCKED (hook): ' + (hr.reason || name);
+        return { name, args, hookBlocked: blocked };
+      }
+      if (hr && hr.mutatedArgs) args = hr.mutatedArgs;
+      else if (hr && hr.finalArgs) args = hr.finalArgs;
       onEvent({ type: 'tool_call', name, args });
       let result;
       try {
@@ -239,23 +253,30 @@ async function runAgent(opts) {
     }));
 
     for (const r of results) {
+      if (r.hookBlocked) {
+        const preview = r.hookBlocked;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
       if (r.blocked) {
         const preview = r.blocked;
-        toolLog.push({ name: r.name, resultPreview: preview });
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
         msgs.push({ role: 'tool', content: preview, name: r.name });
         continue;
       }
       if (r.denied) {
         const denied = 'BLOCKED (approval denied): ' + r.name;
-        toolLog.push({ name: r.name, resultPreview: denied });
+        toolLog.push({ name: r.name, args: r.args, resultPreview: denied });
         onEvent({ type: 'approval_denied', name: r.name });
         msgs.push({ role: 'tool', content: denied, name: r.name });
         continue;
       }
       const preview = (r.result && (r.result.output || r.result.out)) || '';
       const previewStr = String(preview).slice(0, 500);
-      toolLog.push({ name: r.name, resultPreview: previewStr });
+      toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr });
       onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
       msgs.push({ role: 'tool', content: previewStr, name: r.name });
     }

@@ -66,6 +66,7 @@ function open(dbPath) {
     },
     function v3() {
       try { db.exec('ALTER TABLE evals ADD COLUMN expected_tools TEXT'); } catch (e) {}
+      try { db.exec('ALTER TABLE evals ADD COLUMN expected_state_value TEXT'); } catch (e) {}
     },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {

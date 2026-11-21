@@ -105,11 +105,32 @@ async function detectBackend() {
 }
 
 async function backendChatImpl(bodyObj, onChunk, signal) {
-  if (state.type === 'router') state.url = pickRouterUrl();
+  if (state.type === 'router') {
+    if (state.routerStrategy === 'capability') {
+      const msgs = bodyObj.messages || [];
+      const lastUser = [...msgs].reverse().find((m) => m.role === 'user');
+      const text = (lastUser && (typeof lastUser.content === 'string' ? lastUser.content : '')) || '';
+      const complex = text.length > 200 || (bodyObj.tools && bodyObj.tools.length > 5);
+      state.url = complex ? state.routerUrls[state.routerUrls.length - 1] : state.routerUrls[0];
+      state._routerCompat = !/11434/.test(state.url);
+    } else if (state.routerStrategy === 'escalation') {
+      state.url = state.routerUrls[0];
+      state._routerCompat = !/11434/.test(state.url);
+    } else {
+      state.url = pickRouterUrl();
+    }
+  }
   if (!isOpenaiCompat()) {
     const ollamaBody = Object.assign({}, bodyObj);
     if (bodyObj.maxTokens && bodyObj.maxTokens > 0) {
       ollamaBody.options = Object.assign({}, bodyObj.options || {}, { num_predict: bodyObj.maxTokens });
+    }
+    if (bodyObj.stream === false) {
+      const r = await fetch(state.url + '/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.assign({}, ollamaBody, { stream: false })), signal });
+      if (!r.ok) throw new Error('Chat failed: ' + r.status);
+      const data = await r.json();
+      const msg = data.message || {};
+      return { status: 200, data: { message: { role: 'assistant', content: msg.content || '', tool_calls: msg.tool_calls }, done: true, eval_count: data.eval_count || 0, prompt_eval_count: data.prompt_eval_count || 0 } };
     }
     const r = await fetch(state.url + '/api/chat', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
@@ -198,6 +219,27 @@ async function backendListModels() {
 
 async function backendChat(bodyObj, onChunk, signal) {
   if (isCircuitOpen()) throw new Error('circuit breaker open');
+  // escalation strategy: try efficient, then capable on failure/empty
+  if (state.type === 'router' && state.routerStrategy === 'escalation' && state.routerUrls.length > 1) {
+    try {
+      const r = await backendChatImpl(bodyObj, onChunk, signal);
+      const content = (r && r.data && r.data.message && r.data.message.content) || '';
+      if (content && content.trim().length > 0) { recordSuccess(); return r; }
+      // escalate
+      state.url = state.routerUrls[state.routerUrls.length - 1];
+      state._routerCompat = !/11434/.test(state.url);
+      const r2 = await backendChatImpl(bodyObj, onChunk, signal);
+      recordSuccess();
+      return r2;
+    } catch (e) {
+      recordFailure();
+      state.url = state.routerUrls[state.routerUrls.length - 1];
+      state._routerCompat = !/11434/.test(state.url);
+      const r2 = await backendChatImpl(bodyObj, onChunk, signal);
+      recordSuccess();
+      return r2;
+    }
+  }
   const retries = 3;
   let lastErr;
   for (let i = 0; i < retries; i++) {

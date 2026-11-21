@@ -41,7 +41,19 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Desktop packaging + offline auto-update (deferred — CLI only)
 - [ ] Accessibility & theming (N/A for CLI; deferred for future web UI)
 
-## v0.5 — Reliability & evals (in progress)
+## v0.5 — Reliability & evals (done)
+
+## v0.6 — Advanced (in progress)
+- [x] Richer hooks with mutation/blocking (src/hooks.js)
+- [x] Enhanced doom-loop (text repetition, escalate)
+- [x] State-diff eval grading + seeded mocks (mockmcp, expectedStateValue)
+- [x] Advanced routing (capability + escalation strategies)
+- [x] Conversation state accessor (src/state.js)
+- [ ] Async/background/deferred tools + task tool — deferred
+- [ ] Tool context / shared context — deferred
+- [ ] Tool sets (declarative activation) — deferred
+- [ ] Format converters — deferred
+- [ ] OpenTelemetry export — deferred
 - [x] Doom-loop detection (fingerprint-based, graduated ladder)
 - [x] Composable stop conditions (stepCountIs, maxTokensUsed, maxCost, hasToolCall)
 - [x] Multi-backend router (round-robin/random, OpenAI-compat + Ollama)
