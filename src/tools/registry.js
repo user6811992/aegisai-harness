@@ -38,7 +38,8 @@ function assemble(opts) {
   }
   tools = capabilities.filterTools(tools, { allowedTools, deniedTools });
   if (tools.length > toolBudget) {
-    const external = (n) => /^(ghidra|craft|are|rea|mcp)_/.test(n);
+    const codingNames = new Set(coding.CODING_TOOLS.map((t) => t.name));
+    const external = (n) => !codingNames.has(n);
     const codingTools = tools.filter((t) => !external(t.function.name));
     const externals = tools.filter((t) => external(t.function.name));
     const kept = [...codingTools];
