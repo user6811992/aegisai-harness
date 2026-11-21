@@ -251,6 +251,36 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] SSH-based push A2A bridge — src/ssh_bridge.js
 - [ ] Journaled persistence / durable resumable loop engine (looprig)
 
+## v0.36 — From diggerhq (opencomputer / open-agent-sdk / speedbench)
+Feasibility: **H** = high (fits current local-only architecture), **M** = medium (needs external service/tool), **L** = low (platform-scale/native).
+
+### Interfaces & gateways
+- [ ] Slack-native agent gateway: mention → session → steer → PR (opencomputer "Calvin" bridge) — **M** (Slack API + web UI)
+- [ ] Outbound-only WebSocket VM bridge (opencomputer gateway) — **M** (SSE already exists)
+- [ ] Serverless "agent as a function" abstraction (serverlessagentsite) — **M**
+- [ ] Pluggable runtime contract for brain wrappers (oc-runtimes) — **H**
+
+### Execution & isolation
+- [ ] Formal brain + sandbox interfaces ("IaC for agents") (open-agent-sdk) — **H** (we have backends + sealed)
+- [ ] Rootless Podman per-session isolation (opencomputer) — **M** (needs Podman)
+- [ ] Sandbox capability fingerprinting (sandbox-fingerprinting) — **M**
+- [ ] Provider health-check failover for brains (open-agent-sdk) — **H** (we have fallback + circuit breaker)
+
+### State & durability
+- [ ] Git-backed state store (opencomputer) — **H** (we have ledger/backup)
+- [ ] Journaled durable loop engine (looprig, opencomputer durable sessions) — **H** (we have capsule/ledger)
+
+### Workflows & agents
+- [ ] Bug reproduction workflow: clone → failing test → run (example-bug-repro) — **H**
+- [ ] PR review agent with inline comments + dry-run default (example-pr-review) — **M**
+- [ ] CI failure resolver with per-repo GitHub allowlist (example-ci-resolver) — **M**
+- [ ] Scheduled maintenance templates: changelog, quickstart-check, docs fix — **H** (we have scheduler)
+- [ ] CVE reachability proof before patching (cve-swarm, dependency-security) — **M**
+
+### Evaluation
+- [ ] Real-world speed benchmark (time-to-first-push from external timestamps) (speedbench) — **H** (we have harness score)
+- [ ] Sandbox benchmark catalog (awesome-sandbox-benchmarks) — **H** (docs)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
