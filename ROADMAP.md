@@ -85,6 +85,40 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Rust SDK / Rust runtime
 - [ ] Deterministic durable execution (Temporal-style)
 
+## v0.26 — From GitHub harness search pages 7–9
+### Guardrails & safety
+- [ ] Evidence-based action guardrails (gate what agents DO, not just say) (alibaba/open-guardrail)
+- [ ] Pre-execution Git/FS safety rules + sensitive-file blocking (cc-safety-net)
+- [ ] Default-deny sandbox policies + external credential injection (strands-agents/box)
+- [ ] Fail-closed cross-model review gate + "constitution" (turbo-flow)
+- [ ] Waste detection: over-verification, context drift, false completion (anti-samcheonpo)
+### Audit & verification
+- [ ] Hash-chained, offline-verifiable audit ledger with replay (sprawling-agents)
+- [ ] Tamper-evident evidence at every SDLC step (ai-sdlc-harness)
+- [ ] File-first verification: "I'm done" → auditable admission decision (x-harness)
+- [ ] Typed evaluation + provider-neutral evidence grading + provenance (nano-step/eval-harness)
+- [ ] Multimodal evidence capture: video/audio/screen → timestamped contracts (watch-skill)
+### Harness as code & optimization
+- [ ] Declarative harness-as-code language + visualizer (agentopology)
+- [ ] Counterfactual trace diagnosis → automated harness evolution (harness-evolver)
+- [ ] Meta-harness local hooks + developer observability (interlinked-cli)
+- [ ] Prompt-cache optimization patches (prompt-cache-skills)
+### Context & memory
+- [ ] Unified context filesystem: code/memory/docs/DB/SaaS in one interface (zilliztech/mfs)
+- [ ] Explainable retrieval + portable context across harnesses (ContextLattice)
+- [ ] Git history + blame code-map integration (basemind)
+- [ ] Ambient self-learning memory (syke)
+### Orchestration & messaging
+- [ ] Async agent mailbox protocol (AMP) — messages instead of DAG glue (agent-mailer)
+- [ ] Threads + structured episodes for long-running tasks (arcee-ai/nac)
+- [ ] Worker → reviewer loop (athena-loops)
+- [ ] Cross-harness messaging + shared history (flopwire)
+- [ ] Transparent multi-model routing display (Albatross)
+### Interfaces
+- [ ] Hermetic sandbox runtime + Harness Protocol (ComputerAgent)
+- [ ] Browser side-panel control in logged-in Chrome (browsentic)
+- [ ] Interop layer connecting agents/harnesses/robots (hybroai/hybro)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
