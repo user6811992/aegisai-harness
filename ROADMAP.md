@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.25 (25 milestones). All six v0.25 candidates landed: agent lifecycle, PII protection, governance charter, Windows/FS robustness, model×harness pairing evals, bi-temporal memory graph. 23 issues closed, 26 tests passing.
+- **Shipped:** v0.1–v0.26 (26 milestones). v0.26 added hash-chained ledger, evidence-based action guardrails, counterfactual harness evolution, file-first verification, waste detection, and async agent mailbox. 24 issues closed, 31 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Next candidates (v0.26):** remaining P1 items — agent runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, parallel task board. Or pick from P2.
+- **Next candidates (v0.27):** remaining P1/P2 items — agent runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, parallel task board, declarative harness-as-code, unified context filesystem.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -34,6 +34,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.23 Trust & tuning** — MCP security scanner, source-bound memory, contract baselines, rollout optimizer, cron scheduling.
 - **v0.24 Teams & interfaces** — multi-agent teams, headless JSON CLI, context files, read-only mode, Markdown extraction.
 - **v0.25 Trust & governance** — agent lifecycle, PII redaction, governance charter, Windows/FS robustness, pairing evals, bi-temporal memory.
+- **v0.26 Audit & evolution** — hash-chained ledger, action guardrails, counterfactual evolution, file-first verification, waste detection, agent mailbox.
 
 ## Active backlog by theme
 
@@ -87,20 +88,20 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## v0.26 — From GitHub harness search pages 7–9
 ### Guardrails & safety
-- [ ] Evidence-based action guardrails (gate what agents DO, not just say) (alibaba/open-guardrail)
+- [x] Evidence-based action guardrails (gate what agents DO, not just say) — src/action_guard.js
 - [ ] Pre-execution Git/FS safety rules + sensitive-file blocking (cc-safety-net)
 - [ ] Default-deny sandbox policies + external credential injection (strands-agents/box)
 - [ ] Fail-closed cross-model review gate + "constitution" (turbo-flow)
-- [ ] Waste detection: over-verification, context drift, false completion (anti-samcheonpo)
+- [x] Waste detection: over-verification, repeated reads, false completion — src/waste.js
 ### Audit & verification
-- [ ] Hash-chained, offline-verifiable audit ledger with replay (sprawling-agents)
+- [x] Hash-chained, offline-verifiable audit ledger with replay — src/ledger.js
 - [ ] Tamper-evident evidence at every SDLC step (ai-sdlc-harness)
-- [ ] File-first verification: "I'm done" → auditable admission decision (x-harness)
+- [x] File-first verification: "I'm done" → auditable admission decision — src/verifier.js verifyFiles
 - [ ] Typed evaluation + provider-neutral evidence grading + provenance (nano-step/eval-harness)
 - [ ] Multimodal evidence capture: video/audio/screen → timestamped contracts (watch-skill)
 ### Harness as code & optimization
 - [ ] Declarative harness-as-code language + visualizer (agentopology)
-- [ ] Counterfactual trace diagnosis → automated harness evolution (harness-evolver)
+- [x] Counterfactual trace diagnosis → automated harness evolution — src/counterfactual.js
 - [ ] Meta-harness local hooks + developer observability (interlinked-cli)
 - [ ] Prompt-cache optimization patches (prompt-cache-skills)
 ### Context & memory
@@ -109,7 +110,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Git history + blame code-map integration (basemind)
 - [ ] Ambient self-learning memory (syke)
 ### Orchestration & messaging
-- [ ] Async agent mailbox protocol (AMP) — messages instead of DAG glue (agent-mailer)
+- [x] Async agent mailbox protocol (AMP) — src/mailbox.js
 - [ ] Threads + structured episodes for long-running tasks (arcee-ai/nac)
 - [ ] Worker → reviewer loop (athena-loops)
 - [ ] Cross-harness messaging + shared history (flopwire)

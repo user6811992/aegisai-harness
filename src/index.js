@@ -67,6 +67,7 @@ async function main() {
   const readOnlyFlag = args.includes('--read-only');
   const piiFlag = args.includes('--pii-redact');
   const charterFlag = args.includes('--charter');
+  const actionGuardFlag = args.includes('--action-guard');
 
   if (webFlag) {
     const http = require('http');
@@ -407,6 +408,13 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/mail ')) { const parts = t.slice(6).trim().split('|').map((x) => x.trim()); const id = require('./mailbox').send(parts[0], 'user', parts[1] || '', parts[2] || ''); console.log('sent', id); rl.prompt(); return; }
+      if (t.startsWith('/inbox ')) { const r = require('./mailbox').inbox(t.slice(7).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/waste') { const r = require('./waste').detect(lastToolLog); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/diagnose') { const r = require('./counterfactual').diagnose(); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/evolve') { const r = require('./counterfactual').evolve(); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/ledger-verify') { console.log(JSON.stringify(require('./ledger').verify())); rl.prompt(); return; }
+      if (t === '/ledger-replay') { console.log(JSON.stringify(require('./ledger').replay(), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/tremember ')) { const parts = t.slice(11).trim().split('|').map((x) => x.trim()); const id = require('./temporal_memory').remember(parts[0], parts[1] || 'manual', (parts[2] || '').split(',').filter(Boolean)); console.log('remembered', id); rl.prompt(); return; }
       if (t.startsWith('/tasof ')) { const parts = t.slice(7).trim().split('|').map((x) => x.trim()); const r = require('./temporal_memory').recallAsOf(parts[0], parts[1]); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/memory-graph') { const r = require('./temporal_memory').graph(); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
@@ -534,6 +542,7 @@ async function main() {
     readOnly: readOnlyFlag,
     piiProtection: piiFlag,
     charter: charterFlag,
+    actionGuard: actionGuardFlag,
   });
 
   if (jsonFlag) {

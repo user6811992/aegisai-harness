@@ -25,4 +25,23 @@ function verify(finalText, toolLog) {
   return { verified: issues.length === 0, claims, evidence, issues };
 }
 
-module.exports = { verify };
+function verifyFiles(claims, toolLog, projectRoot) {
+  const fs = require('fs');
+  const path = require('path');
+  const root = projectRoot || process.cwd();
+  const out = [];
+  for (const c of claims || []) {
+    const pathVal = c.path || c.file;
+    if (!pathVal) continue;
+    const p = path.isAbsolute(pathVal) ? pathVal : path.join(root, pathVal);
+    const exists = fs.existsSync(p);
+    let contentOk = true;
+    if (exists && c.contains) {
+      try { contentOk = fs.readFileSync(p, 'utf8').includes(c.contains); } catch (e) { contentOk = false; }
+    }
+    out.push({ path: pathVal, exists, contentOk, verified: exists && contentOk });
+  }
+  return { verified: out.length > 0 && out.every((o) => o.verified), files: out };
+}
+
+module.exports = { verify, verifyFiles };

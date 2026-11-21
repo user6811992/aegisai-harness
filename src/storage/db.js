@@ -94,6 +94,10 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS agent_lifecycle (id TEXT PRIMARY KEY, name TEXT, status TEXT, credential TEXT, created TEXT, heartbeat INTEGER, rotated INTEGER)`);
       db.exec(`CREATE TABLE IF NOT EXISTS temporal_memories (id TEXT PRIMARY KEY, text TEXT, source TEXT, tags TEXT, valid_from INTEGER, valid_to INTEGER)`);
     },
+    function v11() {
+      db.exec(`CREATE TABLE IF NOT EXISTS ledger (seq INTEGER PRIMARY KEY, event TEXT, payload TEXT, prev TEXT, hash TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS mailbox (id TEXT PRIMARY KEY, recipient TEXT, sender TEXT, subject TEXT, body TEXT, status TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

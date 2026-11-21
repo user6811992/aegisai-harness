@@ -59,6 +59,7 @@ async function runAgent(opts) {
     readOnly = false,
     piiProtection = false,
     charter = null,
+    actionGuard = false,
   } = opts;
 
   // project root allowlist
@@ -227,6 +228,7 @@ async function runAgent(opts) {
       }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
       capture(finalText);
+      try { require('../ledger').append('run_complete', { model, prompt: String((messages || [])[0]?.content || '').slice(0, 200), final: String(finalText).slice(0, 500), tools: toolLog.length }); } catch (e) {}
       await hooks.run('SessionEnd', { reason: 'complete', totalUsage: { totalTokens } });
       if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
       return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
@@ -252,6 +254,11 @@ async function runAgent(opts) {
         const ce = require('../charter').enforce(charterObj, name, args);
         if (!ce.allowed) return { name, args, charterBlocked: ce.reason };
         if (ce.approval && !autoApprove) return { name, args, denied: true };
+      }
+      // evidence-based action guardrails
+      if (actionGuard) {
+        const ag = require('../action_guard').gate(name, args, { toolLog });
+        if (!ag.allowed) return { name, args, actionBlocked: ag.rule + ': ' + ag.reason };
       }
       // read-only boundary
       const ro = require('../read_only').enforce(name, readOnly);
@@ -385,6 +392,13 @@ async function runAgent(opts) {
     }));
 
     for (const r of results) {
+      if (r.actionBlocked) {
+        const preview = r.actionBlocked;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
       if (r.charterBlocked) {
         const preview = r.charterBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
