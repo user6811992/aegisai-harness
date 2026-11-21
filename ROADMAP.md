@@ -251,6 +251,42 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ### From LocalAI
 - [ ] (predecessor — superseded by aegisai-next, no new items)
 
+## v0.17 — From GitHub "ai agent harness" search (3 pages, ~150 repos)
+### Observability & reliability
+- [ ] Run capture + runtime reliability observability (FailproofAI pattern)
+- [ ] Harness reliability benchmark + failure attribution (TraceTrial-Bench)
+- [ ] Harness scoring in seconds (harness-score)
+- [ ] Independent verification of work (stuaim pattern)
+### Always-on / durable
+- [ ] Always-on layer: event inbox, timers, approvals, outbox (waku-agent)
+- [ ] DAG orchestration + multi-critic evaluation pipeline (tenet)
+- [ ] Deterministic durable execution (Temporal-style)
+- [ ] Single-binary, zero-dependency distribution (omegon/gocode/gray)
+- [ ] Resumable JSONL sessions (gray)
+### Self-improvement & tooling
+- [ ] Auto-built tools from experience (Agenvoy)
+- [ ] Self-improvement loop: propose → eval → approve → ship (OpenTracy)
+- [ ] Recursive self-improving context (autocontext)
+- [ ] Skill package manager (ccpi pattern)
+### Memory & context
+- [ ] Source-bound memory (memory entries cite sources) (stuaim)
+- [ ] Shared memory across harnesses/machines (membraid)
+- [ ] Collective memory + MCP gateway (BirdEye)
+- [ ] Automatic context assembly from task (autocontext)
+### Security & governance
+- [ ] Security/pentest profile (local sessions, BYO model) (pentest-harness)
+- [ ] Multi-tenant isolation + 5-layer security (goclaw)
+- [ ] Governance charter + spec-driven enforcement (spec-kitty)
+- [ ] Portable persona folder format (Agent Skills-based)
+### Interfaces & orchestration
+- [ ] Computer-use / browser-use tools (openagent, osaurus)
+- [ ] Selection quoting for UI (Celestea)
+- [ ] Human-in-loop realtime task manager over ACP (agentrq)
+- [ ] Typed tool routing (learn-claude-code-rs)
+### Docs & learning
+- [ ] Harness engineering guide/book/course links
+- [ ] Source-grounded architecture teardowns (agent-harness-anatomy)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
