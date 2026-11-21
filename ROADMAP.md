@@ -10,7 +10,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Plan/Act mode (planMode, /plan)
 - [x] Offline auto-update download (--update-download)
 - [x] Single-binary build script (packaging/build-binary.sh)
-- [ ] Voice STT/TTS in web UI — deferred
+- [x] Voice STT/TTS in web UI (Web Speech API + optional backend URLs)
 
 ## Current status & next (v0.18 recommendation)
 - **Shipped:** v0.1–v0.17 (17 milestones). Core agent loop, safety, tools, MCP, memory, web UI, packaging, observability, always-on layer — all landed.

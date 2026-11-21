@@ -225,14 +225,33 @@ async function main() {
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/config') {
-          const cfg = require('./core/config');
-          sendJson(res, 200, { projectRootAllowlist: process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '' });
+          sendJson(res, 200, {
+            projectRootAllowlist: process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '',
+            sttUrl: process.env.STT_URL || '',
+            ttsUrl: process.env.TTS_URL || '',
+          });
           return;
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/config') {
           const parsed = await readJson(req);
           if (parsed.projectRootAllowlist) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
+          if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
+          if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;
           sendJson(res, 200, { ok: true });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/stt') {
+          // proxy audio body to configured STT URL (OpenAI-compatible /v1/audio/transcriptions)
+          const url = process.env.STT_URL;
+          if (!url) { sendJson(res, 400, { error: 'STT_URL not configured' }); return; }
+          try {
+            const chunks = [];
+            for await (const c of req) chunks.push(c);
+            const body = Buffer.concat(chunks);
+            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': req.headers['content-type'] || 'audio/webm' }, body });
+            const data = await r.json();
+            sendJson(res, 200, { text: data.text || '' });
+          } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
           return;
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
