@@ -32,7 +32,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Signed plugins with declared permissions — src/core/plugins.js
 - [x] CLI/TUI for headless operation — REPL + --agent flag
 
-## v0.4 — Quality & polish (P2)
+## v0.4 — Quality & polish (P2) (done)
 - [x] Tracing (per-iteration, per-tool timing, errors) — src/tracing.js + /traces
 - [x] Agent eval harness with rubrics — src/eval.js + /eval
 - [x] Backend resilience (retries, circuit breakers, health checks) — backends/index.js
