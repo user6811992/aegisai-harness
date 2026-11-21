@@ -111,6 +111,13 @@ function open(dbPath) {
     function v15() {
       db.exec(`CREATE TABLE IF NOT EXISTS board_tasks (id TEXT PRIMARY KEY, created TEXT, data TEXT)`);
     },
+    function v16() {
+      db.exec(`CREATE TABLE IF NOT EXISTS graph_nodes (id TEXT PRIMARY KEY, name TEXT, kind TEXT, created TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS graph_edges (a TEXT, b TEXT, relation TEXT, created TEXT)`);
+    },
+    function v18() {
+      db.exec(`CREATE TABLE IF NOT EXISTS auto_rules (id TEXT PRIMARY KEY, expression TEXT, source TEXT, created TEXT, active INTEGER)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

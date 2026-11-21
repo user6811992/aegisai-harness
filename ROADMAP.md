@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.31 (31 milestones). v0.31 added A2A adapter, visual DAG editor UI, local ASR/TTS adapter, sealed Docker execution, and multi-tenant isolation. 29 issues closed, 61 tests passing.
+- **Shipped:** v0.1–v0.32 (32 milestones). v0.32 added graph memory, UI replay, executor/verifier separation, self-writing policy, debugger control, cheapest-model finder, and code-flow map. 30 issues closed, 68 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK — all needing concrete need or native toolchains.
+- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, contest memory, constitution evolution, WebDriver BiDi — each needing concrete need or native toolchains.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -40,6 +40,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.29 Security & local inference** — hardware detection, credentialless gateway, admission gate, local vuln scanner, security KB, CRAAP research, continual learning, memory hierarchy.
 - **v0.30 P2 platform** — parallel task board, unified context filesystem, event bus, ACP adapter, real-world benchmarks, harness docs, pentest pipeline.
 - **v0.31 Protocol & isolation** — A2A adapter, visual DAG editor, local ASR/TTS adapter, sealed Docker execution, multi-tenant isolation.
+- **v0.32 Memory & control** — graph memory, UI replay, executor/verifier separation, self-writing policy, debugger, cheapest-model finder, code-flow map.
 
 ## Active backlog by theme
 
@@ -181,6 +182,31 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Permission-first third-party integration runtime (gws-harness)
 - [x] Admission gate in front of every consequential action — src/admission.js
 - [ ] Spec-driven "dark factory" fully autonomous pipeline (fspec)
+
+## v0.32 — From GitHub harness search pages 14–15
+### Memory & learning
+- [x] Graph memory with extraction loop + prompt evolution — src/graph_memory.js
+- [ ] Contest-based memory (dual-cypher graphs, habit formation) (Habitus-AI)
+- [ ] Hippocampus memory: spreading activation, Hebbian writeback, post-turn consolidation (constellation-engine)
+- [ ] Skill factory with autoresearch loop + multi-agent consensus verification (agent-skills-harness)
+- [ ] Constitution evolution with human approval + public adopted history (contemplative-agent)
+### Verification & evidence
+- [x] Evidence-first UI automation with replay — src/ui_replay.js (web)
+- [x] Executor/verifier separation gate — src/separation.js
+- [x] Self-writing policy from detected attacks — src/auto_policy.js
+- [x] Debugger-like execution control — src/debugger.js (/bp, /step, /resume)
+### Interfaces & protocols
+- [ ] WebDriver BiDi browser backend (browser-harness-bidi)
+- [ ] SSE / WebSocket interfaces for agent events (Bamboo-agent)
+- [ ] One-click MCP/skills/rules installer across harnesses (Plexus)
+- [ ] Multi-engine web search + evidence synthesis (search-boost)
+### Evaluation & routing
+- [x] Cheapest-model finder — src/cheapest_model.js
+- [ ] Routing evaluation harness for multi-agent systems (support-agent)
+### Code intelligence & mobile
+- [x] Code map with call/data/control-flow + class hierarchy — src/code_map.js
+- [ ] Mobile device harness: device logs, network interception, UI automation via MCP (quern)
+- [ ] Governed tool control plane with resumable execution + trace-driven eval (NanoHarness)
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).

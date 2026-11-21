@@ -63,6 +63,7 @@ async function runAgent(opts) {
     capsuleSession = null,
     agentCompact = false,
     rollback = false,
+    debuggerInstance = null,
   } = opts;
 
   // project root allowlist
@@ -270,6 +271,14 @@ async function runAgent(opts) {
         if (!ce.allowed) return { name, args, charterBlocked: ce.reason };
         if (ce.approval && !autoApprove) return { name, args, denied: true };
       }
+      // debugger breakpoint / step
+      if (debuggerInstance) {
+        debuggerInstance.onEvent({ type: 'tool_call', name, args });
+        if (debuggerInstance.shouldPause(name)) {
+          onEvent({ type: 'debug_pause', name, args });
+          return { name, args, debugPaused: true };
+        }
+      }
       // evidence-based action guardrails
       if (actionGuard) {
         const ag = require('../action_guard').gate(name, args, { toolLog });
@@ -410,6 +419,13 @@ async function runAgent(opts) {
     }));
 
     for (const r of results) {
+      if (r.debugPaused) {
+        const preview = 'PAUSED (debugger): ' + r.name;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
       if (r.actionBlocked) {
         const preview = r.actionBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });

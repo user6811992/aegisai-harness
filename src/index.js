@@ -384,6 +384,7 @@ async function main() {
     let autoApprove = process.env.AEGISAI_AUTO_APPROVE === 'true';
     let offline = OFFLINE;
     let lastToolLog = [];
+    global.__dbg = new (require('./debugger').HarnessDebugger)();
     const runOne = async (prompt) => {
       const result = await runAgent({
         model, messages: [{ role: 'user', content: prompt }], projectRoot: root,
@@ -392,6 +393,7 @@ async function main() {
         approvalHandler: autoApprove ? null : askApproval,
         tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
         contextFiles: true,
+        debuggerInstance: global.__dbg,
       });
       lastToolLog = result.toolLog || [];
       process.stdout.write('\n');
@@ -442,6 +444,22 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/graph-observe ')) { console.log(JSON.stringify(require('./graph_memory').observe(t.slice(14).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/graph-recall ')) { console.log(JSON.stringify(require('./graph_memory').recall(t.slice(13).trim()), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t === '/graph-prompt') { console.log(require('./graph_memory').evolvePrompt('You are a helpful assistant.', '')); rl.prompt(); return; }
+      if (t.startsWith('/ui-record ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); console.log(require('./ui_replay').record({ action: p[0], args: p[1] ? JSON.parse(p[1]) : {} })); rl.prompt(); return; }
+      if (t === '/ui-replay') { console.log(JSON.stringify(require('./ui_replay').replay(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/sep-create ')) { const id = require('./separation').createSession(t.slice(12).trim(), 'executor-1'); console.log(id); rl.prompt(); return; }
+      if (t.startsWith('/sep-verify ')) { const p = t.slice(12).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./separation').verify(p[0], p[1], p[2] || 'approve'))); rl.prompt(); return; }
+      if (t.startsWith('/auto-policy-learn ')) { console.log(JSON.stringify(require('./auto_policy').learn({ name: t.slice(18).trim() }), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/auto-rules') { console.log(JSON.stringify(require('./auto_policy').rules(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t === '/debug-state') { console.log(JSON.stringify(global.__dbg ? global.__dbg.state() : 'no debugger attached')); rl.prompt(); return; }
+      if (t.startsWith('/bp ')) { console.log(JSON.stringify(global.__dbg.setBreakpoint(t.slice(4).trim()))); rl.prompt(); return; }
+      if (t === '/step') { global.__dbg.step(1); console.log('step queued'); rl.prompt(); return; }
+      if (t === '/resume') { global.__dbg.resume(); console.log('resumed'); rl.prompt(); return; }
+      if (t === '/debug-trace') { console.log(JSON.stringify(global.__dbg.inspect(20), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/cheapest ')) { const r = await require('./cheapest_model').find(t.slice(10).trim().split(/\s+/)); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/code-map') { const m = require('./code_map').build(root, 50); console.log(JSON.stringify(m.map((f) => ({ path: f.path, calls: f.calls.length, dataFlow: f.dataFlow.length, control: f.control.length, hierarchy: f.hierarchy.length })), null, 2).slice(0, 1800)); rl.prompt(); return; }
       if (t === '/a2a-card') { console.log(JSON.stringify(require('./a2a').agentCard(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/a2a-task ')) { const r = await require('./a2a').sendTask({ prompt: t.slice(10).trim() }); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/voice-status') { console.log(JSON.stringify(require('./voice_adapter').status(), null, 2)); rl.prompt(); return; }
