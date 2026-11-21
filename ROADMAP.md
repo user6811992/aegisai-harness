@@ -24,13 +24,13 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Retrievable archive / expand-on-demand (recall_archived_context tool)
 
 ## v0.3 — Capability (P1)
-- [ ] Named agents/profiles (prompt + tools + permissions + model)
-- [ ] Subagents / delegation + parallel tool calls
-- [ ] Deterministic replay from stored transcript
-- [ ] Code/repo semantic indexing (file skeletons, symbols, usages)
-- [ ] Hooks/transforms around model & tool calls
-- [ ] Signed plugins with declared permissions
-- [ ] CLI/TUI for headless operation
+- [x] Named agents/profiles (prompt + tools + permissions + model) — src/agents/profiles.js
+- [x] Subagents / delegation + parallel tool calls — delegate_to_agent + Promise.all
+- [x] Deterministic replay from stored transcript — src/replay.js
+- [x] Code/repo indexing (symbol extraction + search_codebase tool)
+- [x] Hooks/transforms around model & tool calls — src/hooks.js
+- [x] Signed plugins with declared permissions — src/core/plugins.js
+- [x] CLI/TUI for headless operation — REPL + --agent flag
 
 ## v0.4 — Quality & polish (P2)
 - [ ] Tracing (per-iteration, per-tool timing, errors)

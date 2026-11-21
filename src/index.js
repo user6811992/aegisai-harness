@@ -7,6 +7,7 @@ const path = require('path');
 const fs = require('fs');
 const readline = require('readline');
 const { DATA_DIR, OFFLINE } = require('./core/config');
+const profiles = require('./agents/profiles');
 const logger = require('./core/logger');
 
 function askApproval(name, args) {
@@ -44,12 +45,47 @@ async function main() {
   }
 
   const args = process.argv.slice(2);
-  if (args.length === 0) {
-    console.log('AegisAi Harness v0.2.0');
-    console.log('Usage: node src/index.js "your prompt" [--model name] [--root /path] [--sandbox] [--auto-approve] [--offline]');
-    console.log('Backend:', getType(), getUrl(), '| offline:', OFFLINE);
-    console.log('MCP tools:', mcpTools.length);
-    process.exit(0);
+  const replFlag = args.includes('--repl');
+
+  if (args.length === 0 || replFlag) {
+    console.log('AegisAi Harness v0.3.0 REPL. Type /exit to quit, /help for commands.');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: 'harness> ' });
+    let model = process.env.AEGISAI_MODEL || 'llama3.2:3b';
+    let root = process.cwd();
+    let sandbox = false;
+    let autoApprove = process.env.AEGISAI_AUTO_APPROVE === 'true';
+    let offline = OFFLINE;
+    const runOne = async (prompt) => {
+      const result = await runAgent({
+        model, messages: [{ role: 'user', content: prompt }], projectRoot: root,
+        onEvent: (e) => { if (e.type === 'token') process.stdout.write(e.content || ''); else if (e.type === 'status') process.stderr.write('[status] ' + e.message + '\n'); },
+        mcpTools, sandbox, autoApprove, offline,
+        approvalHandler: autoApprove ? null : askApproval,
+        tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
+      });
+      process.stdout.write('\n');
+      console.log('--- final ---');
+      console.log(result.final.final);
+    };
+    rl.prompt();
+    rl.on('line', async (line) => {
+      const t = line.trim();
+      if (!t) { rl.prompt(); return; }
+      if (t === '/exit' || t === '/quit') { rl.close(); return; }
+      if (t === '/help') { console.log('Commands: /exit, /model <name>, /root <path>, /sandbox on|off, /autoapprove on|off, /offline on|off, /agent <name>, /index, /replay <sessionId>'); rl.prompt(); return; }
+      if (t.startsWith('/model ')) { model = t.slice(7).trim(); console.log('model =', model); rl.prompt(); return; }
+      if (t.startsWith('/root ')) { root = t.slice(6).trim(); console.log('root =', root); rl.prompt(); return; }
+      if (t.startsWith('/sandbox ')) { sandbox = t.slice(9).trim() === 'on'; console.log('sandbox =', sandbox); rl.prompt(); return; }
+      if (t.startsWith('/autoapprove ')) { autoApprove = t.slice(13).trim() === 'on'; console.log('autoApprove =', autoApprove); rl.prompt(); return; }
+      if (t.startsWith('/offline ')) { offline = t.slice(9).trim() === 'on'; console.log('offline =', offline); rl.prompt(); return; }
+      if (t.startsWith('/agent ')) { const p = profiles.getProfile(t.slice(7).trim()); model = p.model || model; /* apply profile defaults */ console.log('agent =', p.name); rl.prompt(); return; }
+      if (t === '/index') { const ci = require('./indexing/codeindex'); ci.ensureSchema(db.get()); const n = ci.indexProject(root, db.get()); console.log('indexed symbols:', n); rl.prompt(); return; }
+      if (t.startsWith('/replay ')) { const r = require('./replay'); const res = await r.replaySession(t.slice(8).trim(), { projectRoot: root }); console.log(JSON.stringify(res.replayed.final, null, 2).slice(0, 500)); rl.prompt(); return; }
+      try { await runOne(t); } catch (e) { console.error('error:', e.message || e); }
+      rl.prompt();
+    });
+    rl.on('close', () => { db.close(); process.exit(0); });
+    return;
   }
 
   let model = process.env.AEGISAI_MODEL || 'llama3.2:3b';
@@ -57,6 +93,7 @@ async function main() {
   let sandbox = false;
   let autoApprove = process.env.AEGISAI_AUTO_APPROVE === 'true';
   let offline = OFFLINE;
+  let agentName = 'default';
   const promptParts = [];
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--model') { model = args[++i]; continue; }
@@ -64,9 +101,13 @@ async function main() {
     if (args[i] === '--sandbox') { sandbox = true; continue; }
     if (args[i] === '--auto-approve') { autoApprove = true; continue; }
     if (args[i] === '--offline') { offline = true; continue; }
+    if (args[i] === '--agent') { agentName = args[++i]; continue; }
     promptParts.push(args[i]);
   }
   const prompt = promptParts.join(' ');
+  const profile = profiles.getProfile(agentName);
+  if (profile.model) model = profile.model;
+  if (profile.sandbox) sandbox = true;
 
   const onEvent = (e) => {
     if (e.type === 'token') process.stdout.write(e.content || '');
@@ -78,13 +119,17 @@ async function main() {
 
   const result = await runAgent({
     model,
-    messages: [{ role: 'user', content: prompt }],
+    messages: [{ role: 'system', content: profile.systemPrompt }, { role: 'user', content: prompt }],
     projectRoot: root,
     onEvent,
     mcpTools,
-    sandbox,
+    sandbox: sandbox || profile.sandbox,
     offline,
     autoApprove,
+    includeCoding: profile.includeCoding !== false,
+    cleanRoom: profile.cleanRoom,
+    allowedTools: profile.allowedTools,
+    deniedTools: profile.deniedTools,
     approvalHandler: autoApprove ? null : askApproval,
     tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
   });

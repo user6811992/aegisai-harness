@@ -3,7 +3,9 @@ const backends = require('../backends');
 const coding = require('../tools/coding');
 const registry = require('../tools/registry');
 const compactMod = require('./compact');
+const hooks = require('../hooks');
 const { OFFLINE: CONFIG_OFFLINE } = require('../core/config');
+const dbModule = require('../storage/db');
 
 const DESTRUCTIVE = new Set(['write_file', 'delete_file', 'run_command', 'run_python']);
 
@@ -62,6 +64,13 @@ async function runAgent(opts) {
   if (archive.length > 0) {
     tools.push({ type: 'function', function: { name: 'recall_archived_context', description: 'Search compacted/archived conversation context by keyword.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } } });
   }
+  // codebase search tool if index available
+  try {
+    const ci = require('../indexing/codeindex');
+    ci.ensureSchema(dbModule.get());
+    tools.push({ type: 'function', function: { name: 'search_codebase', description: 'Search indexed codebase symbols by name/path.', parameters: { type: 'object', properties: { query: { type: 'string' }, limit: { type: 'number' } }, required: ['query'] } } });
+  } catch (e) {}
+  tools.push({ type: 'function', function: { name: 'delegate_to_agent', description: 'Delegate a task to a named sub-agent (default, coder, researcher, clean-room).', parameters: { type: 'object', properties: { agent: { type: 'string' }, task: { type: 'string' }, model: { type: 'string' }, maxTokens: { type: 'number' } }, required: ['task'] } } });
 
   let totalTokens = 0;
   let iterations = 0;
@@ -69,6 +78,7 @@ async function runAgent(opts) {
   while (iterations < MAX_ITERS) {
     iterations += 1;
     onEvent({ type: 'status', message: 'calling model' });
+    await hooks.run('beforeModel', { messages: msgs, tools, iteration: iterations });
     let resp;
     const modelsToTry = [model].concat(Array.isArray(fallbackModels) ? fallbackModels : []).filter(Boolean);
     let lastErr = null;
@@ -96,6 +106,7 @@ async function runAgent(opts) {
     if (!resp) {
       return { final: { type: 'done', final: 'error: ' + ((lastErr && (lastErr.message || lastErr)) || 'all models failed'), toolLog }, toolLog };
     }
+    await hooks.run('afterModel', { response: resp, iteration: iterations });
     const data = resp && resp.data ? resp.data : resp;
     const msg = (data && data.message) || {};
     const toolCalls = msg.tool_calls;
@@ -113,7 +124,8 @@ async function runAgent(opts) {
 
     msgs.push({ role: 'assistant', content: msg.content || '', tool_calls: toolCalls });
 
-    for (const tc of toolCalls) {
+    // parallel tool execution
+    const results = await Promise.all(toolCalls.map(async (tc) => {
       const fn = tc.function || tc;
       const name = fn.name;
       let args = fn.arguments;
@@ -122,13 +134,8 @@ async function runAgent(opts) {
 
       if (cleanRoom && registry.isCleanRoomBlocked(name)) {
         const blocked = 'BLOCKED (clean room): ' + name;
-        toolLog.push({ name, resultPreview: blocked });
-        onEvent({ type: 'tool_result', name, preview: blocked });
-        msgs.push({ role: 'tool', content: blocked, name });
-        continue;
+        return { name, args, blocked };
       }
-
-      // approval gate for destructive tools
       if (DESTRUCTIVE.has(name) && !autoApprove) {
         let approved = true;
         if (typeof approvalHandler === 'function') {
@@ -137,23 +144,44 @@ async function runAgent(opts) {
           approved = false;
         }
         if (!approved) {
-          const denied = 'BLOCKED (approval denied): ' + name;
-          toolLog.push({ name, resultPreview: denied });
-          onEvent({ type: 'approval_denied', name });
-          msgs.push({ role: 'tool', content: denied, name });
-          continue;
+          return { name, args, denied: true };
         }
       }
-
+      await hooks.run('beforeTool', { name, args });
       onEvent({ type: 'tool_call', name, args });
       let result;
       try {
-        if (name === 'recall_archived_context') {
-        const q = (args.query || '').toLowerCase();
-        const hits = archive.filter((m) => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)).toLowerCase().includes(q));
-        const out = hits.map((m) => `${m.role}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n---\n');
-        result = { ok: true, output: out || '(no archived matches)' };
-      } else if (mcpLookup.has(name)) {
+        if (name === 'search_codebase') {
+          try {
+            const ci = require('../indexing/codeindex');
+            ci.ensureSchema(dbModule.get());
+            const rows = ci.searchIndex(dbModule.get(), args.query || '', args.limit || 20);
+            result = { ok: true, output: rows.map((r) => `${r.path}:${r.line} ${r.kind} ${r.symbol}`).join('\n') || '(no matches)' };
+          } catch (e) {
+            result = { ok: false, output: String(e.message || e) };
+          }
+        } else if (name === 'delegate_to_agent') {
+          const profilesMod = require('../agents/profiles');
+          const subProfile = profilesMod.getProfile(args.agent || 'default');
+          const subRes = await runAgent({
+            model: args.model || subProfile.model || model,
+            messages: [{ role: 'system', content: subProfile.systemPrompt }, { role: 'user', content: args.task || '' }],
+            projectRoot,
+            includeCoding: subProfile.includeCoding !== false,
+            cleanRoom: subProfile.cleanRoom,
+            allowedTools: subProfile.allowedTools,
+            deniedTools: subProfile.deniedTools,
+            sandbox: subProfile.sandbox,
+            autoApprove: true,
+            maxTokens: args.maxTokens || 0,
+          });
+          result = { ok: true, output: (subRes.final && subRes.final.final) || '' };
+        } else if (name === 'recall_archived_context') {
+          const q = (args.query || '').toLowerCase();
+          const hits = archive.filter((m) => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)).toLowerCase().includes(q));
+          const out = hits.map((m) => `${m.role}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n---\n');
+          result = { ok: true, output: out || '(no archived matches)' };
+        } else if (mcpLookup.has(name)) {
           const t = mcpLookup.get(name);
           try {
             const r = await t.client.callTool(t.remoteName || t.name, args);
@@ -170,11 +198,30 @@ async function runAgent(opts) {
       } catch (e) {
         result = { ok: false, output: String(e.message || e) };
       }
-      const preview = (result && (result.output || result.out)) || '';
+      await hooks.run('afterTool', { name, args, result });
+      return { name, args, result };
+    }));
+
+    for (const r of results) {
+      if (r.blocked) {
+        const preview = r.blocked;
+        toolLog.push({ name: r.name, resultPreview: preview });
+        onEvent({ type: 'tool_result', name: r.name, preview });
+        msgs.push({ role: 'tool', content: preview, name: r.name });
+        continue;
+      }
+      if (r.denied) {
+        const denied = 'BLOCKED (approval denied): ' + r.name;
+        toolLog.push({ name: r.name, resultPreview: denied });
+        onEvent({ type: 'approval_denied', name: r.name });
+        msgs.push({ role: 'tool', content: denied, name: r.name });
+        continue;
+      }
+      const preview = (r.result && (r.result.output || r.result.out)) || '';
       const previewStr = String(preview).slice(0, 500);
-      toolLog.push({ name, resultPreview: previewStr });
-      onEvent({ type: 'tool_result', name, preview: previewStr });
-      msgs.push({ role: 'tool', content: previewStr, name });
+      toolLog.push({ name: r.name, resultPreview: previewStr });
+      onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
+      msgs.push({ role: 'tool', content: previewStr, name: r.name });
     }
   }
 

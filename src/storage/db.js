@@ -49,6 +49,15 @@ function open(dbPath) {
           updated TEXT,
           embedding TEXT
         );
+        CREATE TABLE IF NOT EXISTS code_symbols (
+          id TEXT PRIMARY KEY,
+          project TEXT,
+          path TEXT,
+          symbol TEXT,
+          kind TEXT,
+          line INTEGER
+        );
+        CREATE INDEX IF NOT EXISTS idx_code_symbols_symbol ON code_symbols(symbol);
       `);
     },
   ];
