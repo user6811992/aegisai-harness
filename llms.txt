@@ -1,0 +1,27 @@
+# AegisAi Harness — agent-readable catalog
+
+A feature-rich, local-only AI agent harness. CLI-first, offline-first.
+
+## Capabilities
+- Multi-backend LLM adapter (Ollama + OpenAI-compatible)
+- Agent loop with tool calls, fallback models, token budgeting
+- Tool registry with capability filtering, clean room, sandbox rings
+- MCP client (stdio + HTTP), mock MCP fixtures
+- Context compaction + retrievable archive
+- Hooks (beforeModel, afterModel, beforeTool, afterTool, PermissionRequest, SessionStart/End, PostModelCall)
+- Doom-loop detection, composable stop conditions
+- Named agents/profiles, subagents, handoffs, parallel tool calls
+- Deterministic replay, tracing, eval harness, benchmark suites
+- Policy engine, guardrails, encrypted vault, backup/restore
+- Web UI (--web), Tauri desktop scaffold, offline update checker
+- Code indexing + repo map, skill import + auto-create, decision memory
+
+## Entry points
+- `node src/index.js "<prompt>"` — one-shot
+- `node src/index.js --repl` — interactive REPL
+- `node src/index.js --web` — web UI
+- `node src/index.js --proxy` — OpenAI-compatible proxy
+- `node src/index.js --update` — version check
+
+## Docs
+- README.md, ROADMAP.md

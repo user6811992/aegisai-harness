@@ -196,24 +196,25 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Unified multi-provider LLM API (pi-ai)
 - [ ] Embeddable agent core library (pi-agent-core)
 
-## v0.14 — From third ecosystem exploration (Aider-AI, openai, QwenLM)
+## v0.14 — From third ecosystem exploration (Aider-AI, openai, QwenLM) (in progress)
 ### From Aider-AI/aider
-- [ ] Repo map (tree-sitter symbols + import graph) before each task
-- [ ] AST-aware code search (grep-ast pattern)
-- [ ] Convention files (aider conventions / AGENTS.md-style)
-- [ ] Polyglot + refactoring benchmarks
-- [ ] SWE-bench harness integration
+- [x] Repo map (symbols + imports) — get_repo_map tool
+- [ ] AST-aware code search (grep-ast pattern) — deferred
+- [ ] Convention files (aider conventions / AGENTS.md-style) — deferred
+- [ ] Polyglot + refactoring benchmarks — deferred
+- [ ] SWE-bench harness integration — deferred
 ### From openai
-- [ ] Multi-agent workflows framework (handoffs, guardrails, tracing — openai-agents)
-- [ ] Input/output guardrails (openai-guardrails)
-- [ ] Secure MCP tunnel for local/private MCP servers
-- [ ] MCP extensions (native-feeling plugins)
-- [ ] Skills catalog for Codex
-- [ ] Isolated autonomous implementation runs (symphony)
-- [ ] VM-based sandboxing (tart/orchard/softnet, fence)
-- [ ] Fast BPE token counting (tiktoken)
-- [ ] Frontier evals
-- [ ] Model Spec (behavior specification)
+- [x] Multi-agent handoffs (handoff_to_agent) + guardrails + tracing
+- [x] Input/output guardrails (src/guardrails.js)
+- [x] Machine-readable catalog (llms.txt)
+- [ ] Secure MCP tunnel for local/private MCP servers — deferred
+- [ ] MCP extensions (native-feeling plugins) — deferred
+- [ ] Skills catalog for Codex — deferred
+- [ ] Isolated autonomous implementation runs (symphony) — deferred
+- [ ] VM-based sandboxing (tart/orchard/softnet, fence) — deferred
+- [x] Token counting (src/tokenizer.js)
+- [ ] Frontier evals — deferred
+- [ ] Model Spec (behavior specification) — deferred
 ### From QwenLM
 - [ ] Multimodal realtime harness (Qwen-Live-Harness — see/hear/act + memory)
 - [ ] Multimodal-native plugins (Qwen-MM-Plugins)

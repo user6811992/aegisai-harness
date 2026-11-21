@@ -76,4 +76,23 @@ function ensureSchema(db) {
   db.exec('CREATE INDEX IF NOT EXISTS idx_code_symbols_symbol ON code_symbols(symbol)');
 }
 
-module.exports = { extractSymbols, walkFiles, indexProject, searchIndex, ensureSchema };
+function buildRepoMap(projectRoot, maxFiles) {
+  maxFiles = maxFiles || 200;
+  const files = [];
+  walkFiles(projectRoot, files);
+  const map = [];
+  for (const f of files) {
+    if (map.length >= maxFiles) break;
+    const ext = path.extname(f).toLowerCase();
+    const lang = EXT_LANG[ext];
+    if (!lang) continue;
+    let content;
+    try { content = fs.readFileSync(f, 'utf8'); } catch (e) { continue; }
+    const syms = extractSymbols(content, lang);
+    const imports = (content.match(/^\s*(?:import|from|require\()\s*[^;]+/gm) || []).slice(0, 20);
+    map.push({ path: path.relative(projectRoot, f), symbols: syms.map((s) => s.name), imports });
+  }
+  return map;
+}
+
+module.exports = { extractSymbols, walkFiles, indexProject, searchIndex, ensureSchema, buildRepoMap };

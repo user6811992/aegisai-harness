@@ -48,10 +48,22 @@ async function runAgent(opts) {
     backgroundTools = [],
     policy = null,
     currentRing = 1,
+    guardrails = null,
   } = opts;
 
   const toolLog = [];
   let msgs = [...(messages || [])];
+  if (guardrails && guardrails.input) {
+    const gr = require('../guardrails');
+    for (const m of msgs) {
+      if (m.role !== 'user') continue;
+      const text = typeof m.content === 'string' ? m.content : JSON.stringify(m.content || '');
+      const check = gr.checkInput(text);
+      if (!check.safe) {
+        return { final: { type: 'done', final: '(blocked by input guardrail: ' + check.hits.join(', ') + ')', toolLog: [] }, toolLog: [] };
+      }
+    }
+  }
   if (stateAccessor && typeof stateAccessor.load === 'function') {
     try {
       const st = await stateAccessor.load();
@@ -96,6 +108,8 @@ async function runAgent(opts) {
   } catch (e) {}
   tools.push({ type: 'function', function: { name: 'delegate_to_agent', description: 'Delegate a task to a named sub-agent (default, coder, researcher, clean-room).', parameters: { type: 'object', properties: { agent: { type: 'string' }, task: { type: 'string' }, model: { type: 'string' }, maxTokens: { type: 'number' } }, required: ['task'] } } });
   tools.push(asyncTools.TASK_TOOL_DEF);
+  tools.push({ type: 'function', function: { name: 'get_repo_map', description: 'Return a compact repo map: files, symbols, imports.', parameters: { type: 'object', properties: { maxFiles: { type: 'number' } } } } });
+  tools.push({ type: 'function', function: { name: 'handoff_to_agent', description: 'Hand off task with full conversation context to a named agent.', parameters: { type: 'object', properties: { agent: { type: 'string' }, instruction: { type: 'string' } }, required: ['instruction'] } } });
 
   let totalTokens = 0;
   let iterations = 0;
@@ -160,7 +174,12 @@ async function runAgent(opts) {
     if (iterSpan) tracer.endSpan(iterSpan, { tokens: data.eval_count || 0 });
 
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
-      const finalText = msg.content || '';
+      let finalText = msg.content || '';
+      if (guardrails && guardrails.output) {
+        const gr = require('../guardrails');
+        const check = gr.checkOutput(finalText, guardrails.output === true ? {} : guardrails.output);
+        if (!check.safe) finalText = '(blocked by output guardrail: ' + check.hits.join(', ') + ')';
+      }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
       await hooks.run('SessionEnd', { reason: 'complete', totalUsage: { totalTokens } });
       if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
@@ -233,6 +252,18 @@ async function runAgent(opts) {
       try {
         if (name === 'task') {
           result = asyncTools.handleTask(bgPool, args);
+        } else if (name === 'get_repo_map') {
+          try {
+            const ci = require('../indexing/codeindex');
+            const map = ci.buildRepoMap(projectRoot, args.maxFiles || 100);
+            result = { ok: true, output: map.map((f) => f.path + ': ' + f.symbols.join(', ')).join('\n').slice(0, 4000) };
+          } catch (e) { result = { ok: false, output: String(e.message || e) }; }
+        } else if (name === 'handoff_to_agent') {
+          const profilesMod = require('../agents/profiles');
+          const subProfile = profilesMod.getProfile(args.agent || 'default');
+          const subMsgs = msgs.filter((m) => m.role !== 'tool').concat([{ role: 'user', content: args.instruction || '' }]);
+          const subRes = await runAgent({ model: subProfile.model || model, messages: subMsgs, projectRoot, includeCoding: subProfile.includeCoding !== false, cleanRoom: subProfile.cleanRoom, allowedTools: subProfile.allowedTools, deniedTools: subProfile.deniedTools, sandbox: subProfile.sandbox, autoApprove: true });
+          result = { ok: true, output: (subRes.final && subRes.final.final) || '' };
         } else if (Array.isArray(backgroundTools) && backgroundTools.includes(name)) {
           const r = await bgPool.run(name, async (log) => coding.execCodingTool(name, args, projectRoot, { sandbox, offline }), 250);
           if (r.pending) {
