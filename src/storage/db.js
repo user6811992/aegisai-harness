@@ -90,6 +90,10 @@ function open(dbPath) {
     function v9() {
       db.exec(`CREATE TABLE IF NOT EXISTS teams (name TEXT PRIMARY KEY, created TEXT, data TEXT)`);
     },
+    function v10() {
+      db.exec(`CREATE TABLE IF NOT EXISTS agent_lifecycle (id TEXT PRIMARY KEY, name TEXT, status TEXT, credential TEXT, created TEXT, heartbeat INTEGER, rotated INTEGER)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS temporal_memories (id TEXT PRIMARY KEY, text TEXT, source TEXT, tags TEXT, valid_from INTEGER, valid_to INTEGER)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

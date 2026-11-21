@@ -14,6 +14,7 @@ async function execCodingTool(name, args, projectRoot, opts) {
   const offline = (opts.offline !== undefined) ? opts.offline : (process.env.AEGISAI_OFFLINE === 'true');
   const sandbox = !!opts.sandbox;
   const a = args || {};
+  if (a.path) a.path = require('../fs_robust').normalizePath(a.path);
   switch (name) {
     case 'list_files': {
       const dir = security.safePath(projectRoot, a.path || '.');
@@ -95,7 +96,7 @@ async function execCodingTool(name, args, projectRoot, opts) {
         // sandbox: no shell, minimal env, strict timeout cap
         return security.runProcess(parts[0], parts.slice(1), { cwd: projectRoot, timeout: Math.min(a.timeout || 30000, 30000), shell: false, env: { PATH: process.env.PATH } });
       }
-      if (useShell) return security.runProcess(cmd, [], { cwd: projectRoot, timeout: a.timeout || 60000, shell: true });
+      if (useShell) return security.runProcess(require('../fs_robust').shellCompatible(cmd), [], { cwd: projectRoot, timeout: a.timeout || 60000, shell: true });
       return security.runProcess(parts[0], parts.slice(1), { cwd: projectRoot, timeout: a.timeout || 60000, shell: false });
     }
     case 'run_python': {

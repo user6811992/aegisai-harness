@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.24 (24 milestones). All five v0.24 P1 items landed: multi-agent teams, headless JSON CLI, context files, read-only mode, token-efficient Markdown extraction. 22 issues closed, 21 tests passing.
+- **Shipped:** v0.1–v0.25 (25 milestones). All six v0.25 candidates landed: agent lifecycle, PII protection, governance charter, Windows/FS robustness, model×harness pairing evals, bi-temporal memory graph. 23 issues closed, 26 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Next candidates (v0.25):** agent lifecycle, PII protection layer, governance charter, Windows/FS robustness, model×harness pairing evals, graph/bi-temporal memory. Pick from P1 below.
+- **Next candidates (v0.26):** remaining P1 items — agent runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, parallel task board. Or pick from P2.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -33,6 +33,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.22 Quality gates** — skill evaluator, harness lint, adversarial tests, CI template.
 - **v0.23 Trust & tuning** — MCP security scanner, source-bound memory, contract baselines, rollout optimizer, cron scheduling.
 - **v0.24 Teams & interfaces** — multi-agent teams, headless JSON CLI, context files, read-only mode, Markdown extraction.
+- **v0.25 Trust & governance** — agent lifecycle, PII redaction, governance charter, Windows/FS robustness, pairing evals, bi-temporal memory.
 
 ## Active backlog by theme
 
@@ -49,12 +50,12 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Context files (AGENTS.md-style project briefing) — src/context_files.js
 - [x] Read-only boundary enforcement (formalize clean-room) — src/read_only.js
 - [x] Token-efficient Markdown extraction from web pages — src/markdown_extract.js
-- [ ] Agent lifecycle (credential rotation, orphan detection, decommissioning)
-- [ ] PII & sensitive credential protection layer
-- [ ] Governance charter + spec-driven enforcement
-- [ ] Windows/FS robustness (from Claude Code issue analysis)
-- [ ] Model×harness pairing evals
-- [ ] Graph-based recall + bi-temporal memory graph
+- [x] Agent lifecycle (credential rotation, orphan detection, decommissioning) — src/lifecycle.js
+- [x] PII & sensitive credential protection layer — src/pii.js
+- [x] Governance charter + spec-driven enforcement — src/charter.js
+- [x] Windows/FS robustness — src/fs_robust.js + wired into coding tools
+- [x] Model×harness pairing evals — src/pairing.js
+- [x] Graph-based recall + bi-temporal memory graph — src/temporal_memory.js
 - [ ] Versioned archive of prompts/tool schemas
 - [ ] Prompt templates + CLI themes + RPC mode
 - [ ] Self-improvement loop (propose → eval → approve → ship)
