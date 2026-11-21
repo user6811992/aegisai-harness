@@ -20,8 +20,8 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Context compaction (summarize older messages; replaces last-N truncation)
 - [x] Token budgeting & accounting per run (tokenBudgetTotal + total stats)
 - [x] Offline mode toggle (removes network tools; --offline flag)
-- [ ] HTTP MCP transport + reconnect (deferred)
-- [ ] Retrievable archive / expand-on-demand (deferred)
+- [x] HTTP MCP transport + reconnect
+- [x] Retrievable archive / expand-on-demand (recall_archived_context tool)
 
 ## v0.3 — Capability (P1)
 - [ ] Named agents/profiles (prompt + tools + permissions + model)

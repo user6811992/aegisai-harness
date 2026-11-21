@@ -27,7 +27,7 @@ async function compactMessages(opts) {
   const threshold = opts.threshold || 16;
   const systemMsgs = messages.filter((m) => m.role === 'system');
   const others = messages.filter((m) => m.role !== 'system');
-  if (others.length <= threshold) return messages;
+  if (others.length <= threshold) return { messages, archived: [] };
   const toSummarize = others.slice(0, others.length - keep);
   const kept = others.slice(others.length - keep);
   const summary = await summarize(toSummarize, model);
@@ -36,7 +36,7 @@ async function compactMessages(opts) {
     out.push({ role: 'system', content: 'Conversation summary (compacted):\n' + summary });
   }
   out.push(...kept);
-  return out;
+  return { messages: out, archived: toSummarize };
 }
 
 module.exports = { compactMessages, summarize };

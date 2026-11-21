@@ -16,6 +16,73 @@ function saveConfig(cfg) {
   fs.writeFileSync(path.join(DATA_DIR, 'mcp.json'), JSON.stringify(cfg, null, 2));
 }
 
+class McpHttpClient {
+  constructor(server) {
+    this.server = server;
+    this.url = server.url;
+    this.headers = Object.assign({ 'Content-Type': 'application/json' }, server.headers || {});
+    if (server.apiKey) this.headers['Authorization'] = 'Bearer ' + server.apiKey;
+    this.id = 0;
+    this.tools = [];
+  }
+  async start(retries) {
+    retries = retries || 3;
+    let lastErr;
+    for (let i = 0; i < retries; i++) {
+      try {
+        await this._request('initialize', { protocolVersion: '2024-11-05', capabilities: {}, clientInfo: { name: 'aegisai-harness', version: '0.2.0' } });
+        await this._notify('notifications/initialized', {});
+        const r = await this._request('tools/list', {});
+        this.tools = (r && r.tools) || [];
+        return this;
+      } catch (e) {
+        lastErr = e;
+        await new Promise((res) => setTimeout(res, 500 * (i + 1)));
+      }
+    }
+    throw lastErr;
+  }
+  async _request(method, params) {
+    const id = ++this.id;
+    const body = JSON.stringify({ jsonrpc: '2.0', id, method, params });
+    const r = await fetch(this.url, { method: 'POST', headers: this.headers, body });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const ct = r.headers.get('content-type') || '';
+    if (ct.includes('text/event-stream')) {
+      // read SSE until a message with our id
+      const text = await r.text();
+      const lines = text.split('\n');
+      for (const line of lines) {
+        const t = line.trim();
+        if (!t.startsWith('data:')) continue;
+        try {
+          const msg = JSON.parse(t.slice(5).trim());
+          if (msg.id === id) return msg.result;
+        } catch (e) {}
+      }
+      throw new Error('no response for ' + method);
+    }
+    const data = await r.json();
+    if (data.error) throw new Error(data.error.message || 'rpc error');
+    return data.result;
+  }
+  async _notify(method, params) {
+    try { await fetch(this.url, { method: 'POST', headers: this.headers, body: JSON.stringify({ jsonrpc: '2.0', method, params }) }); } catch (e) {}
+  }
+  async callTool(name, args) {
+    // reconnect on failure
+    try {
+      const r = await this._request('tools/call', { name, arguments: args || {} });
+      return r;
+    } catch (e) {
+      await this.start(2).catch(() => {});
+      const r = await this._request('tools/call', { name, arguments: args || {} });
+      return r;
+    }
+  }
+  stop() {}
+}
+
 class McpClient {
   constructor(server) {
     this.server = server;
@@ -26,6 +93,9 @@ class McpClient {
     this.buffer = '';
   }
   start() {
+    if (this.proc) { try { this.proc.kill(); } catch (e) {} this.proc = null; }
+    this.pending = new Map();
+    this.buffer = '';
     return new Promise((resolve, reject) => {
       const cmd = this.server.command;
       const args = this.server.args || [];
@@ -72,8 +142,13 @@ class McpClient {
     return Promise.resolve();
   }
   async callTool(name, args) {
-    const r = await this._request('tools/call', { name, arguments: args || {} });
-    return r;
+    try {
+      return await this._request('tools/call', { name, arguments: args || {} });
+    } catch (e) {
+      // attempt reconnect
+      try { await this.start(); } catch (e2) {}
+      return await this._request('tools/call', { name, arguments: args || {} });
+    }
   }
   stop() {
     if (this.proc) { try { this.proc.kill(); } catch (e) {} this.proc = null; }
@@ -84,11 +159,18 @@ async function connectAll() {
   const cfg = loadConfig();
   const clients = [];
   for (const s of (cfg.servers || [])) {
-    if (!s.enabled && s.enabled !== undefined) continue;
+    if (s.enabled === false) continue;
+    const transport = (s.transport || (s.url ? 'http' : 'stdio')).toLowerCase();
     try {
-      const c = new McpClient(s);
-      await c.start();
-      clients.push({ config: s, client: c });
+      let c;
+      if (transport === 'http' || transport === 'sse') {
+        c = new McpHttpClient(s);
+        await c.start(3);
+      } else {
+        c = new McpClient(s);
+        await c.start();
+      }
+      clients.push({ config: Object.assign({}, s, { transport }), client: c });
     } catch (e) {
       // skip failed servers
     }

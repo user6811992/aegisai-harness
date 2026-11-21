@@ -37,8 +37,11 @@ async function runAgent(opts) {
 
   const toolLog = [];
   let msgs = [...(messages || [])];
+  const archive = [];
   if (compact && msgs.length > compactThreshold) {
-    msgs = await compactMod.compactMessages({ messages: msgs, model, keep: compactKeep, threshold: compactThreshold });
+    const res = await compactMod.compactMessages({ messages: msgs, model, keep: compactKeep, threshold: compactThreshold });
+    msgs = res.messages;
+    archive.push(...(res.archived || []));
   } else if (maxHistory > 0 && msgs.length > maxHistory) {
     const systemMsgs = msgs.filter((m) => m.role === 'system');
     const others = msgs.filter((m) => m.role !== 'system');
@@ -56,6 +59,9 @@ async function runAgent(opts) {
     mcpLookup.set(`${src}_${t.name}`, t);
   }
   const tools = registry.assemble({ includeCoding, toolBudget, allowedTools, deniedTools, externalTools: mergedExternal, offline });
+  if (archive.length > 0) {
+    tools.push({ type: 'function', function: { name: 'recall_archived_context', description: 'Search compacted/archived conversation context by keyword.', parameters: { type: 'object', properties: { query: { type: 'string' } }, required: ['query'] } } });
+  }
 
   let totalTokens = 0;
   let iterations = 0;
@@ -142,7 +148,12 @@ async function runAgent(opts) {
       onEvent({ type: 'tool_call', name, args });
       let result;
       try {
-        if (mcpLookup.has(name)) {
+        if (name === 'recall_archived_context') {
+        const q = (args.query || '').toLowerCase();
+        const hits = archive.filter((m) => (typeof m.content === 'string' ? m.content : JSON.stringify(m.content)).toLowerCase().includes(q));
+        const out = hits.map((m) => `${m.role}: ${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}`).join('\n---\n');
+        result = { ok: true, output: out || '(no archived matches)' };
+      } else if (mcpLookup.has(name)) {
           const t = mcpLookup.get(name);
           try {
             const r = await t.client.callTool(t.remoteName || t.name, args);
