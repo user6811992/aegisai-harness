@@ -303,6 +303,36 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Harness engineering guide/book/course links
 - [ ] Source-grounded architecture teardowns (agent-harness-anatomy)
 
+## v0.22 — From GitHub harness search pages 4–6
+### Eval & quality gates
+- [ ] Skill/plugin evaluator — quality gates, security scanning, harness compatibility, semantic overlap detection (NVIDIA SkillEvaluator)
+- [ ] Harness lint/review/security-audit command (harness-eval)
+- [ ] Adversarial multi-turn stress tests in CI (ProofAgent)
+- [ ] Requirement-driven eval generation + OTel-traced eval (ASSERT)
+- [ ] CI templates for all checks
+### Harness optimization
+- [ ] Harness optimizer — tunable Formulas optimized from rollout trajectories (strands-labs/harness-optimizer)
+- [ ] Self-healing skills via CI (aeon)
+- [ ] Harness scaffolding generator — scaffold a branded harness with CLI/MCP/memory (metaharness)
+### Memory & knowledge
+- [ ] Graph-based recall + cross-session memory (mnemon)
+- [ ] Bi-temporal memory graph, MCP-native, zero LLM calls (memtrace)
+- [ ] Versioned archive of system prompts/tool schemas/harnesses (OrcaPromptVault)
+### Security & governance
+- [ ] eBPF information-flow enforcement (ActPlane, Linux)
+- [ ] PII & sensitive credential protection layer (clawshell)
+- [ ] Kubernetes-native sandbox backend (agenttier)
+### Interfaces & protocols
+- [ ] A2A protocol adapter (a2a-adapter)
+- [ ] Visual DAG editor UI (dsh-harness-one)
+- [ ] Token-efficient Markdown extraction from web pages (browser39)
+- [ ] Agent runtime manager — detect/manage/launch runtimes (harness-manager)
+### Reliability
+- [ ] Contract-driven call-chain snapshots + regression baselines (shrt)
+- [ ] Low-RAM mode (alter-zero)
+### Docs
+- [ ] Repo harness guide (adobe), from-scratch tutorials, architecture checklists
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
