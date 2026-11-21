@@ -295,7 +295,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Governance charter + spec-driven enforcement (spec-kitty)
 - [ ] Portable persona folder format (Agent Skills-based)
 ### Interfaces & orchestration
-- [ ] Computer-use / browser-use tools (openagent, osaurus)
+- [x] Computer-use / browser-use tools (CDP — src/integrations/browser.js)
 - [ ] Selection quoting for UI (Celestea)
 - [ ] Human-in-loop realtime task manager over ACP (agentrq)
 - [ ] Typed tool routing (learn-claude-code-rs)

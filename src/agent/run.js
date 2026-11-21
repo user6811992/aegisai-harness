@@ -54,6 +54,7 @@ async function runAgent(opts) {
     toolOutputCompression = 0,
     verifyWork = false,
     planMode = false,
+    browserTools = false,
   } = opts;
 
   // project root allowlist
@@ -133,6 +134,7 @@ async function runAgent(opts) {
     const selected = discovered.filter((t) => core.has((t.function || t).name));
     tools = selected.length ? selected : discovered;
   }
+  if (browserTools) tools.push(...require('../integrations/browser').TOOLS);
   if (planMode) tools = [];
 
   let totalTokens = 0;
@@ -282,6 +284,8 @@ async function runAgent(opts) {
       try {
         if (name === 'task') {
           result = asyncTools.handleTask(bgPool, args);
+        } else if (name.startsWith('browser_')) {
+          result = await require('../integrations/browser').handle(name, args);
         } else if (name === 'get_repo_map') {
           try {
             const ci = require('../indexing/codeindex');

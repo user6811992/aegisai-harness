@@ -388,6 +388,10 @@ async function main() {
       }
       if (t === '/dag-runs') { console.log(JSON.stringify(require('./dag').listRuns(), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/critique ')) { const r = await require('./critic').critique('manual', t.slice(10).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t === '/browser-targets') { console.log(JSON.stringify(await require('./integrations/browser').targets(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }
