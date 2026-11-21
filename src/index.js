@@ -58,44 +58,119 @@ async function main() {
 
   if (webFlag) {
     const http = require('http');
-    const fs = require('fs');
     const path = require('path');
     const port = parseInt(process.env.PORT || '8080', 10);
-    const server = http.createServer(async (req, res) => {
-      if (req.method === 'POST' && req.url === '/api/chat') {
+    const host = process.env.HOST || '127.0.0.1';
+    const token = process.env.AEGISAI_TOKEN || process.env.LOCALAI_TOKEN || '';
+    const rateLimit = parseInt(process.env.AEGISAI_RATE_LIMIT || '0', 10);
+    const rateWindow = parseInt(process.env.AEGISAI_RATE_WINDOW || '60', 10) * 1000;
+    const rateHits = new Map();
+    const sessions = new Map(); // session id -> messages array
+    const pendingActions = new Map();
+
+    function readJson(req) {
+      return new Promise((resolve, reject) => {
         let body = '';
         req.on('data', (c) => { body += c; });
-        req.on('end', async () => {
-          try {
-            const parsed = JSON.parse(body);
-            const result = await runAgent({
-              model: process.env.AEGISAI_MODEL || 'llama3.2:3b',
-              messages: [{ role: 'user', content: parsed.message || '' }],
-              projectRoot: process.cwd(),
-              onEvent: () => {},
-              autoApprove: true,
-            });
-            res.writeHead(200, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ reply: (result.final && result.final.final) || '', toolLog: result.toolLog || [] }));
-          } catch (e) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: String(e.message || e) }));
-          }
-        });
-        return;
+        req.on('end', () => { try { resolve(JSON.parse(body || '{}')); } catch (e) { reject(e); } });
+      });
+    }
+    function sendJson(res, status, obj) {
+      res.writeHead(status, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify(obj));
+    }
+
+    const server = http.createServer(async (req, res) => {
+      // auth
+      if (token) {
+        const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || new URL(req.url, 'http://x').searchParams.get('token');
+        if (supplied !== token) { sendJson(res, 401, { error: 'unauthorized' }); return; }
       }
+      // rate limit
+      if (rateLimit > 0) {
+        const ip = req.socket.remoteAddress || 'unknown';
+        const now = Date.now();
+        const arr = (rateHits.get(ip) || []).filter((t) => now - t < rateWindow);
+        if (arr.length >= rateLimit) { sendJson(res, 429, { error: 'rate limited' }); return; }
+        arr.push(now); rateHits.set(ip, arr);
+      }
+
+      try {
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/chat') {
+          const parsed = await readJson(req);
+          const sid = parsed.sessionId || 'default';
+          const history = Array.isArray(parsed.history) ? parsed.history : (sessions.get(sid) || []);
+          const result = await runAgent({
+            model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
+            messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
+            projectRoot: process.cwd(),
+            onEvent: () => {},
+            autoApprove: true,
+          });
+          const reply = (result.final && result.final.final) || '';
+          const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
+          sessions.set(sid, updated);
+          sendJson(res, 200, { reply, toolLog: result.toolLog || [], pendingActions: pendingActions.get(sid) || [] });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/branch') {
+          const parsed = await readJson(req);
+          const sid = parsed.sessionId || 'default';
+          const hist = sessions.get(sid) || [];
+          const idx = Math.max(0, Math.min(parsed.index || 0, hist.length));
+          const branched = hist.slice(0, idx);
+          sessions.set(sid + '_' + Date.now(), branched);
+          sendJson(res, 200, { messages: branched });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/backends') {
+          const { state } = require('./backends');
+          sendJson(res, 200, { backends: ['ollama', 'llamacpp', 'lmstudio', 'openai', 'router'], current: state.type });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/backend') {
+          const parsed = await readJson(req);
+          require('./backends').setBackend(parsed.type);
+          sendJson(res, 200, { ok: true, type: parsed.type });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models') {
+          let models = [];
+          try { const r = await require('./backends').backendListModels(); models = r.models || []; } catch (e) {}
+          sendJson(res, 200, { models });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/models/pull') {
+          const parsed = await readJson(req);
+          let ok = false;
+          try {
+            const r = await fetch(require('./backends').getUrl() + '/api/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: parsed.model }) });
+            ok = r.ok;
+          } catch (e) {}
+          sendJson(res, 200, { ok });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/approve') {
+          const parsed = await readJson(req);
+          const sid = parsed.sessionId || 'default';
+          const acts = pendingActions.get(sid) || [];
+          if (acts[parsed.index]) acts[parsed.index].decision = parsed.approve ? 'allow' : 'deny';
+          sendJson(res, 200, { ok: true });
+          return;
+        }
+      } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
+
       // serve static
-      let filePath = path.join(__dirname, '..', 'public', req.url === '/' ? 'index.html' : req.url);
+      let urlPath = req.url.split('?')[0];
+      let filePath = path.join(__dirname, '..', 'public', urlPath === '/' ? 'index.html' : urlPath);
       if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
         const ext = path.extname(filePath);
-        const ct = ext === '.html' ? 'text/html' : ext === '.js' ? 'text/javascript' : ext === '.css' ? 'text/css' : 'text/plain';
+        const ct = ext === '.html' ? 'text/html' : ext === '.js' ? 'text/javascript' : ext === '.css' ? 'text/css' : ext === '.json' ? 'application/json' : ext === '.webmanifest' ? 'application/manifest+json' : 'text/plain';
         res.writeHead(200, { 'Content-Type': ct });
         res.end(fs.readFileSync(filePath));
-      } else {
-        res.writeHead(404); res.end();
-      }
+      } else { res.writeHead(404); res.end(); }
     });
-    server.listen(port, () => console.log('Web UI at http://127.0.0.1:' + port));
+    server.listen(port, host, () => console.log('Web UI at http://' + host + ':' + port));
     return;
   }
 
