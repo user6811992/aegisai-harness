@@ -85,6 +85,38 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Desktop packaging + offline auto-update
 - [ ] Accessibility & theming
 
+## v0.10 — From ecosystem exploration (NousResearch, deepseek-ai, fendouai, opencode-ai)
+### From NousResearch/hermes-agent
+- [ ] Skill auto-creation from experience + self-improvement during use
+- [ ] Periodic nudges to persist knowledge
+- [ ] Session search with LLM summarization (cross-session recall)
+- [ ] Pluggable memory providers (mem0, honcho, supermemory, openviking)
+- [ ] Pluggable terminal/sandbox backends (Docker, SSH, Modal, Daytona)
+- [ ] Cron scheduling with platform delivery
+- [ ] Context files (project context shaping every conversation)
+- [ ] Agent import/migration from other agents (OpenClaw, Claude Code, Codex, Cursor)
+- [ ] Honcho dialectic user modeling (already have Honcho skill)
+### From NousResearch/agent-governance-toolkit (Microsoft)
+- [ ] Policy engine (YAML/OPA/Rego/Cedar) evaluated before execution
+- [ ] Zero-trust identity (Ed25519, trust scoring)
+- [ ] Execution sandboxing (4-tier privilege rings, saga orchestration, kill switch)
+- [ ] Agent SRE (SLOs, error budgets, chaos engineering, replay debugging)
+- [ ] MCP security scanner (tool poisoning, typosquatting, hidden instructions)
+- [ ] Shadow AI discovery (find unregistered agents)
+- [ ] Agent lifecycle (provisioning, credential rotation, orphan detection, decommissioning)
+- [ ] Governance dashboard
+### From deepseek-ai/deepseek-harness
+- [ ] Event-driven plugin architecture (Cordis-style spatiotemporal composability)
+- [ ] Web UI at localhost
+- [ ] Plugin discoverability via topic tags
+### From fendouai/PrivateSecretary
+- [ ] Multimodal context capture (screen/audio OCR/ASR) as optional integration
+- [ ] Read-only memory timeline + contacts/messages aggregation
+- [ ] Significant consolidation + cold archive (memory compaction enhancement)
+- [ ] Read-only boundary enforcement (formalize read-only mode)
+### From opencode-ai/opencode
+- [ ] Richer TUI patterns (multiline editing, slash-command autocomplete)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
