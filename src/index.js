@@ -52,6 +52,17 @@ async function main() {
   const args = process.argv.slice(2);
   const replFlag = args.includes('--repl');
   const proxyFlag = args.includes('--proxy');
+  // --config <file>
+  const ci = args.indexOf('--config');
+  if (ci >= 0 && args[ci + 1]) {
+    try {
+      const cfg = require('./config_toml').loadConfig(args[ci + 1]);
+      if (cfg.backend_type) process.env.BACKEND_TYPE = cfg.backend_type;
+      if (cfg.backend_url) process.env.BACKEND_URL = cfg.backend_url;
+      if (cfg.backend_router_strategy) process.env.BACKEND_ROUTER_STRATEGY = cfg.backend_router_strategy;
+      console.log('loaded config:', args[ci + 1]);
+    } catch (e) { console.error('config load failed:', e.message); }
+  }
 
   if (proxyFlag) {
     const http = require('http');
