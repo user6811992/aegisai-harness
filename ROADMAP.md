@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.27 (27 milestones). v0.27 added AX-first browser use, context capsules + auto-compaction, action rollback, structured task state, keyless web search, content slop filter, and cross-LLM peer review. 25 issues closed, 36 tests passing.
+- **Shipped:** v0.1–v0.28 (28 milestones). v0.28 added runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, declarative harness-as-code, and multi-harness config discovery. 26 issues closed, 44 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Next candidates (v0.28):** remaining P1/P2 items — agent runtime manager, shadow AI discovery, skill package manager, MCP marketplace, self-improvement loop, prompt templates/themes/RPC, parallel task board, declarative harness-as-code, unified context filesystem, multi-harness config discovery.
+- **Remaining P2 candidates:** parallel task board, unified context filesystem, ACP/A2A adapters, visual DAG editor, event-driven plugins, local ASR/TTS, simulated browser, real-world coding benchmarks, harness docs.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -36,6 +36,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.25 Trust & governance** — agent lifecycle, PII redaction, governance charter, Windows/FS robustness, pairing evals, bi-temporal memory.
 - **v0.26 Audit & evolution** — hash-chained ledger, action guardrails, counterfactual evolution, file-first verification, waste detection, agent mailbox.
 - **v0.27 Context & control** — AX-first browser, context capsules + auto-compaction, action rollback, task state, web search, slop filter, peer review.
+- **v0.28 Ecosystem & tooling** — runtime manager, shadow AI, skill packages, MCP marketplace, self-improvement, templates/themes/RPC, harness-as-code, config discovery.
 
 ## Active backlog by theme
 
@@ -59,9 +60,9 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Model×harness pairing evals — src/pairing.js
 - [x] Graph-based recall + bi-temporal memory graph — src/temporal_memory.js
 - [ ] Versioned archive of prompts/tool schemas
-- [ ] Prompt templates + CLI themes + RPC mode
-- [ ] Self-improvement loop (propose → eval → approve → ship)
-- [ ] Skill package manager + MCP marketplace / plugin discoverability
+- [x] Prompt templates + CLI themes + RPC mode — src/prompt_templates.js, src/themes.js, --rpc
+- [x] Self-improvement loop (propose → eval → approve → ship) — src/self_improve.js
+- [x] Skill package manager + MCP marketplace — src/skill_pkg.js, src/mcp_marketplace.js
 - [ ] Requirement-driven eval generation + OTel-traced eval
 - [ ] Connection profiles + mDNS discovery for local MCP/backend servers
 
@@ -71,7 +72,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Visual DAG editor UI
 - [ ] Event-driven plugin architecture (Cordis-style)
 - [ ] Extension registry / custom distributions
-- [ ] Shadow AI discovery + governance dashboard
+- [x] Shadow AI discovery — src/shadow_ai.js (governance dashboard still deferred)
 - [ ] Parallel task board with worktrees + dependency chains
 - [ ] Local ASR/TTS models for capture (Qwen3-ASR/TTS)
 - [ ] Multimodal realtime harness (see/hear/act + memory)
@@ -101,7 +102,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Typed evaluation + provider-neutral evidence grading + provenance (nano-step/eval-harness)
 - [ ] Multimodal evidence capture: video/audio/screen → timestamped contracts (watch-skill)
 ### Harness as code & optimization
-- [ ] Declarative harness-as-code language + visualizer (agentopology)
+- [x] Declarative harness-as-code — src/harness_spec.js (visualizer still deferred)
 - [x] Counterfactual trace diagnosis → automated harness evolution — src/counterfactual.js
 - [ ] Meta-harness local hooks + developer observability (interlinked-cli)
 - [ ] Prompt-cache optimization patches (prompt-cache-skills)

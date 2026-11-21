@@ -68,6 +68,19 @@ async function main() {
   const piiFlag = args.includes('--pii-redact');
   const charterFlag = args.includes('--charter');
   const actionGuardFlag = args.includes('--action-guard');
+  const rpcFlag = args.includes('--rpc');
+
+  if (rpcFlag) {
+    const readlineRPC = require('readline').createInterface({ input: process.stdin });
+    readlineRPC.on('line', async (line) => {
+      try {
+        const req = JSON.parse(line);
+        const r = await runAgent({ model: req.model || process.env.AEGISAI_MODEL || 'llama3.2:3b', messages: [{ role: 'user', content: req.prompt || '' }], projectRoot: process.cwd(), autoApprove: true, onEvent: () => {} });
+        process.stdout.write(JSON.stringify({ id: req.id, final: (r.final && r.final.final) || '', toolLog: r.toolLog || [] }) + '\n');
+      } catch (e) { process.stdout.write(JSON.stringify({ error: String(e.message || e) }) + '\n'); }
+    });
+    return;
+  }
 
   if (webFlag) {
     const http = require('http');
@@ -408,6 +421,20 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t === '/runtimes') { console.log(JSON.stringify(require('./runtime_manager').detect(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/runtime-register ')) { const parts = t.slice(17).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./runtime_manager').register(parts[0], parts[1]))); rl.prompt(); return; }
+      if (t === '/shadow-ai') { console.log(JSON.stringify(require('./shadow_ai').scan(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/harnesses') { console.log(JSON.stringify(require('./harness_discovery').discover(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/mcp-market') { console.log(JSON.stringify(require('./mcp_marketplace').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/skill-install ')) { const parts = t.slice(14).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./skill_pkg').install(parts[0], parts[1] || ''))); rl.prompt(); return; }
+      if (t === '/skill-pkgs') { console.log(JSON.stringify(require('./skill_pkg').list(), null, 2)); rl.prompt(); return; }
+      if (t === '/self-improve') { console.log(JSON.stringify(require('./self_improve').propose(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/improve-approve ')) { console.log(JSON.stringify(require('./self_improve').approve(t.slice(17).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/improve-ship ')) { console.log(JSON.stringify(require('./self_improve').ship(t.slice(14).trim()))); rl.prompt(); return; }
+      if (t === '/templates') { console.log(JSON.stringify(Object.keys(require('./prompt_templates').list()))); rl.prompt(); return; }
+      if (t.startsWith('/tpl ')) { const parts = t.slice(5).trim().split(/\s+/); console.log(require('./prompt_templates').render(parts[0], { code: parts.slice(1).join(' ') })); rl.prompt(); return; }
+      if (t.startsWith('/spec-load ')) { const s = require('./harness_spec').load(t.slice(11).trim()); console.log(JSON.stringify({ spec: s, validation: require('./harness_spec').validate(s) }, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/spec-apply ')) { const s = require('./harness_spec').load(t.slice(12).trim()); console.log(JSON.stringify(require('./harness_spec').apply(s))); rl.prompt(); return; }
       if (t.startsWith('/peer-review ')) { const r = await require('./peer_review').review(t.slice(13).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/review ')) { const r = require('./content_review').review(t.slice(8).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/search ')) { const r = await require('./web_search').search(t.slice(8).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }

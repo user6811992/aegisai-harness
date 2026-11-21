@@ -101,6 +101,10 @@ function open(dbPath) {
     function v12() {
       db.exec(`CREATE TABLE IF NOT EXISTS task_states (id TEXT PRIMARY KEY, created TEXT, data TEXT)`);
     },
+    function v13() {
+      db.exec(`CREATE TABLE IF NOT EXISTS runtimes (name TEXT PRIMARY KEY, command TEXT, created TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS skill_packages (name TEXT PRIMARY KEY, source TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();
