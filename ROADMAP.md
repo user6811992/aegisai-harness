@@ -120,6 +120,35 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Browser side-panel control in logged-in Chrome (browsentic)
 - [ ] Interop layer connecting agents/harnesses/robots (hybroai/hybro)
 
+## v0.27 — From GitHub harness search pages 10–12
+### Browser & computer use
+- [ ] Accessibility-first browser use: diffed AX-tree snapshots, stable element refs, typed errors (axuse)
+- [ ] Drive real logged-in Chrome from any harness (open-web-bridge)
+- [ ] Interactive PTY terminal tool for agents (term-cli)
+### Context & compaction
+- [ ] Context capsule checkpointing at threshold + resume (aigent-os)
+- [ ] Agent-decided auto-compaction (agent chooses when/what to retain) (dsh-block-ptc)
+- [ ] Cross-device, cross-agent session sync (agentctxsync)
+- [ ] Harness-based RAG without embeddings/vector DB — LLM reads all (sourcelens)
+### Orchestration & process
+- [ ] Design contracts before implementation (dely)
+- [ ] Structured task state instead of chat history (loom)
+- [ ] Goals + Heartbeat + Dream background agent loop (talon)
+- [ ] Five-agent pipeline (scope/plan/build/verify/learn) with proof chain (anatomia)
+- [ ] Thinking/acting model routing (loom)
+- [ ] Persistent task graph + worktree isolation (q-code)
+### Verification & security
+- [ ] Cross-LLM peer review before completion/PR (harness-engineering-skills)
+- [ ] Red-team/blue-team test suite: MCP, A2A, governance, supply chain (msaleme fabric)
+- [ ] Content review / slop filter (vectorlint)
+- [ ] Action rollback capability (devops-agent-harness)
+- [ ] Ablatable memory for evals + deterministic simulations (Durable-agent-harness)
+### Tooling & discovery
+- [ ] Agent-native multi-provider web search with keyless defaults (agent-web-search)
+- [ ] Agent asset package manager (harness-ai-kit)
+- [ ] Multi-harness config/path/MCP discovery library (harness-barn)
+- [ ] Interoperability with any harness via ACP/protocol bridges (multiple)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
