@@ -378,6 +378,16 @@ async function main() {
       if (t.startsWith('/recall ')) { const r = await require('./decision_memory').recall(t.slice(8).trim()); console.log(r); rl.prompt(); return; }
       if (t === '/reflect') { const r = await require('./decision_memory').reflect(); console.log(r); rl.prompt(); return; }
       if (t.startsWith('/plan ')) { const r = await runAgent({ model: process.env.AEGISAI_MODEL || 'llama3.2:3b', messages: [{ role: 'user', content: t.slice(6).trim() }], projectRoot: root, planMode: true, onEvent: () => {}, autoApprove: true }); console.log(r.final.final); rl.prompt(); return; }
+      if (t.startsWith('/dag ')) {
+        const spec = t.slice(5).trim();
+        let nodes;
+        try { nodes = JSON.parse(fs.existsSync(spec) ? fs.readFileSync(spec, 'utf8') : spec); } catch (e) { console.log('invalid DAG JSON'); rl.prompt(); return; }
+        const r = await require('./orchestrator').run(nodes, { projectRoot: root });
+        console.log(JSON.stringify({ id: r.id, waves: r.waves, retries: r.retries, outputs: Object.keys(r.results) }, null, 2));
+        rl.prompt(); return;
+      }
+      if (t === '/dag-runs') { console.log(JSON.stringify(require('./dag').listRuns(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/critique ')) { const r = await require('./critic').critique('manual', t.slice(10).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }

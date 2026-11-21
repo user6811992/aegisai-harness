@@ -275,7 +275,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [ ] Independent verification of work (stuaim pattern) — deferred
 ### Always-on / durable
 - [x] Always-on layer: event inbox, timers, outbox (src/alwayson.js)
-- [ ] DAG orchestration + multi-critic evaluation pipeline (tenet) — deferred
+- [x] DAG orchestration + multi-critic evaluation pipeline (src/dag.js, src/critic.js, src/orchestrator.js)
 - [ ] Deterministic durable execution (Temporal-style)
 - [ ] Single-binary, zero-dependency distribution (omegon/gocode/gray)
 - [ ] Resumable JSONL sessions (gray)

@@ -80,6 +80,10 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS timers (id TEXT PRIMARY KEY, due INTEGER, payload TEXT, status TEXT, created TEXT)`);
       db.exec(`CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, payload TEXT, status TEXT, created TEXT)`);
     },
+    function v7() {
+      db.exec(`CREATE TABLE IF NOT EXISTS dag_runs (id TEXT PRIMARY KEY, created TEXT, data TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS critic_results (id TEXT PRIMARY KEY, target TEXT, created TEXT, data TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();
