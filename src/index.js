@@ -342,6 +342,12 @@ async function main() {
       if (t.startsWith('/capture ')) { const parts = t.slice(9).trim().split('|').map((s) => s.trim()); const id = require('./capture').recordEpisode(parts[0] || 'note', parts[1] || '', parts[2] || ''); console.log('recorded', id); rl.prompt(); return; }
       if (t === '/episodes') { console.log(JSON.stringify(require('./capture').listEpisodes(20), null, 2).slice(0, 1000)); rl.prompt(); return; }
       if (t === '/update') { const info = updater.checkLocal(); console.log(JSON.stringify(info)); rl.prompt(); return; }
+      if (t === '/score') { console.log(JSON.stringify(require('./harness_score').score())); rl.prompt(); return; }
+      if (t === '/reliability') { console.log(JSON.stringify(require('./reliability').report())); rl.prompt(); return; }
+      if (t === '/events') { console.log(JSON.stringify(require('./alwayson').events())); rl.prompt(); return; }
+      if (t === '/timers') { console.log(JSON.stringify(require('./alwayson').dueTimers())); rl.prompt(); return; }
+      if (t === '/outbox') { console.log(JSON.stringify(require('./alwayson').outboxItems())); rl.prompt(); return; }
+      if (t.startsWith('/emit ')) { const id = require('./alwayson').emit(t.slice(6).trim().split(' ')[0], { text: t.slice(6).trim() }); console.log('emitted', id); rl.prompt(); return; }
       if (t.startsWith('/search-sessions ')) { const hits = require('./session_search').searchSessions(t.slice(17).trim()); console.log('hits:', hits.length); rl.prompt(); return; }
       if (t === '/health') { const ok = await healthCheck(); console.log('backend healthy:', ok, 'circuit open:', isCircuitOpen()); rl.prompt(); return; }
       if (t.startsWith('/backup ')) { const p = t.slice(8).trim(); backup.backup(p); console.log('backup written:', p); rl.prompt(); return; }

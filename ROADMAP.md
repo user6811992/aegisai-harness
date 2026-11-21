@@ -253,13 +253,13 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## v0.17 — From GitHub "ai agent harness" search (3 pages, ~150 repos)
 ### Observability & reliability
-- [ ] Run capture + runtime reliability observability (FailproofAI pattern)
-- [ ] Harness reliability benchmark + failure attribution (TraceTrial-Bench)
-- [ ] Harness scoring in seconds (harness-score)
-- [ ] Independent verification of work (stuaim pattern)
+- [x] Run capture + runtime reliability observability (src/observability.js)
+- [x] Harness reliability benchmark + failure attribution (src/reliability.js)
+- [x] Harness scoring in seconds (src/harness_score.js)
+- [ ] Independent verification of work (stuaim pattern) — deferred
 ### Always-on / durable
-- [ ] Always-on layer: event inbox, timers, approvals, outbox (waku-agent)
-- [ ] DAG orchestration + multi-critic evaluation pipeline (tenet)
+- [x] Always-on layer: event inbox, timers, outbox (src/alwayson.js)
+- [ ] DAG orchestration + multi-critic evaluation pipeline (tenet) — deferred
 - [ ] Deterministic durable execution (Temporal-style)
 - [ ] Single-binary, zero-dependency distribution (omegon/gocode/gray)
 - [ ] Resumable JSONL sessions (gray)

@@ -74,6 +74,12 @@ function open(dbPath) {
     function v5() {
       db.exec(`CREATE TABLE IF NOT EXISTS context_episodes (id TEXT PRIMARY KEY, type TEXT, content TEXT, app TEXT, created TEXT)`);
     },
+    function v6() {
+      db.exec(`CREATE TABLE IF NOT EXISTS runs (id TEXT PRIMARY KEY, started TEXT, ended TEXT, model TEXT, prompt TEXT, final TEXT, tool_count INTEGER, tools TEXT, tokens INTEGER, duration_ms INTEGER, ok INTEGER)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS events (id TEXT PRIMARY KEY, kind TEXT, payload TEXT, status TEXT, created TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS timers (id TEXT PRIMARY KEY, due INTEGER, payload TEXT, status TEXT, created TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS outbox (id TEXT PRIMARY KEY, payload TEXT, status TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

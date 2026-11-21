@@ -58,6 +58,9 @@ async function runAgent(opts) {
     return { final: { type: 'done', final: '(blocked: project root not allowlisted)', toolLog: [] }, toolLog: [] };
   }
 
+  const runStart = Date.now();
+  let totalTokensRef = 0;
+  const capture = (finalText) => { try { require('../observability').captureRun({ model, prompt: (messages || []).map((m) => (typeof m.content === 'string' ? m.content : '')).join(' ').slice(0, 500), final: finalText || '', toolLog, tokenStats: { total: totalTokensRef }, durationMs: Date.now() - runStart }); } catch (e) {} };
   const toolLog = [];
   let msgs = [...(messages || [])];
   if (guardrails && guardrails.input) {
@@ -178,6 +181,7 @@ async function runAgent(opts) {
     const toolCalls = msg.tool_calls;
     const thinking = msg.thinking || msg.reasoning_content || '';
     totalTokens += (data.prompt_eval_count || 0) + (data.eval_count || 0);
+    totalTokensRef = totalTokens;
     if (iterSpan) tracer.endSpan(iterSpan, { tokens: data.eval_count || 0 });
 
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
@@ -188,6 +192,7 @@ async function runAgent(opts) {
         if (!check.safe) finalText = '(blocked by output guardrail: ' + check.hits.join(', ') + ')';
       }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
+      capture(finalText);
       await hooks.run('SessionEnd', { reason: 'complete', totalUsage: { totalTokens } });
       if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
       return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
@@ -406,6 +411,7 @@ async function runAgent(opts) {
 
   if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
   onEvent({ type: 'done', final: '(max iterations reached)', toolLog });
+  capture('(max iterations reached)');
   return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
 }
 
