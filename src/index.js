@@ -448,6 +448,15 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/semantic-tools ')) { const tools = require('./tools/registry').assemble({ includeCoding: true }); const r = require('./semantic_tools').retrieve(tools, t.slice(15).trim(), 8); console.log(JSON.stringify(r.map((x) => (x.function || x).name))); rl.prompt(); return; }
+      if (t === '/yaml-eval') { console.log('Use /eval; YAML eval specs supported via src/yaml_eval.js'); rl.prompt(); return; }
+      if (t === '/pass-at-k') { console.log(JSON.stringify(require('./pass_at_k').compare({ a: [[true,false],[true,true]], b: [[false,false],[true,false]] }), null, 2)); rl.prompt(); return; }
+      if (t === '/failure-clusters') { console.log(JSON.stringify(require('./failure_cluster').cluster(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/ledger-rewind ')) { console.log(JSON.stringify(require('./ledger').rewind(Number(t.slice(14).trim())), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/gem-distill ')) { console.log(JSON.stringify(require('./gems').distill(t.slice(13).trim()))); rl.prompt(); return; }
+      if (t === '/gems') { console.log(JSON.stringify(require('./gems').list().map((g) => g.name))); rl.prompt(); return; }
+      if (t === '/ahp-check') { console.log(JSON.stringify(require('./ahp').supervise('read_file', { path: 'a' }, { readOnly: true }), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/sarif ')) { const r = require('./vuln_scan').scan(t.slice(7).trim()); console.log(JSON.stringify(require('./sarif').fromFindings(r.findings), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/contest-observe ')) { console.log(JSON.stringify(require('./contest_memory').observe(t.slice(15).trim(), t.slice(15).trim().split(/\s+/)))); rl.prompt(); return; }
       if (t === '/habits') { console.log(JSON.stringify(require('./contest_memory').habits(), null, 2).slice(0, 1200)); rl.prompt(); return; }
       if (t.startsWith('/constitution-propose ')) { console.log(JSON.stringify(require('./constitution').propose(t.slice(21).trim()))); rl.prompt(); return; }

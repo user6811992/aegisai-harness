@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.33 (33 milestones). v0.33 added dual-graph memory, constitution evolution, WebDriver BiDi, SSE event stream, one-click config installer, multi-engine search, routing eval, and governed control plane. 31 issues closed, 76 tests passing.
+- **Shipped:** v0.1–v0.34 (34 milestones). v0.34 added semantic tool retrieval, YAML evals, pass@k metrics, failure clustering, ledger rewind, portable Gems, AHP supervision gateway, and SARIF reporting. 32 issues closed, 84 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK — each needing a concrete need or native toolchain.
+- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, scheduled loops, Windows RPA, external trace export, 91-patterns catalog — each needing concrete need or native toolchain.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -42,6 +42,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.31 Protocol & isolation** — A2A adapter, visual DAG editor, local ASR/TTS adapter, sealed Docker execution, multi-tenant isolation.
 - **v0.32 Memory & control** — graph memory, UI replay, executor/verifier separation, self-writing policy, debugger, cheapest-model finder, code-flow map.
 - **v0.33 Interfaces & governance** — dual-graph memory, constitution, WebDriver BiDi, SSE stream, config installer, multi-engine search, routing eval, control plane.
+- **v0.34 Retrieval & reporting** — semantic tool retrieval, YAML evals, pass@k, failure clustering, ledger rewind, Gems, AHP gateway, SARIF.
 
 ## Active backlog by theme
 
@@ -208,6 +209,30 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] Code map with call/data/control-flow + class hierarchy — src/code_map.js
 - [ ] Mobile device harness: device logs, network interception, UI automation via MCP (quern)
 - [x] Governed tool control plane with checkpoints + trace — src/control_plane.js
+
+## v0.34 — From GitHub harness search pages 16–17
+### Tool retrieval & selection
+- [x] Dense + hybrid semantic tool retrieval — src/semantic_tools.js
+- [ ] Swappable layer registry (bigwave)
+### Eval & benchmarking
+- [x] Portable YAML eval format — src/yaml_eval.js
+- [x] pass@k metrics + multi-run comparison — src/pass_at_k.js
+- [x] Failure clustering + fix suggestions from traces — src/failure_cluster.js
+- [ ] Four-gate evaluation (aicf-core)
+### Durability & recovery
+- [x] Tamper-evident event-log rewind — src/ledger.js rewind()
+- [x] Session distillation into portable packages with redaction — src/gems.js
+### Security & governance
+- [x] AHP unified security supervision gateway — src/ahp.js
+- [ ] Deny-first policy + OS sandbox (medha-agent)
+- [ ] Markdown-based declarative governance (htekdev/ai-harness)
+### Workflows & reporting
+- [ ] Scheduled loops with worktree isolation + second-agent verification gate (loop-harness)
+- [x] Security escalation chaining + SARIF reporting — src/sarif.js
+- [ ] Native Windows RPA / computer use (agent-desktop-harness)
+- [ ] Trace export to external observability (thirdeye)
+### Docs
+- [ ] 91 production patterns catalog (cauchyturing)
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).

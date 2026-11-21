@@ -39,4 +39,12 @@ function replay() {
   return list().map((r) => ({ seq: r.seq, event: r.event, payload: JSON.parse(r.payload || '{}'), hash: r.hash }));
 }
 
-module.exports = { append, verify, list, replay, hash };
+function rewind(toSeq, destructive) {
+  const rows = list().filter((r) => r.seq <= toSeq);
+  if (destructive) {
+    try { db.get().prepare('DELETE FROM ledger WHERE seq > ?').run(toSeq); } catch (e) {}
+  }
+  return { toSeq, entries: rows.length, snapshot: rows.map((r) => ({ seq: r.seq, event: r.event, payload: JSON.parse(r.payload || '{}') })) };
+}
+
+module.exports = { append, verify, list, replay, hash, rewind };
