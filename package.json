@@ -4,6 +4,8 @@
   "description": "AegisAi Harness — feature-rich, local-only AI agent harness",
   "type": "commonjs",
   "main": "src/index.js",
+  "bin": { "aegisai-harness": "src/index.js", "aegisai": "src/index.js" },
+  "files": ["src/", "public/", "packaging/", "README.md", "LICENSE", "ROADMAP.md", "CHANGELOG.md", "HARNESS_DOCS.md", "CONTRIBUTING.md", "llms.txt"],
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",

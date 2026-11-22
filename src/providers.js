@@ -11,6 +11,8 @@ const PROVIDERS = [
   { id: 'koboldcpp', name: 'KoboldCpp', type: 'openai', defaultUrl: 'http://127.0.0.1:5001', probe: '/v1/models', local: true, note: 'KoboldCpp server' },
   { id: 'localai', name: 'LocalAI', type: 'openai', defaultUrl: 'http://127.0.0.1:8080', probe: '/v1/models', local: true, note: 'LocalAI (OpenAI drop-in)' },
   { id: 'jan', name: 'Jan', type: 'openai', defaultUrl: 'http://127.0.0.1:1337', probe: '/v1/models', local: true, note: 'Jan local AI' },
+  { id: 'airllm', name: 'AirLLM', type: 'openai', defaultUrl: 'http://127.0.0.1:8000', probe: '/v1/models', local: true, note: 'AirLLM OpenAI-compatible server (run 70B+ on consumer GPUs)' },
+  { id: 'airllm-openai', name: 'AirLLM OpenAI Server', type: 'openai', defaultUrl: 'http://127.0.0.1:8008', probe: '/v1/models', local: true, note: 'airllm-openai-server' },
   { id: 'openai', name: 'OpenAI', type: 'openai', defaultUrl: 'https://api.openai.com', probe: '/v1/models', local: false, note: 'GPT-4o, o1, etc.' },
   { id: 'anthropic', name: 'Anthropic', type: 'anthropic', defaultUrl: 'https://api.anthropic.com', probe: '/v1/models', local: false, note: 'Claude' },
   { id: 'groq', name: 'Groq', type: 'openai', defaultUrl: 'https://api.groq.com/openai', probe: '/v1/models', local: false, note: 'Fast inference' },

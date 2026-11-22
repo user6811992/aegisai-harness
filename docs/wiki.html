@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AegisAi Harness — Wiki</title>
+<link rel="stylesheet" href="https://cdn.tailwindcss.com" />
+<style>
+  body { background: #0d1117; color: #c9d1d9; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 900px; margin: 0 auto; padding: 20px; }
+  h1, h2, h3 { color: #58a6ff; }
+  a { color: #58a6ff; }
+  .wiki-nav { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; margin-bottom: 24px; }
+  .wiki-nav ul { list-style: none; padding: 0; }
+  .wiki-nav li { margin: 4px 0; }
+  .wiki-section { margin: 24px 0; }
+  .wiki-section h2 { border-bottom: 1px solid #30363d; padding-bottom: 8px; }
+  code { background: #161b22; padding: 2px 6px; border-radius: 4px; font-size: 13px; }
+  pre { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px; overflow-x: auto; }
+</style>
+</head>
+<body>
+<h1>📚 AegisAi Harness Wiki</h1>
+<p>Knowledge base for the AegisAi Harness project. Synthesizes information from the codebase, documentation, and development conversations.</p>
+
+<div class="wiki-nav">
+  <h3>Quick Navigation</h3>
+  <ul>
+    <li><a href="#overview">Project Overview</a></li>
+    <li><a href="#architecture">Architecture</a></li>
+    <li><a href="#modules">Key Modules</a></li>
+    <li><a href="#concepts">Concepts & Patterns</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+  </ul>
+</div>
+
+<div class="wiki-section" id="overview">
+  <h2>Project Overview</h2>
+  <p>AegisAi Harness is a feature-rich, local-only AI agent harness. OpenCode-class runtime, but offline-first: no cloud dependencies, no telemetry. 66 milestones, ~200 modules, 257 tests, CI green.</p>
+  <p><strong>Successor to aegisai-next</strong> — that project is deprecated; all features have been ported here.</p>
+  <ul>
+    <li><a href="https://github.com/user6811992/aegisai-harness">GitHub Repository</a></li>
+    <li><a href="https://user6811992.github.io/aegisai-harness/">Live Site</a></li>
+    <li><a href="https://github.com/user6811992/aegisai-harness/releases">Releases</a></li>
+    <li><a href="https://github.com/user6811992/aegisai-harness/discussions">Discussions</a></li>
+  </ul>
+</div>
+
+<div class="wiki-section" id="architecture">
+  <h2>Architecture</h2>
+  <p>The harness is an agent runtime: the model thinks, the harness decides what that thinking may touch.</p>
+  <h3>Layers</h3>
+  <ol>
+    <li><strong>Backends</strong> (<code>src/backends</code>) — Ollama + OpenAI-compatible, streaming, routing, circuit breakers. 18 providers with auto-detection.</li>
+    <li><strong>Agent loop</strong> (<code>src/agent/run.js</code>) — tool calls, fallback models, budgets, gates (policy, charter, read-only, action guard, admission, MCP security), hooks, doom-loop detection, capsules, ledger capture.</li>
+    <li><strong>Tools</strong> (<code>src/tools</code>) — coding tools, registry, capability filtering, tool sets, discovery, output compression. 64+ tools.</li>
+    <li><strong>Integrations</strong> (<code>src/integrations</code>) — MCP client + security scanner, CDP browser (AX-first), REA/Ghidra/Craft.</li>
+    <li><strong>Memory & context</strong> — SQLite persistence, compaction + archive, source-bound/bi-temporal memory, context files, context filesystem, capsules.</li>
+    <li><strong>Quality</strong> — evals, benchmarks, harness score, reliability attribution, counterfactual optimizer, adversarial tests, CI template, conformance testing.</li>
+    <li><strong>Interfaces</strong> — CLI/REPL, <code>--web</code> UI, <code>--rpc</code>, OpenAI-compatible <code>--proxy</code>, JSON <code>--json</code>, <code>--tui</code>, <code>--mcp-server</code>.</li>
+  </ol>
+</div>
+
+<div class="wiki-section" id="modules">
+  <h2>Key Modules</h2>
+  <h3>Core</h3>
+  <ul>
+    <li><code>src/agent/run.js</code> — agent loop with tool calls, streaming, fallback, doom-loop, stop conditions</li>
+    <li><code>src/tools/registry.js</code> — tool registry with capability filtering, tool sets, discovery</li>
+    <li><code>src/backends/index.js</code> — multi-backend adapter (Ollama, OpenAI-compat, router, circuit breaker)</li>
+    <li><code>src/storage/db.js</code> — SQLite persistence (WAL mode)</li>
+    <li><code>src/core/security.js</code> — path safety, process spawning</li>
+    <li><code>src/core/config.js</code> — central configuration</li>
+  </ul>
+  <h3>Safety & Governance</h3>
+  <ul>
+    <li><code>src/policy.js</code> — YAML policy engine</li>
+    <li><code>src/charter.js</code> — governance charter</li>
+    <li><code>src/guardrails.js</code> — input/output guardrails</li>
+    <li><code>src/sandbox_rings.js</code> — 4-tier privilege rings</li>
+    <li><code>src/mcp_security.js</code> — MCP tool poisoning scanner</li>
+    <li><code>src/pii.js</code> — PII redaction</li>
+    <li><code>src/read_only.js</code> — read-only boundary enforcement</li>
+    <li><code>src/admission.js</code> — admission gate for consequential actions</li>
+  </ul>
+  <h3>Memory & Context</h3>
+  <ul>
+    <li><code>src/memory_rag.js</code> — cosine similarity search over memory embeddings</li>
+    <li><code>src/memory_extract.js</code> — LLM-driven fact extraction</li>
+    <li><code>src/graph_memory.js</code> — knowledge graph with spreading activation</li>
+    <li><code>src/hippocampus.js</code> — Hebbian writeback, post-turn consolidation</li>
+    <li><code>src/temporal_memory.js</code> — bi-temporal memory (validFrom/validTo)</li>
+    <li><code>src/source_memory.js</code> — source-bound memory</li>
+    <li><code>src/decision_memory.js</code> — remember/recall/reflect</li>
+    <li><code>src/compact.js</code> — context compaction + archive</li>
+    <li><code>src/context_files.js</code> — AGENTS.md/CLAUDE.md loading</li>
+  </ul>
+  <h3>Quality & Observability</h3>
+  <ul>
+    <li><code>src/harness_lint.js</code> — lint/review/security-audit the harness itself</li>
+    <li><code>src/skill_eval.js</code> — skill quality/security/compat evaluation</li>
+    <li><code>src/adversarial.js</code> — adversarial stress testing</li>
+    <li><code>src/harness_score.js</code> — harness scoring</li>
+    <li><code>src/reliability.js</code> — reliability attribution</li>
+    <li><code>src/tracing.js</code> — tracing with OpenTelemetry export</li>
+    <li><code>src/ledger.js</code> — hash-chained audit ledger</li>
+    <li><code>src/merkle.js</code> — Merkle tree roots</li>
+  </ul>
+  <h3>Interfaces</h3>
+  <ul>
+    <li><code>src/index.js</code> — entry point (CLI/web/MCP/RPC/TUI)</li>
+    <li><code>src/tui.js</code> — multi-pane terminal workbench</li>
+    <li><code>src/mcp_server.js</code> — Streamable HTTP MCP server</li>
+    <li><code>src/acp.js</code> — ACP adapter</li>
+    <li><code>src/a2a.js</code> — A2A adapter</li>
+    <li><code>src/lsp.js</code> — LSP client</li>
+    <li><code>src/git_integration.js</code> — git-aware editing</li>
+    <li><code>src/diff_review.js</code> + <code>src/diff_review_ui.js</code> — multi-file diff review</li>
+  </ul>
+</div>
+
+<div class="wiki-section" id="concepts">
+  <h2>Concepts & Patterns</h2>
+  <ul>
+    <li><strong>Local-first</strong> — no cloud dependencies, no telemetry, all data stays local.</li>
+    <li><strong>Zero dependencies</strong> — only optional better-sqlite3 and pdf-parse. Everything else is built-in.</li>
+    <li><strong>Capability-based security</strong> — tools are filtered by allowedTools/deniedTools patterns per session.</li>
+    <li><strong>Clean room mode</strong> — AI works only from observable behavior, no source code access.</li>
+    <li><strong>Sandbox rings</strong> — 4-tier privilege system (ring 0 = most privileged).</li>
+    <li><strong>Doom-loop detection</strong> — fingerprint-based detection of repeated tool calls with graduated response.</li>
+    <li><strong>Composable stop conditions</strong> — stepCountIs, maxTokensUsed, maxCost, hasToolCall.</li>
+    <li><strong>Context compaction</strong> — LLM-based + deterministic zero-LLM compaction with archive.</li>
+    <li><strong>Bi-temporal memory</strong> — facts have validFrom/validTo timestamps for point-in-time queries.</li>
+    <li><strong>Hebbian learning</strong> — edges strengthen with co-activation (hippocampus).</li>
+    <li><strong>Evidence-based decisions</strong> — counterfactual analysis of failed vs successful runs.</li>
+  </ul>
+</div>
+
+<div class="wiki-section" id="roadmap">
+  <h2>Roadmap</h2>
+  <p>66 milestones shipped (v0.1–v0.66). See <a href="https://github.com/user6811992/aegisai-harness/blob/main/ROADMAP.md">ROADMAP.md</a> for the full list.</p>
+  <h3>Completed milestones</h3>
+  <ul>
+    <li>v0.1–v0.10: Core harness, policy, sandbox rings, web UI, packaging</li>
+    <li>v0.11–v0.20: Voice, integrations, RE wiring, DAG, browser use, async tools</li>
+    <li>v0.21–v0.30: MCP extensions, quality gates, trust & tuning, teams, P2 platform</li>
+    <li>v0.31–v0.40: Protocol & isolation, memory & control, interfaces, retrieval, decisions, ecosystem, security</li>
+    <li>v0.41–v0.50: Tool systems, reliability, app parity, MCP reference servers, MCP extensions, session goals</li>
+    <li>v0.51–v0.60: Projects, IM channels, RE tooling, TUI+LSP, git-aware editing, diff review</li>
+    <li>v0.61–v0.66: Provider breadth, marketplace, UX overhaul, UX enhancements</li>
+  </ul>
+  <h3>Truly blocked (native toolchain needed)</h3>
+  <ul>
+    <li>Rust SDK, real ggml/llama.cpp bindings, Windows UIAutomation, microVM/K8s/eBPF sandboxing</li>
+  </ul>
+</div>
+
+<footer>
+  <p>MIT License · <a href="https://github.com/user6811992/aegisai-harness">GitHub</a> · <a href="https://github.com/user6811992/aegisai-harness/discussions">Discussions</a></p>
+</footer>
+</body>
+</html>
