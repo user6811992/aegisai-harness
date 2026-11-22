@@ -197,6 +197,10 @@ async function main() {
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/plugins') {
+        sendJson(res, 200, { events: require('./event_bus').bus.events() });
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/events') {
         require('./event_stream').subscribe(res);
         return;
@@ -448,6 +452,14 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/sim-nav ')) { const b = new (require('./sim_browser').SimBrowser)(); console.log(JSON.stringify(b.navigate(t.slice(9).trim()))); rl.prompt(); return; }
+      if (t === '/security-layers') { console.log(JSON.stringify(require('./security_layers').posture(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/layer-registry') { const l = require('./layer_registry'); console.log(JSON.stringify(l.layers().map((x) => ({ layer: x, ...l.get(x) })), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/layer-use ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./layer_registry').use(p[0], p[1]))); rl.prompt(); return; }
+      if (t === '/governance') { console.log(JSON.stringify(require('./markdown_governance').load(root))); rl.prompt(); return; }
+      if (t === '/trace-status') { console.log(JSON.stringify(require('./trace_export').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/native-adapters') { console.log(JSON.stringify(require('./native_adapters').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/plugins-ui') { console.log('Open /plugins.html in the web UI (--web)'); rl.prompt(); return; }
       if (t === '/slack-status') { console.log(JSON.stringify(require('./slack_gateway').status(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/slack-handle ')) { const r = await require('./slack_gateway').handle({ text: t.slice(13).trim(), channel: 'mock', user: 'mock' }); console.log(JSON.stringify(r, null, 2).slice(0, 1000)); rl.prompt(); return; }
       if (t === '/ws-status') { console.log(JSON.stringify(require('./ws_bridge').status(), null, 2)); rl.prompt(); return; }

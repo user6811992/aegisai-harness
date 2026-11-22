@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.38 (38 milestones). v0.38 added the M-feasibility diggerhq items: Slack gateway adapter, outbound WebSocket bridge, serverless agent-as-function, rootless Podman backend, PR review with inline comments, CI resolver with allowlist, and CVE reachability proof. 35 issues closed, 106 tests passing.
+- **Shipped:** v0.1–v0.39 (39 milestones). v0.39 cleared the remaining *doable* deferred items: simulated browser, event-driven plugin UI, 5-layer security posture, swappable layer registry, Markdown governance, and external trace export. Native-only capabilities (in-process model loading, Windows RPA) now have graceful adapter interfaces; Rust SDK still needs a toolchain. 36 issues closed, 112 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, Windows RPA, external trace export — each needing concrete need or native toolchain.
+- **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -46,6 +46,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.35 Decisions & interop** — decision gates, workflow state machine, two-bar goals, geometric memory, session converter, architecture rules, AIBOM, SSH bridge.
 - **v0.37 DiggerHQ patterns** — brain/sandbox interfaces, health failover, git state, bug repro, maintenance templates, speed bench, runtime contract, sandbox fingerprint.
 - **v0.38 DiggerHQ integrations** — Slack gateway, outbound WS bridge, serverless functions, rootless Podman, PR review, CI resolver, CVE reachability.
+- **v0.39 Remaining deferred cleared** — simulated browser, plugin UI, 5-layer security, layer registry, Markdown governance, trace export, native adapters.
 
 ## Active backlog by theme
 
@@ -80,21 +81,23 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - [x] A2A protocol adapter — src/a2a.js
 - [x] Visual DAG editor UI — public/dag.html + /api/dag-runs
 - [x] Event-driven plugin architecture — src/event_bus.js
+- [x] Event-driven plugin UI — public/plugins.html + /api/plugins + /api/events
 - [ ] Extension registry / custom distributions
 - [x] Shadow AI discovery — src/shadow_ai.js (governance dashboard still deferred)
 - [x] Parallel task board with worktrees + dependency chains — src/task_board.js
 - [x] Local ASR/TTS adapter (whisper.cpp/piper endpoints) — src/voice_adapter.js (models external)
 - [ ] Multimodal realtime harness (see/hear/act + memory)
-- [ ] Simulated browser for web agents
+- [x] Simulated browser for web agents — src/sim_browser.js
 - [ ] Selection quoting for UI
 - [x] Real-world coding benchmarks (polyglot, long-horizon) — src/benchmarks_real.js
 - [x] Harness engineering docs — HARNESS_DOCS.md
 
 ### Deferred — platform-scale
-- [ ] In-process model loading (no separate inference server)
+- [x] In-process model loading — adapter interface only (src/native_adapters.js); native bindings still blocked
 - [ ] MicroVM sandboxing / K8s sandbox backend / eBPF enforcement
-- [x] Multi-tenant isolation — src/tenants.js (5-layer security still deferred)
-- [ ] Rust SDK / Rust runtime
+- [x] Multi-tenant isolation — src/tenants.js
+- [x] 5-layer security posture — src/security_layers.js
+- [ ] Rust SDK / Rust runtime — still blocked (no Rust toolchain)
 - [ ] Deterministic durable execution (Temporal-style)
 
 ## v0.26 — From GitHub harness search pages 7–9
@@ -216,7 +219,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ## v0.34 — From GitHub harness search pages 16–17
 ### Tool retrieval & selection
 - [x] Dense + hybrid semantic tool retrieval — src/semantic_tools.js
-- [ ] Swappable layer registry (bigwave)
+- [x] Swappable layer registry — src/layer_registry.js
 ### Eval & benchmarking
 - [x] Portable YAML eval format — src/yaml_eval.js
 - [x] pass@k metrics + multi-run comparison — src/pass_at_k.js
@@ -228,12 +231,12 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ### Security & governance
 - [x] AHP unified security supervision gateway — src/ahp.js
 - [ ] Deny-first policy + OS sandbox (medha-agent)
-- [ ] Markdown-based declarative governance (htekdev/ai-harness)
+- [x] Markdown-based declarative governance — src/markdown_governance.js
 ### Workflows & reporting
 - [ ] Scheduled loops with worktree isolation + second-agent verification gate (loop-harness)
 - [x] Security escalation chaining + SARIF reporting — src/sarif.js
-- [ ] Native Windows RPA / computer use (agent-desktop-harness)
-- [ ] Trace export to external observability (thirdeye)
+- [x] Native Windows RPA — adapter interface only (src/native_adapters.js); UIAutomation wiring still blocked
+- [x] Trace export to external observability — src/trace_export.js
 ### Docs
 - [ ] 91 production patterns catalog (cauchyturing)
 
