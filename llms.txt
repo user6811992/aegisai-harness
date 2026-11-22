@@ -1,27 +1,39 @@
 # AegisAi Harness — agent-readable catalog
 
-A feature-rich, local-only AI agent harness. CLI-first, offline-first.
+A feature-rich, local-only AI agent harness. CLI-first, offline-first. v0.63.0.
 
 ## Capabilities
-- Multi-backend LLM adapter (Ollama + OpenAI-compatible)
-- Agent loop with tool calls, fallback models, token budgeting
-- Tool registry with capability filtering, clean room, sandbox rings
-- MCP client (stdio + HTTP), mock MCP fixtures
-- Context compaction + retrievable archive
+- Multi-backend LLM adapter (Ollama + OpenAI-compatible + 18 providers)
+- Agent loop with tool calls, fallback models, token budgeting, doom-loop detection, composable stop conditions
+- Tool registry with capability filtering, clean room, sandbox rings, 64+ tools
+- MCP client (stdio + HTTP) + MCP server (Streamable HTTP), conformance, Apps, Tasks, .mcpb, interceptors, uploads, skills
+- Context compaction + retrievable archive + capsules + context filesystem
 - Hooks (beforeModel, afterModel, beforeTool, afterTool, PermissionRequest, SessionStart/End, PostModelCall)
 - Doom-loop detection, composable stop conditions
-- Named agents/profiles, subagents, handoffs, parallel tool calls
-- Deterministic replay, tracing, eval harness, benchmark suites
-- Policy engine, guardrails, encrypted vault, backup/restore
-- Web UI (--web), Tauri desktop scaffold, offline update checker
-- Code indexing + repo map, skill import + auto-create, decision memory
+- Named agents/profiles, subagents, handoffs, parallel tool calls, swarm, teams, DAG orchestration
+- Deterministic replay, tracing, eval harness, benchmark suites, conformance testing
+- Policy engine, guardrails, encrypted vault, backup/restore, audit ledger
+- Web UI (Preact, Tailwind CDN), TUI (terminal workbench), offline update checker
+- Code indexing + repo map, LSP client, skill import + auto-create, decision memory
+- Memory: bi-temporal graph, hippocampus, source-bound, RAG, auto-extract, consolidation
+- Quality: skill eval, harness lint, adversarial stress, CI template, conformance
+- Observability: run capture, harness score, reliability, OTel export, SARIF, Merkle
+- Always-on layer: events, timers, approvals, outbox, scheduler, cron, mailbox
+- Reverse engineering: REA, Ghidra, Craft, 30+ index, awesome-re 17k, pentest pipeline, vuln scanner, security KB
+- Git-aware editing: status, diff, commit, blame, branch, stash, log, multi-file diff review
+- IM channels: Telegram, Discord, DingTalk, Feishu
+- Plugin marketplace: search, install, uninstall, enable/disable, categories, ratings
 
 ## Entry points
 - `node src/index.js "<prompt>"` — one-shot
 - `node src/index.js --repl` — interactive REPL
 - `node src/index.js --web` — web UI
+- `node src/index.js --tui` — terminal workbench
 - `node src/index.js --proxy` — OpenAI-compatible proxy
+- `node src/index.js --mcp-server` — MCP server
+- `node src/index.js --json "<prompt>"` — headless JSON output
 - `node src/index.js --update` — version check
 
 ## Docs
-- README.md, ROADMAP.md
+- README.md, ROADMAP.md, HARNESS_DOCS.md, CONTRIBUTING.md, CHANGELOG.md, LICENSE
+```
