@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><title>Plugins — AegisAi Harness</title>
+<link rel="stylesheet" href="/style.css" /></head>
+<body>
+<div id="app">
+  <header><h2>Event-driven Plugins</h2><button onclick="location.href='/'">Back</button></header>
+  <h3>Registered event listeners</h3>
+  <div id="plugins" class="graph"></div>
+  <h3>Live events</h3>
+  <pre id="events" style="max-height:400px;overflow:auto"></pre>
+</div>
+<script>
+async function load() {
+  const r = await fetch('/api/plugins'); const data = await r.json();
+  const el = document.getElementById('plugins'); el.innerHTML = '';
+  for (const ev of data.events || []) {
+    const d = document.createElement('div'); d.className = 'node'; d.textContent = ev; el.appendChild(d);
+  }
+}
+load();
+const es = new EventSource('/api/events');
+es.onmessage = (e) => { const p = document.getElementById('events'); p.textContent += e.data + '\n'; p.scrollTop = p.scrollHeight; };
+es.addEventListener('*', (e) => { const p = document.getElementById('events'); p.textContent += e.data + '\n'; });
+</script>
+</body></html>

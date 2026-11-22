@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><title>DAG Editor — AegisAi Harness</title>
+<link rel="stylesheet" href="/style.css" />
+<style>
+  .graph { display: flex; flex-direction: column; gap: 8px; }
+  .node { border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; background: var(--panel); }
+  .wave { display: flex; gap: 8px; }
+</style></head>
+<body>
+<div id="app">
+  <header><h2>DAG Editor</h2><button onclick="location.href='/'">Back</button></header>
+  <h3>Run a DAG</h3>
+  <textarea id="spec" rows="8" style="width:100%" placeholder='[{"id":"a","prompt":"..."},{"id":"b","prompt":"...","deps":["a"]}]'></textarea>
+  <button id="runBtn">Run</button>
+  <h3>Recent runs</h3>
+  <div id="runs" class="graph"></div>
+</div>
+<script>
+async function load() {
+  const r = await fetch('/api/dag-runs'); const data = await r.json();
+  const el = document.getElementById('runs'); el.innerHTML = '';
+  for (const run of data.runs || []) {
+    const box = document.createElement('div'); box.className = 'node';
+    box.innerHTML = '<strong>' + run.id + '</strong> — ' + run.nodes + ' nodes, ' + run.waves + ' waves';
+    el.appendChild(box);
+  }
+}
+document.getElementById('runBtn').onclick = async () => {
+  try {
+    const nodes = JSON.parse(document.getElementById('spec').value);
+    await fetch('/api/dag-run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ nodes }) });
+    await load();
+  } catch (e) { alert('Invalid JSON: ' + e.message); }
+};
+load();
+</script>
+</body></html>

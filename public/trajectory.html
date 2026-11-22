@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><title>Trajectory — AegisAi Harness</title>
+<link rel="stylesheet" href="/style.css" /></head>
+<body>
+<div id="app">
+  <header><h2>Live Trajectory</h2><button onclick="location.href='/'">Back</button></header>
+  <pre id="feed" style="max-height:70vh;overflow:auto"></pre>
+</div>
+<script>
+const es = new EventSource('/api/events');
+es.onmessage = (e) => {
+  const p = document.getElementById('feed');
+  p.textContent += new Date().toLocaleTimeString() + ' ' + e.data + '\n';
+  p.scrollTop = p.scrollHeight;
+};
+</script>
+</body></html>

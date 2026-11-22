@@ -1,0 +1,42 @@
+:root {
+  --bg: #0d1117; --fg: #c9d1d9; --panel: #161b22; --border: #30363d;
+  --user: #1f6feb33; --assistant: #23863633; --tool: #6e768133;
+}
+[data-theme="light"] {
+  --bg: #ffffff; --fg: #24292f; --panel: #f6f8fa; --border: #d0d7de;
+  --user: #ddf4ff; --assistant: #dafbe1; --tool: #eaeef2;
+}
+* { box-sizing: border-box; }
+body {
+  font-family: system-ui, sans-serif; background: var(--bg); color: var(--fg);
+  margin: 0; padding: calc(12px + env(safe-area-inset-top)) 16px calc(12px + env(safe-area-inset-bottom));
+}
+#app { max-width: 800px; margin: 0 auto; }
+header { display: flex; justify-content: space-between; align-items: center; }
+.header-actions { display: flex; gap: 6px; }
+button, select, input {
+  background: var(--panel); color: var(--fg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 6px 10px;
+}
+button { cursor: pointer; }
+#messages {
+  border: 1px solid var(--border); border-radius: 8px; padding: 16px;
+  min-height: 300px; max-height: 60vh; overflow-y: auto; background: var(--panel);
+}
+.msg { margin: 8px 0; padding: 8px 12px; border-radius: 6px; position: relative; }
+.msg .fork { position: absolute; right: 4px; top: 4px; font-size: 11px; opacity: 0.6; }
+.user { background: var(--user); }
+.assistant { background: var(--assistant); }
+.tool { background: var(--tool); font-family: monospace; font-size: 12px; }
+#inputRow { display: flex; margin-top: 12px; gap: 8px; }
+#input { flex: 1; }
+#pending { margin-top: 8px; border: 1px solid #d29922; border-radius: 6px; padding: 8px; }
+.panel { margin-top: 12px; border: 1px solid var(--border); border-radius: 8px; padding: 12px; background: var(--panel); }
+.hidden { display: none; }
+pre.code { background: #0b0f14; border: 1px solid var(--border); border-radius: 6px; padding: 10px; overflow-x: auto; }
+pre.code code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; }
+.kw { color: #ff7b72; } .str { color: #a5d6ff; }
+details.think { border-left: 3px solid var(--border); padding: 6px 10px; margin: 8px 0; opacity: 0.8; }
+details.think summary { cursor: pointer; }
+.msg a { color: #58a6ff; }
+.ctx-meter { font-size: 11px; opacity: 0.7; margin-left: 8px; }

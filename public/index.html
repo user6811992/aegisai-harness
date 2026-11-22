@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>AegisAi Harness</title>
+<link rel="manifest" href="/manifest.json" />
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<div id="app">
+  <header>
+    <h2>AegisAi Harness <span id="ctxMeter" class="ctx-meter"></span></h2>
+    <div class="header-actions">
+      <select id="backend" title="Backend"></select>
+      <button id="themeBtn" title="Toggle theme">🌓</button>
+      <button id="modelsBtn" title="Models">Models</button>
+      <button id="integrationsBtn" title="Integrations">Integrations</button>
+      <button id="knowledgeBtn" title="Skills &amp; Memory">Knowledge</button>
+      <button id="backupBtn" title="Backup">Backup</button>
+      <button id="infoBtn" title="Info">Info</button>
+      <button id="micBtn" title="Voice input">🎤</button>
+      <button id="speakBtn" title="Auto-speak replies">🔇</button>
+    </div>
+  </header>
+  <div id="messages"></div>
+  <div id="pending" class="hidden"></div>
+  <div id="inputRow">
+    <input id="input" placeholder="Type a message..." />
+    <button id="send">Send</button>
+  </div>
+  <div id="modelsPanel" class="panel hidden">
+    <h3>Models</h3>
+    <input id="modelPull" placeholder="model:tag to pull" />
+    <button id="pullBtn">Pull</button>
+    <ul id="modelList"></ul>
+    <button class="closePanel">Close</button>
+  </div>
+  <div id="integrationsPanel" class="panel hidden">
+    <h3>Integrations</h3>
+    <ul id="integrationList"></ul>
+    <button class="closePanel">Close</button>
+  </div>
+  <div id="knowledgePanel" class="panel hidden">
+    <h3>Skills &amp; Memory</h3>
+    <input id="skillName" placeholder="skill name" />
+    <input id="skillDesc" placeholder="description" />
+    <button id="addSkillBtn">Add skill</button>
+    <input id="memoryText" placeholder="durable fact" />
+    <button id="addMemoryBtn">Add memory</button>
+    <h4>Skills</h4><ul id="skillList"></ul>
+    <h4>Memories</h4><ul id="memoryList"></ul>
+    <button class="closePanel">Close</button>
+  </div>
+  <div id="backupPanel" class="panel hidden">
+    <h3>Backup</h3>
+    <button id="exportBtn">Export JSON</button>
+    <textarea id="importData" placeholder="Paste backup JSON"></textarea>
+    <button id="importBtn">Import</button>
+    <button class="closePanel">Close</button>
+  </div>
+  <div id="infoPanel" class="panel hidden">
+    <h3>Info</h3>
+    <pre id="infoText"></pre>
+    <h4>Error log</h4><pre id="errorText"></pre>
+    <h4>Voice backend URLs (optional)</h4>
+    <input id="sttUrl" placeholder="STT_URL" />
+    <input id="ttsUrl" placeholder="TTS_URL" />
+    <button id="saveVoice">Save</button>
+    <h4>Configuration</h4>
+    <div id="configFields"></div>
+    <button id="saveConfig">Save config</button>
+    <button class="closePanel">Close</button>
+  </div>
+</div>
+<script src="/markdown.js"></script>
+<script src="/app.js"></script>
+</body>
+</html>
