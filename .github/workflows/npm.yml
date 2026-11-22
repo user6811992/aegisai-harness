@@ -19,5 +19,5 @@ jobs:
       - run: npm test
       - run: node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"
       - run: npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Trusted publishing (OIDC) — no NPM_TOKEN needed.
+        # npm authenticates via the OIDC token from GitHub Actions.
