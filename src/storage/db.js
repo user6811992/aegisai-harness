@@ -141,6 +141,7 @@ function open(dbPath) {
     function v25() {
       db.exec(`CREATE TABLE IF NOT EXISTS session_goals (id TEXT PRIMARY KEY, session_id TEXT, created TEXT, data TEXT)`);
       db.exec(`CREATE TABLE IF NOT EXISTS access_tokens (id TEXT PRIMARY KEY, token TEXT, name TEXT, scopes TEXT, created TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS metrics (name TEXT, value REAL, labels TEXT, ts INTEGER)`);
     },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {

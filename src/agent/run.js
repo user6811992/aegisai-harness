@@ -156,6 +156,7 @@ async function runAgent(opts) {
   tools.push(asyncTools.TASK_TOOL_DEF);
   tools.push({ type: 'function', function: { name: 'get_repo_map', description: 'Return a compact repo map: files, symbols, imports.', parameters: { type: 'object', properties: { maxFiles: { type: 'number' } } } } });
   tools.push({ type: 'function', function: { name: 'handoff_to_agent', description: 'Hand off task with full conversation context to a named agent.', parameters: { type: 'object', properties: { agent: { type: 'string' }, instruction: { type: 'string' } }, required: ['instruction'] } } });
+  tools.push({ type: 'function', function: { name: 'propose_patch', description: 'Propose a dependency-only patch for a vulnerability finding (dry-run by default).', parameters: { type: 'object', properties: { dependency: { type: 'string' }, fixedVersion: { type: 'string' }, kind: { type: 'string', enum: ['dependencies', 'dev'] }, dryRun: { type: 'boolean' } }, required: ['dependency', 'fixedVersion'] } } });
   tools.push(...require('../rea').TOOLS);
   tools.push(...require('../ghidra').TOOLS);
   tools.push(...require('../craft').TOOLS);
@@ -366,6 +367,8 @@ async function runAgent(opts) {
           result = require('../ghidra').invoke(name, args);
         } else if (name.startsWith('craft_')) {
           result = require('../craft').invoke(name, args);
+        } else if (name === 'propose_patch') {
+          result = require('../patch').proposePatch(Object.assign({ projectRoot }, args || {}));
         } else if (name === 'task') {
           result = asyncTools.handleTask(bgPool, args);
         } else if (name.startsWith('browser_')) {

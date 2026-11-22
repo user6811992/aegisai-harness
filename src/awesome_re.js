@@ -1,0 +1,76 @@
+// src/awesome_re.js
+// Awesome reverse-engineered project index (17k+ entries) with online fetch + cache (aegisai-next server/integrations/awesome-re.js).
+const fs = require('fs');
+const path = require('path');
+const https = require('https');
+const { DATA_DIR } = require('./core/config');
+
+const ARE_DATA_URL = 'https://raw.githubusercontent.com/alexgaoth/awesome-reverse-engineered/main/data/entries.json';
+const CACHE_FILE = path.join(DATA_DIR, 'are-data.json');
+
+let data = null;
+let loading = false;
+
+function loadCached() {
+  try { if (fs.existsSync(CACHE_FILE)) data = JSON.parse(fs.readFileSync(CACHE_FILE, 'utf8')); } catch (e) { data = null; }
+}
+async function refresh() {
+  if (loading) return data;
+  loading = true;
+  try {
+    const buf = await new Promise((resolve, reject) => {
+      const headers = { 'User-Agent': 'AegisAI' };
+      if (process.env.GITHUB_TOKEN) headers['Authorization'] = 'token ' + process.env.GITHUB_TOKEN;
+      let hops = 0;
+      const doGet = (u) => {
+        const req = https.get(u, { headers }, (r) => {
+          if ([301, 302, 303, 307, 308].includes(r.statusCode) && r.headers.location && hops < 5) {
+            hops += 1; r.resume();
+            let next; try { next = new URL(r.headers.location, u).toString(); } catch (e) { return reject(e); }
+            return doGet(next);
+          }
+          if (r.statusCode !== 200) { r.resume(); return reject(new Error('HTTP ' + r.statusCode)); }
+          let b = '';
+          r.on('data', (c) => { if (b.length > 50 * 1024 * 1024) { reject(new Error('too large')); r.destroy(); return; } b += c; });
+          r.on('end', () => resolve(b));
+        });
+        req.on('error', reject);
+        req.setTimeout(30000, () => { req.destroy(); reject(new Error('timeout')); });
+      };
+      doGet(ARE_DATA_URL);
+    });
+    data = JSON.parse(buf);
+    fs.mkdirSync(DATA_DIR, { recursive: true });
+    fs.writeFileSync(CACHE_FILE, buf, 'utf8');
+  } catch (e) { /* keep stale data */ }
+  finally { loading = false; }
+  return data;
+}
+function search(query, opts) {
+  opts = opts || {};
+  if (!data || !Array.isArray(data)) return [];
+  const limit = (opts.limit === undefined || opts.limit === null) ? 20 : opts.limit;
+  if (limit <= 0) return [];
+  const q = String(query || '').toLowerCase();
+  const category = opts.category || '';
+  const language = opts.language || '';
+  const minStars = opts.minStars || 0;
+  const results = [];
+  for (const entry of data) {
+    if (!entry) continue;
+    if (category && (entry.category || '').toLowerCase() !== category.toLowerCase()) continue;
+    const entryLang = entry.lang || entry.language || '';
+    if (language && entryLang.toLowerCase() !== language.toLowerCase()) continue;
+    if (minStars && (entry.stars || 0) < minStars) continue;
+    const topics = Array.isArray(entry.topics) ? entry.topics : [];
+    const entryDesc = entry.desc || entry.description || '';
+    const searchable = ((entry.name || '') + ' ' + entryDesc + ' ' + topics.join(' ') + ' ' + (entry.category || '')).toLowerCase();
+    if (q && !searchable.includes(q)) continue;
+    results.push(entry);
+    if (results.length >= limit) break;
+  }
+  return results;
+}
+loadCached();
+
+module.exports = { search, loadCached, refresh, get data() { return data; } };

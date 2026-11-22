@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.55 (55 milestones). v0.55 upgraded the web UI to Preact (via CDN, zero npm deps): component-based chat, config modal, context meter, dark/light theme, Markdown rendering with code highlighting and thinking blocks. 49 issues closed, 195 tests passing. The harness web UI now matches aegisai-next's Preact quality.
+- **Shipped:** v0.1–v0.56 (56 milestones). v0.56 ported the remaining aegisai-next unique modules: swarm orchestration, dependency patch proposals, phase-based long-horizon tasks, bug-hunting flow, awesome-re 17k index, MCP presets, vuln-patterns library, markdown memory, and metrics. 50 issues closed, 204 tests passing. The harness now contains essentially all of aegisai-next's capabilities.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -59,6 +59,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.53 Final deferred cleared** — private KB, DingTalk/Feishu, Office preview, stream actions, fs resources, variants, annotations, access IaC.
 - **v0.54 RE tooling native** — REA, Ghidra, Craft native modules + expanded RE index (30+ entries, categories, online search).
 - **v0.55 Preact web UI** — component-based chat, config modal, context meter, dark/light theme, Markdown/code/thinking blocks.
+- **v0.56 aegisai-next parity** — swarm, patch, task, hunt, awesome-re, mcp-presets, vuln-patterns, markdown-memory, metrics.
 
 ## Active backlog by theme
 

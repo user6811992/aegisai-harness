@@ -564,6 +564,20 @@ async function main() {
       if (t.startsWith('/re-search ')) { const r = require('./re_index').search(t.slice(11).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/re-categories') { console.log(JSON.stringify(require('./re_index').categories())); rl.prompt(); return; }
       if (t.startsWith('/re-online ')) { const r = await require('./re_index').online(t.slice(11).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/swarm ')) { const plan = t.slice(7).trim().split('|').map((x) => x.trim()); const r = await require('./swarm').runSwarm({ plan, model: process.env.AEGISAI_MODEL || 'llama3.2:3b', projectRoot: root }); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/patch ')) { const p = t.slice(7).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./patch').proposePatch({ projectRoot: root, dependency: p[0], fixedVersion: p[1], dryRun: true }), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/task ')) { const r = await require('./task').runTask({ goal: t.slice(6).trim(), model: process.env.AEGISAI_MODEL || 'llama3.2:3b', projectRoot: root }); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/hunt-start ')) { console.log(JSON.stringify(require('./hunt').start(t.slice(12).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/hunt-search ')) { console.log(JSON.stringify(require('./hunt').vulnSearch(t.slice(13).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/hunt-report ')) { console.log(JSON.stringify(require('./hunt').report([], t.slice(13).trim()))); rl.prompt(); return; }
+      if (t === '/hunt-list') { console.log(JSON.stringify(require('./hunt').list())); rl.prompt(); return; }
+      if (t.startsWith('/awesome-re ')) { const r = await require('./awesome_re').refresh(); console.log('refreshed:', r ? (Array.isArray(r) ? r.length : 'ok') : 'null'); rl.prompt(); return; }
+      if (t.startsWith('/awesome-search ')) { const r = require('./awesome_re').search(t.slice(16).trim(), { limit: 10 }); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/mcp-presets') { console.log(JSON.stringify(require('./mcp_presets').buildPresets(null, root), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/vuln-patterns ')) { console.log(JSON.stringify(require('./vuln_patterns').searchPatterns(t.slice(16).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/mem-md ')) { console.log(JSON.stringify(require('./markdown_memory').append(t.slice(8).trim()))); rl.prompt(); return; }
+      if (t === '/mem-md-search') { console.log(JSON.stringify(require('./markdown_memory').search(''), null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t === '/metrics') { console.log(JSON.stringify(require('./metrics').all(), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
