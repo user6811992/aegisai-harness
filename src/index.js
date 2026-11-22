@@ -491,6 +491,12 @@ async function main() {
       if (t === '/default-skills') { console.log(JSON.stringify(require('./default_skills').list(), null, 2)); rl.prompt(); return; }
       if (t === '/skills-install-defaults') { console.log('installed ' + require('./default_skills').installAll() + ' skills'); rl.prompt(); return; }
       if (t.startsWith('/squeeze ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(await require('./squeeze').squeeze(p[0], p[1] || ''), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/think ')) { console.log(JSON.stringify(require('./sequential_thinking').think(t.slice(7).trim()), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/fetch ')) { const r = await require('./fetch_url').fetch(t.slice(7).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/time') { console.log(JSON.stringify(require('./time_tool').now())); rl.prompt(); return; }
+      if (t.startsWith('/time ')) { console.log(JSON.stringify(require('./time_tool').now(t.slice(6).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/mcp-registry ')) { const r = await require('./mcp_registry_browser').browse(t.slice(14).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/everything-manifest') { console.log(JSON.stringify(require('./mcp_everything').manifest(), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }

@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.45 (45 milestones). v0.45 closed the remaining medium/lower app-parity gaps: 7 keyless search engines, simulated approval, web citations, netvein MCP adapter, vision input, proxy disconnect abort, RE project index, AST-aware chunking, and remote-access docs. 40 issues closed, 150 tests passing. The harness now has full feature parity with the web-UI apps plus a much larger agent-runtime surface.
+- **Shipped:** v0.1–v0.46 (46 milestones). v0.46 ported the highest-value reference servers from modelcontextprotocol/servers: Sequential Thinking, fetch_url, time tool, MCP registry browser, and an "Everything" test-server fixture. 41 issues closed, 155 tests passing. The harness is now both a full agent runtime and an MCP client with first-class reflective-thinking, web-fetch, and time tools.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -51,6 +51,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.43 Reliability & verification** — session briefs, deterministic compaction, error recovery, chaos, silent-failure, honesty, boundary bench, replay guard, MCP pinning, Merkle, readiness, trajectory UI, cost routing, tool contracts, agents-as-tools, equipment registry.
 - **v0.44 App-parity gaps** — rich chat UI, memory RAG/auto-extract, model discovery, lenient parsing, SSRF guard, context meter, UI config, default skills, squeeze.
 - **v0.45 Full app parity** — keyless engines (7), simulated approval, citations, netvein adapter, vision input, proxy abort, RE index, AST chunking, remote-access docs.
+- **v0.46 MCP reference servers** — sequential thinking, fetch_url, time tool, MCP registry browser, Everything test fixture.
 
 ## Active backlog by theme
 
@@ -377,11 +378,11 @@ Comparison of the three repos: the harness is far more capable as an *agent runt
 Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
 
 ### Reference servers worth porting
-- [ ] Sequential Thinking tool — dynamic reflective problem-solving with thought sequences (modelcontextprotocol/servers "Sequential Thinking") — **H** (we have agent loop but no explicit reflective-thinking tool)
-- [ ] Dedicated fetch_url tool with HTML→markdown conversion (modelcontextprotocol/servers "Fetch") — **H** (we have markdown_extract.fromUrl but no first-class tool)
-- [ ] Knowledge graph memory exposed via MCP (modelcontextprotocol/servers "Memory") — **M** (we have graph_memory; could wrap as MCP server)
-- [ ] Time/timezone conversion tool (modelcontextprotocol/servers "Time") — **H** (trivial)
-- [ ] "Everything" test server patterns for MCP client testing — **H** (extends mockmcp)
+- [x] Sequential Thinking tool — src/sequential_thinking.js — **H**
+- [x] Dedicated fetch_url tool — src/fetch_url.js — **H**
+- [ ] Knowledge graph memory exposed via MCP — **M** (we have graph_memory; MCP wrapping still deferred)
+- [x] Time/timezone tool — src/time_tool.js — **H**
+- [x] "Everything" test server fixture — src/mcp_everything.js — **H**
 ### Archived servers (domain-specific, mostly covered)
 - [ ] GitHub MCP integration (archived "GitHub") — **M** (we have git via run_command + MCP marketplace entry)
 - [ ] Puppeteer/browser automation (archived "Puppeteer") — **H** (covered by our CDP browser tools)
@@ -391,8 +392,8 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [ ] Slack MCP server (archived "Slack") — **M** (we have slack_gateway adapter)
 - [ ] Sentry MCP server (archived "Sentry") — **M**
 ### MCP ecosystem
-- [ ] MCP registry browser: browse published servers, not just hardcoded catalog (modelcontextprotocol/registry) — **M** (we have mcp_marketplace)
-- [ ] Transports: Streamable HTTP server mode for our own MCP exposure — **M** (we have stdio/HTTP MCP client; could expose harness as MCP server)
+- [x] MCP registry browser — src/mcp_registry_browser.js — **M** (network-dependent; falls back gracefully)
+- [ ] Transports: Streamable HTTP server mode for our own MCP exposure — **M** (still deferred)
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
