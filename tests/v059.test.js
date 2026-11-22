@@ -59,10 +59,11 @@ test('git blame', () => {
 });
 
 test('git branch', () => {
-  const r = git.branch(dir, 'feature-x');
+  const name = 'feature-' + Date.now();
+  const r = git.branch(dir, name);
   assert.equal(r.ok, true);
   const branches = git.branch(dir);
-  assert.ok(branches.branches.some((b) => b.includes('feature-x')));
+  assert.ok(branches.branches.some((b) => b.includes(name)));
 });
 
 test('git stash', () => {

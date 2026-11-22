@@ -612,6 +612,8 @@ async function main() {
       if (t.startsWith('/git-blame ')) { console.log(JSON.stringify(require('./git_integration').blame(root, t.slice(11).trim()), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/git-branch')) { const p = t.slice(12).trim(); console.log(JSON.stringify(require('./git_integration').branch(root, p || null))); rl.prompt(); return; }
       if (t === '/git-log') { console.log(JSON.stringify(require('./git_integration').log(root), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/diff-review') { console.log(JSON.stringify(require('./diff_review').fullReview(root), null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t === '/diff-review-staged') { console.log(JSON.stringify(require('./diff_review').stagedReview(root), null, 2).slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/git-stash')) { const p = t.slice(11).trim() || 'push'; console.log(JSON.stringify(require('./git_integration').stash(root, p))); rl.prompt(); return; }
       if (t.startsWith('/git-show')) { const p = t.slice(10).trim(); console.log(require('./git_integration').show(root, p || 'HEAD').output); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
