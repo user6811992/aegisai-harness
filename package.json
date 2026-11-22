@@ -1,6 +1,6 @@
 {
   "name": "aegisai-harness",
-  "version": "0.67.0",
+  "version": "0.67.1",
   "description": "AegisAi Harness — feature-rich, local-only AI agent harness",
   "type": "commonjs",
   "main": "src/index.js",
@@ -19,5 +19,13 @@
     "better-sqlite3": "^11.0.0",
     "pdf-parse": "^1.1.1"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user6811992/aegisai-harness.git"
+  },
+  "homepage": "https://github.com/user6811992/aegisai-harness",
+  "bugs": {
+    "url": "https://github.com/user6811992/aegisai-harness/issues"
+  }
 }
