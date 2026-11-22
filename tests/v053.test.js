@@ -21,10 +21,10 @@ test('private KB add/search', () => {
   assert.ok(privateKb.list().some((x) => x.name === 'doc1'));
 });
 
-test('office preview unsupported', () => {
+test('office preview unsupported', async () => {
   const p = path.join(dir, 'x.txt');
   fs.writeFileSync(p, 'hi');
-  const r = office.preview(p);
+  const r = await office.preview(p);
   assert.equal(r.ok, false);
 });
 

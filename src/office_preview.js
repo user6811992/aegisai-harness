@@ -23,7 +23,7 @@ function unzipEntry(buf, name) {
     pos = dataStart + compSize;
   }
 }
-function preview(filePath) {
+async function preview(filePath) {
   const buf = fs.readFileSync(filePath);
   const ext = filePath.toLowerCase().split('.').pop();
   if (ext === 'docx') {
@@ -41,6 +41,17 @@ function preview(filePath) {
     const xml = unzipEntry(buf, 'ppt/slides/slide1.xml');
     const text = xml ? xml.toString('utf8').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim() : '';
     return { ok: true, type: 'pptx', text: text.slice(0, 8000) };
+  }
+  if (ext === 'pdf') {
+    try {
+      const pdfParse = require('pdf-parse');
+      const data = await pdfParse(buf);
+      return { ok: true, type: 'pdf', text: (data.text || '').slice(0, 8000), pages: data.numpages };
+    } catch (e) {
+      // fallback: extract readable text via regex
+      const text = buf.toString('latin1').replace(/[^\x20-\x7e\n]/g, ' ').replace(/\s+/g, ' ').trim();
+      return { ok: true, type: 'pdf', text: text.slice(0, 4000), note: 'pdf-parse not available; raw extraction' };
+    }
   }
   return { ok: false, error: 'unsupported: ' + ext };
 }

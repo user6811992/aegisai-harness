@@ -1,18 +1,30 @@
-# packaging/build.ps1
-# Build a release zip of the harness.
-param([string]$OutDir = "..\dist")
-$ErrorActionPreference = "Stop"
-$root = Split-Path -Parent $PSScriptRoot
-$version = (Get-Content (Join-Path $root "package.json") | ConvertFrom-Json).version
-$stage = Join-Path $env:TEMP "aegisai-harness-$version"
-if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
-New-Item -ItemType Directory -Path $stage | Out-Null
-Copy-Item -Path (Join-Path $root "src") -Destination $stage -Recurse
-Copy-Item -Path (Join-Path $root "package.json") -Destination $stage
-Copy-Item -Path (Join-Path $root "README.md") -Destination $stage
-Copy-Item -Path (Join-Path $root "ROADMAP.md") -Destination $stage
-New-Item -ItemType Directory -Path $OutDir -Force | Out-Null
-$zip = Join-Path $OutDir "aegisai-harness-$version.zip"
-if (Test-Path $zip) { Remove-Item $zip -Force }
-Compress-Archive -Path (Join-Path $stage "*") -DestinationPath $zip
-Write-Host "Built $zip"
+# Build AegisAi Harness for Windows.
+# Usage: .\packaging\build.ps1 [-Binary] [-Installer]
+#   -Binary:    build standalone exe via pkg (requires network on first run)
+#   -Installer: build Inno Setup installer (requires ISCC on PATH)
+param([switch]$Binary, [switch]$Installer)
+
+$ErrorActionPreference = 'Stop'
+$Root = Split-Path -Parent (Split-Path -Parent $PSCommandPath)
+Set-Location $Root
+
+$Version = (Get-Content package.json | ConvertFrom-Json).version
+Write-Host "Building AegisAi Harness v$Version" -ForegroundColor Cyan
+
+New-Item -ItemType Directory -Force -Path dist | Out-Null
+
+if ($Binary -or (-not $Installer)) {
+  Write-Host "Building standalone binary..." -ForegroundColor Yellow
+  npx --yes @yao-pkg/pkg@5 src/index.js --targets node22-win-x64 --output "dist\aegisai-harness-$Version.exe"
+  Write-Host "Binary: dist\aegisai-harness-$Version.exe" -ForegroundColor Green
+}
+
+if ($Installer) {
+  $Iscc = Get-Command iscc -ErrorAction SilentlyContinue
+  if (-not $Iscc) { Write-Error "ISCC (Inno Setup) not found on PATH. Install from https://jrsoftware.org/isdl.php"; exit 1 }
+  Write-Host "Building Inno Setup installer..." -ForegroundColor Yellow
+  & iscc "packaging\windows\installer.iss"
+  Write-Host "Installer: dist\AegisAi-Harness-$Version-Setup.exe" -ForegroundColor Green
+}
+
+Write-Host "Done." -ForegroundColor Green

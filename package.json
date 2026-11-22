@@ -1,6 +1,6 @@
 {
   "name": "aegisai-harness",
-  "version": "0.56.0",
+  "version": "0.57.0",
   "description": "AegisAi Harness — feature-rich, local-only AI agent harness",
   "type": "commonjs",
   "main": "src/index.js",
@@ -14,7 +14,8 @@
   },
   "dependencies": {},
   "optionalDependencies": {
-    "better-sqlite3": "^11.0.0"
+    "better-sqlite3": "^11.0.0",
+    "pdf-parse": "^1.1.1"
   },
   "license": "MIT"
 }

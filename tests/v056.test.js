@@ -77,8 +77,9 @@ test('markdown memory', () => {
 });
 
 test('metrics', () => {
-  metrics.record('test_metric', 42, { a: 1 });
-  const s = metrics.summary('test_metric');
+  const name = 'test_metric_' + Date.now();
+  metrics.record(name, 42, { a: 1 });
+  const s = metrics.summary(name);
   assert.equal(s.count, 1);
   assert.equal(s.avg, 42);
   assert.ok(Array.isArray(metrics.all()));

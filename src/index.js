@@ -555,7 +555,7 @@ async function main() {
       if (t === '/attachments') { console.log(JSON.stringify(require('./file_attachments').list(), null, 2).slice(0, 1200)); rl.prompt(); return; }
       if (t.startsWith('/kb-add ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./private_kb').add(p[0], p[1] || ''))); rl.prompt(); return; }
       if (t.startsWith('/kb-search ')) { console.log(JSON.stringify(require('./private_kb').search(t.slice(11).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
-      if (t.startsWith('/office-preview ')) { console.log(JSON.stringify(require('./office_preview').preview(t.slice(16).trim()), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/office-preview ')) { console.log(JSON.stringify(await require('./office_preview').preview(t.slice(16).trim()), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/fs-resources ')) { console.log(JSON.stringify(require('./fs_resources').list(t.slice(14).trim() || process.cwd()).slice(0, 20), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/stream-action ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log('use /stream-action via HTTP: GET /api/stream?token=...&prompt=...'); rl.prompt(); return; }
       if (t === '/rea-status') { console.log(JSON.stringify(require('./rea').status(), null, 2)); rl.prompt(); return; }
@@ -578,6 +578,12 @@ async function main() {
       if (t.startsWith('/mem-md ')) { console.log(JSON.stringify(require('./markdown_memory').append(t.slice(8).trim()))); rl.prompt(); return; }
       if (t === '/mem-md-search') { console.log(JSON.stringify(require('./markdown_memory').search(''), null, 2).slice(0, 1000)); rl.prompt(); return; }
       if (t === '/metrics') { console.log(JSON.stringify(require('./metrics').all(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/delivery-test ')) { const c = require('./delivery').createEventChannel(); c.send({ msg: t.slice(15).trim() }); console.log('delivered'); rl.prompt(); return; }
+      if (t.startsWith('/isolation-check ')) { const p = require('./isolation').createSessionPolicy({ root: process.cwd() }); console.log(JSON.stringify(require('./isolation').checkJobAgainstPolicy(p, { url: t.slice(17).trim() }))); rl.prompt(); return; }
+      if (t.startsWith('/consolidate-now')) { console.log(JSON.stringify(await require('./consolidation_scheduler').createConsolidationScheduler().runNow())); rl.prompt(); return; }
+      if (t.startsWith('/mcp-search ')) { console.log(JSON.stringify(await require('./mcp_search').search(t.slice(12).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/mcp-registry-full ')) { const r = await require('./mcp_registry').fetchRegistry({ query: t.slice(19).trim(), limit: 5 }); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/mcp-preset ')) { console.log(JSON.stringify(require('./mcp_presets').buildPresets(t.slice(12).trim().split(/\s+/), process.cwd()), null, 2).slice(0, 1200)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
