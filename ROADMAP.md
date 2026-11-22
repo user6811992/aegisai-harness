@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.43 (43 milestones; v0.42 was roadmap-only). v0.43 built the H-feasibility v0.42 items: session briefs, deterministic compaction, error recovery, chaos testing, silent-failure detection, honesty scoring, boundary benchmarks, replay guards, MCP pinning, Merkle roots, readiness audits, trajectory monitor, cost/convergence routing, tool contracts, agents-as-tools, and equipment registry. 38 issues closed, 138 tests passing.
+- **Shipped:** v0.1–v0.44 (44 milestones). v0.44 closed the high-priority gaps vs aegisai-next/LocalAI: rich chat UI (Markdown/code/thinking blocks), memory RAG + auto-extract, GGUF/HF model discovery, lenient tool parsing, SSRF protection, context meter, UI config panel, default skill pack, and squeeze tool. 39 issues closed, 143 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -49,6 +49,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.39 Remaining deferred cleared** — simulated browser, plugin UI, 5-layer security, layer registry, Markdown governance, trace export, native adapters.
 - **v0.41 Tool systems & evidence** — tool state/eval, evolution search, config matrix, migration recipes, confidence memory, event replay, context reset, identity audit, 5-layer spans, evidence bundles, composable APIs.
 - **v0.43 Reliability & verification** — session briefs, deterministic compaction, error recovery, chaos, silent-failure, honesty, boundary bench, replay guard, MCP pinning, Merkle, readiness, trajectory UI, cost routing, tool contracts, agents-as-tools, equipment registry.
+- **v0.44 App-parity gaps** — rich chat UI, memory RAG/auto-extract, model discovery, lenient parsing, SSRF guard, context meter, UI config, default skills, squeeze.
 
 ## Active backlog by theme
 
@@ -348,16 +349,16 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 Comparison of the three repos: the harness is far more capable as an *agent runtime* (policy, charter, ledger, 100+ modules), but the web-UI apps have end-user UX the harness lacks.
 
 ### High priority (core UX parity)
-- [ ] Rich chat UI: Markdown rendering + syntax-highlighted code + thinking-block display (apps use marked/highlight.js/DOMPurify)
-- [ ] Memory RAG: cosine-similarity search over memory embeddings + reindex after model change
-- [ ] Memory auto-extract: LLM distills durable facts from conversations
-- [ ] GGUF/HuggingFace model discovery: scan drives for GGUF + Ollama/LM Studio stores, HF pull
-- [ ] Lenient tool-call parsing fallback for small/uncensored models (apps do this)
-- [ ] URL validation / SSRF protection on user-supplied fetches
-- [ ] Context meter + compaction indicator in the web UI
-- [ ] Integration install buttons + env-var config from the UI
-- [ ] Bundled default skill pack (search-before-re, pr-review, doc-discipline, context-compress, etc.)
-- [ ] Squeeze tool: read long docs/URLs and extract the answer with a helper model
+- [x] Rich chat UI: Markdown + code highlighting + thinking blocks — public/markdown.js
+- [x] Memory RAG: cosine search + reindex — src/memory_rag.js
+- [x] Memory auto-extract — src/memory_extract.js
+- [x] GGUF/HF model discovery — src/model_discovery.js
+- [x] Lenient tool-call parsing — src/lenient_parse.js
+- [x] URL validation / SSRF protection — src/url_validate.js
+- [x] Context meter + compaction indicator — /api/context + web UI
+- [x] Env-var config from UI — /api/config + config panel
+- [x] Bundled default skill pack — src/default_skills.js
+- [x] Squeeze tool — src/squeeze.js
 ### Medium priority
 - [ ] More keyless search engines (apps ship 9: DuckDuckGo, Bing, Google, ...)
 - [ ] Simulated tool results while awaiting bulk approval (HITL via simulation)

@@ -4,6 +4,7 @@ const { strip } = require('./markdown_extract');
 
 async function search(query, limit) {
   limit = limit || 8;
+  if (process.env.AEGISAI_ALLOW_PRIVATE_URLS !== 'true' && !require('./url_validate').validate('https://duckduckgo.com').ok) return { results: [], error: 'search endpoint blocked' };
   const url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query || '');
   try {
     const r = await fetch(url, { signal: AbortSignal.timeout(12000), headers: { 'User-Agent': 'Mozilla/5.0 (AegisAiHarness/1.0)' } });

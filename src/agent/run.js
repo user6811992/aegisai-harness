@@ -64,6 +64,7 @@ async function runAgent(opts) {
     agentCompact = false,
     rollback = false,
     debuggerInstance = null,
+    lenientTools = false,
   } = opts;
 
   // project root allowlist
@@ -224,12 +225,16 @@ async function runAgent(opts) {
     const data = resp && resp.data ? resp.data : resp;
     await hooks.run('PostModelCall', { responseId: (data && data.id) || null, model, durationMs: 0, turnType: iterations === 1 ? 'initial' : 'tool_round', turnNumber: iterations, usage: { inputTokens: data.prompt_eval_count || 0, outputTokens: data.eval_count || 0 } });
     const msg = (data && data.message) || {};
-    const toolCalls = msg.tool_calls;
+    let toolCalls = msg.tool_calls;
     const thinking = msg.thinking || msg.reasoning_content || '';
     totalTokens += (data.prompt_eval_count || 0) + (data.eval_count || 0);
     totalTokensRef = totalTokens;
     if (iterSpan) tracer.endSpan(iterSpan, { tokens: data.eval_count || 0 });
 
+    if ((!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) && lenientTools) {
+      const parsed = require('../lenient_parse').parse(msg.content || '');
+      if (parsed.length) toolCalls = parsed.map((c, i) => ({ id: 'lenient_' + i, type: 'function', function: { name: c.name, arguments: JSON.stringify(c.arguments || {}) } }));
+    }
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
       let finalText = msg.content || '';
       if (verifyWork) {

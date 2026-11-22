@@ -197,6 +197,13 @@ async function main() {
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/context') {
+        const tokenizer = require('./tokenizer');
+        const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
+        const tokens = tokenizer.countMessages(sessions.get(sid) || []);
+        sendJson(res, 200, { tokens, limit: 8192, ratio: +(tokens / 8192).toFixed(3), compacted: (lastToolLog || []).some((t) => t.name === '__compact__') });
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/plugins') {
         sendJson(res, 200, { events: require('./event_bus').bus.events() });
         return;
@@ -284,6 +291,12 @@ async function main() {
             projectRootAllowlist: process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '',
             sttUrl: process.env.STT_URL || '',
             ttsUrl: process.env.TTS_URL || '',
+            BACKEND_TYPE: process.env.BACKEND_TYPE || '',
+            BACKEND_URL: process.env.BACKEND_URL || '',
+            AEGISAI_MODEL: process.env.AEGISAI_MODEL || '',
+            REA_BIN: process.env.REA_BIN || '',
+            GHIDRA_MCP_URL: process.env.GHIDRA_MCP_URL || '',
+            CRAFT_BIN: process.env.CRAFT_BIN || '',
           });
           return;
         }
@@ -292,6 +305,9 @@ async function main() {
           if (parsed.projectRootAllowlist) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
           if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
           if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;
+          for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
+            if (parsed[k] !== undefined) process.env[k] = parsed[k];
+          }
           sendJson(res, 200, { ok: true });
           return;
         }
@@ -452,6 +468,16 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/mem-search ')) { console.log(JSON.stringify(require('./memory_rag').search(t.slice(12).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/mem-reindex') { console.log(JSON.stringify(require('./memory_rag').reindex())); rl.prompt(); return; }
+      if (t.startsWith('/mem-extract ')) { console.log(JSON.stringify(await require('./memory_extract').extract([{ role: 'user', content: t.slice(13).trim() }]), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t === '/model-scan') { console.log(JSON.stringify(require('./model_discovery').scan(), null, 2).slice(0, 1800)); rl.prompt(); return; }
+      if (t.startsWith('/hf-pull ')) { console.log(JSON.stringify(require('./model_discovery').huggingFacePull(t.slice(9).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/lenient ')) { console.log(JSON.stringify(require('./lenient_parse').parse(t.slice(9).trim()), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/url-check ')) { console.log(JSON.stringify(require('./url_validate').validate(t.slice(11).trim()))); rl.prompt(); return; }
+      if (t === '/default-skills') { console.log(JSON.stringify(require('./default_skills').list(), null, 2)); rl.prompt(); return; }
+      if (t === '/skills-install-defaults') { console.log('installed ' + require('./default_skills').installAll() + ' skills'); rl.prompt(); return; }
+      if (t.startsWith('/squeeze ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(await require('./squeeze').squeeze(p[0], p[1] || ''), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
