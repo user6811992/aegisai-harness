@@ -66,6 +66,8 @@ async function main() {
   const contextFlag = args.includes('--context');
   const readOnlyFlag = args.includes('--read-only');
   const piiFlag = args.includes('--pii-redact');
+  const amIdx = args.indexOf('--approval-mode');
+  const approvalMode = amIdx >= 0 ? args[amIdx + 1] : null;
   const charterFlag = args.includes('--charter');
   const actionGuardFlag = args.includes('--action-guard');
   const rpcFlag = args.includes('--rpc');
@@ -422,6 +424,7 @@ async function main() {
     let sandbox = false;
     let autoApprove = process.env.AEGISAI_AUTO_APPROVE === 'true';
     let offline = OFFLINE;
+    let approvalMode = process.env.AEGISAI_APPROVAL_MODE || null;
     let lastToolLog = [];
     global.__dbg = new (require('./debugger').HarnessDebugger)();
     const runOne = async (prompt) => {
@@ -433,6 +436,7 @@ async function main() {
         tokenBudgetTotal: parseInt(process.env.AEGISAI_TOKEN_BUDGET_TOTAL || '0', 10),
         contextFiles: true,
         debuggerInstance: global.__dbg,
+        approvalMode,
       });
       lastToolLog = result.toolLog || [];
       process.stdout.write('\n');
@@ -508,6 +512,14 @@ async function main() {
       if (t.startsWith('/time ')) { console.log(JSON.stringify(require('./time_tool').now(t.slice(6).trim()))); rl.prompt(); return; }
       if (t.startsWith('/mcp-registry ')) { const r = await require('./mcp_registry_browser').browse(t.slice(14).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/everything-manifest') { console.log(JSON.stringify(require('./mcp_everything').manifest(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/goal ')) { const p = t.slice(6).trim().split('|').map((x) => x.trim()); const g = require('./session_goals').create('default', p[0], { description: p[1] || '' }); console.log(JSON.stringify(g)); rl.prompt(); return; }
+      if (t === '/goals') { console.log(JSON.stringify(require('./session_goals').list('default'), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/goal-update ')) { const p = t.slice(13).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./session_goals').update(p[0], { progress: Number(p[1] || 0) }))); rl.prompt(); return; }
+      if (t.startsWith('/pat ')) { const p = t.slice(5).trim().split(/\s+/); console.log(JSON.stringify(require('./access_tokens').mint(p.join(' '), ['read', 'execute']))); rl.prompt(); return; }
+      if (t === '/pats') { console.log(JSON.stringify(require('./access_tokens').list(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t === '/tokens') { console.log(JSON.stringify(require('./token_dashboard').summary(), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/pow ')) { console.log(JSON.stringify(require('./proof_of_work').create('manual', { ci: { status: t.slice(5).trim() } }), null, 2)); rl.prompt(); return; }
+      if (t === '/proofs') { console.log(JSON.stringify(require('./proof_of_work').list().map((p) => p.runId + ':' + p.verdict))); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
@@ -798,6 +810,7 @@ async function main() {
     piiProtection: piiFlag,
     charter: charterFlag,
     actionGuard: actionGuardFlag,
+    approvalMode,
   });
 
   if (jsonFlag) {

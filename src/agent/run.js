@@ -38,6 +38,7 @@ async function runAgent(opts) {
     tokenBudgetTotal = 0,
     approvalHandler = null,
     autoApprove = false,
+    approvalMode = null,
     sandbox = false,
     offline = CONFIG_OFFLINE,
     trace = false,
@@ -76,6 +77,12 @@ async function runAgent(opts) {
   const runStart = Date.now();
   let totalTokensRef = 0;
   const capture = (finalText) => { try { require('../observability').captureRun({ model, prompt: (messages || []).map((m) => (typeof m.content === 'string' ? m.content : '')).join(' ').slice(0, 500), final: finalText || '', toolLog, tokenStats: { total: totalTokensRef }, durationMs: Date.now() - runStart }); } catch (e) {} };
+  const effectiveAuto = (name) => {
+    if (approvalMode === 'full-auto') return true;
+    if (approvalMode === 'auto-edit') return !DESTRUCTIVE.has(name);
+    if (approvalMode === 'suggest') return false;
+    return !!autoApprove;
+  };
   const toolLog = [];
   let msgs = [...(messages || [])];
   if (capsuleSession) {
@@ -277,7 +284,7 @@ async function runAgent(opts) {
       if (charterObj) {
         const ce = require('../charter').enforce(charterObj, name, args);
         if (!ce.allowed) return { name, args, charterBlocked: ce.reason };
-        if (ce.approval && !autoApprove) return { name, args, denied: true };
+        if (ce.approval && !effectiveAuto(name)) return { name, args, denied: true };
       }
       // debugger breakpoint / step
       if (debuggerInstance) {
@@ -315,7 +322,7 @@ async function runAgent(opts) {
         const blocked = 'BLOCKED (clean room): ' + name;
         return { name, args, blocked };
       }
-      if (DESTRUCTIVE.has(name) && !autoApprove) {
+      if (DESTRUCTIVE.has(name) && !effectiveAuto(name)) {
         // PermissionRequest hook
         const pr = await hooks.run('PermissionRequest', { toolName: name, toolInput: args, riskLevel: 'high' });
         let approved;

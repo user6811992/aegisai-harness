@@ -138,6 +138,10 @@ function open(dbPath) {
     function v24() {
       db.exec(`CREATE TABLE IF NOT EXISTS equipment (name TEXT PRIMARY KEY, created TEXT, data TEXT)`);
     },
+    function v25() {
+      db.exec(`CREATE TABLE IF NOT EXISTS session_goals (id TEXT PRIMARY KEY, session_id TEXT, created TEXT, data TEXT)`);
+      db.exec(`CREATE TABLE IF NOT EXISTS access_tokens (id TEXT PRIMARY KEY, token TEXT, name TEXT, scopes TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

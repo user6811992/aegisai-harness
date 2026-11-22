@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.48 (48 milestones). v0.48 ported the buildable MCP protocol extensions from the modelcontextprotocol org: conformance testing, MCP Apps, Tasks, .mcpb desktop bundles, interceptors, file uploads, and Skills over MCP. 43 issues closed, 171 tests passing. The harness now implements the full MCP extension surface.
+- **Shipped:** v0.1–v0.50 (50 milestones). v0.50 ported the deer-flow/symphony/codex high-value items: session goals, personal access tokens, token dashboard, proof-of-work artifacts, and Codex-style approval modes (suggest/auto-edit/full-auto). 44 issues closed, 175 tests passing. The harness now has 50 milestones and a very broad, mature feature surface.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -53,6 +53,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.45 Full app parity** — keyless engines (7), simulated approval, citations, netvein adapter, vision input, proxy abort, RE index, AST chunking, remote-access docs.
 - **v0.46 MCP reference servers** — sequential thinking, fetch_url, time tool, MCP registry browser, Everything test fixture.
 - **v0.47 MCP protocol extensions** — conformance, MCP Apps, Tasks, .mcpb bundles, interceptors, file uploads, Skills over MCP.
+- **v0.50 Session goals & tokens** — session goals, access tokens, token dashboard, proof-of-work, approval modes.
 
 ## Active backlog by theme
 
@@ -419,7 +420,7 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
 
 ### Session & project state (deer-flow)
-- [ ] Session goals — durable goal tracking per session with progress (deer-flow "Session goals") — **H** (extends task_state)
+- [x] Session goals — src/session_goals.js — **H**
 - [ ] Projects with instructions + document shelf (deer-flow "Projects") — **H** (extends context_files)
 - [ ] Evidence-based decisions log (deer-flow "Context, Goals and Agent Decisions") — **H** (extends decision_memory/ledger)
 - [ ] boxd-style bounded output copies + cleanup retries (deer-flow boxd sandbox provider) — **H** (extends sealed/podman)
@@ -429,14 +430,14 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 ### Messaging & events (deer-flow)
 - [ ] IM channels: Telegram, Discord, DingTalk, Feishu (deer-flow "IM Channels") — **M** (we have slack_gateway)
 - [ ] GitHub webhook event-driven agents (deer-flow "GitHub Event-Driven Agents") — **M** (we have scheduler/mailbox)
-- [ ] Personal access tokens + stream actions + embedded Python client (deer-flow "API Access") — **H**
-- [ ] Token usage dashboard in web UI (deer-flow "Workspace UI") — **H** (we have harness_score)
+- [x] Personal access tokens + stream actions — src/access_tokens.js — **H**
+- [x] Token usage dashboard — src/token_dashboard.js — **H**
 - [ ] Terminal workbench (TUI) (deer-flow "Terminal Workbench") — **M** (we have REPL)
 ### Proof of work (symphony)
-- [ ] "Proof of work" artifact: CI status + PR review + complexity analysis + walkthrough (symphony) — **H** (extends verifier/ledger)
+- [x] "Proof of work" artifact — src/proof_of_work.js — **H**
 - [ ] Spec-driven autonomous runs with isolated worktrees (symphony) — **H** (we have DAG + task_board)
 ### Agent (codex)
-- [ ] Codex-style approval modes: suggest / auto-edit / full-auto (openai/codex) — **H** (we have autoApprove; add modes)
+- [x] Codex-style approval modes: suggest / auto-edit / full-auto — **H**
 - [ ] Codex-style MCP server configuration patterns — **H** (covered)
 
 ## Non-goals
