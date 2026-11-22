@@ -415,6 +415,30 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [ ] MCP access management IaC (modelcontextprotocol/access) — **M**
 - [ ] Remote example server/client patterns (modelcontextprotocol/example-remote-server) — **M**
 
+## v0.49 — From bytedance/deer-flow, openai/symphony, openai/codex
+Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
+
+### Session & project state (deer-flow)
+- [ ] Session goals — durable goal tracking per session with progress (deer-flow "Session goals") — **H** (extends task_state)
+- [ ] Projects with instructions + document shelf (deer-flow "Projects") — **H** (extends context_files)
+- [ ] Evidence-based decisions log (deer-flow "Context, Goals and Agent Decisions") — **H** (extends decision_memory/ledger)
+- [ ] boxd-style bounded output copies + cleanup retries (deer-flow boxd sandbox provider) — **H** (extends sealed/podman)
+- [ ] File attachments, downloads, Office previews (deer-flow "File Previews") — **M**
+- [ ] Private knowledge retrieval (RAGFlow-style) (deer-flow "Private Knowledge Retrieval") — **M**
+- [ ] Agentic browser control (deer-flow "Agentic Browser Control") — **H** (we have CDP + sim_browser)
+### Messaging & events (deer-flow)
+- [ ] IM channels: Telegram, Discord, DingTalk, Feishu (deer-flow "IM Channels") — **M** (we have slack_gateway)
+- [ ] GitHub webhook event-driven agents (deer-flow "GitHub Event-Driven Agents") — **M** (we have scheduler/mailbox)
+- [ ] Personal access tokens + stream actions + embedded Python client (deer-flow "API Access") — **H**
+- [ ] Token usage dashboard in web UI (deer-flow "Workspace UI") — **H** (we have harness_score)
+- [ ] Terminal workbench (TUI) (deer-flow "Terminal Workbench") — **M** (we have REPL)
+### Proof of work (symphony)
+- [ ] "Proof of work" artifact: CI status + PR review + complexity analysis + walkthrough (symphony) — **H** (extends verifier/ledger)
+- [ ] Spec-driven autonomous runs with isolated worktrees (symphony) — **H** (we have DAG + task_board)
+### Agent (codex)
+- [ ] Codex-style approval modes: suggest / auto-edit / full-auto (openai/codex) — **H** (we have autoApprove; add modes)
+- [ ] Codex-style MCP server configuration patterns — **H** (covered)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
