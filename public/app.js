@@ -5,22 +5,10 @@ const html = htm.bind(h);
 
 const API = (p) => fetch(p).then((r) => r.json());
 
-// ---------- Toast system ----------
 let toastFn = null;
-function toast(msg, type = 'info') {
-  if (toastFn) toastFn(msg, type);
-}
+function toast(msg, type = 'info') { if (toastFn) toastFn(msg, type); }
 
-// ---------- Keyboard shortcuts ----------
-const shortcuts = [];
-function registerShortcut(key, fn) {
-  shortcuts.push({ key, fn });
-}
-
-// ---------- Helpers ----------
-function escapeHtml(s) {
-  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-}
+function escapeHtml(s) { return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 // ---------- Components ----------
 
@@ -28,8 +16,8 @@ function ToastContainer() {
   const [toasts, setToasts] = useState([]);
   useEffect(() => {
     toastFn = (msg, type) => {
-      const id = Date.now();
-      setToasts((t) => [...t, { id, msg, type }]);
+      const id = Date.now() + Math.random();
+      setToasts((t) => [...t, { id, msg, type, progress: null }]);
       setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
     };
   }, []);
@@ -78,10 +66,8 @@ function OnboardingWizard({ onComplete }) {
     const body = { BACKEND_TYPE: backend };
     if (token) body.AEGISAI_TOKEN = token;
     await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    if (model) {
-      await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: 'ping' }) }).catch(() => {});
-    }
     localStorage.setItem('onboarded', '1');
+    toast('Setup complete! Welcome to AegisAi Harness.', 'success');
     onComplete();
   }
 
@@ -117,7 +103,7 @@ function OnboardingWizard({ onComplete }) {
         ` : null}
         ${step === 4 ? html`
           <p>Setup complete! You're ready to start chatting.</p>
-          <p class="hint">Use <kbd>Ctrl+K</kbd> to open the command palette anytime.</p>
+          <p class="hint">Use <kbd>Ctrl+K</kbd> to open the command palette anytime. Press <kbd>?</kbd> for help.</p>
         ` : null}
         <div class="onboarding-actions">
           ${step > 0 ? html`<button class="btn-secondary" onClick=${() => setStep(step - 1)}>Back</button>` : null}
@@ -130,58 +116,11 @@ function OnboardingWizard({ onComplete }) {
   `;
 }
 
-function Dashboard({ onNavigate }) {
-  const [status, setStatus] = useState(null);
-  const [sessions, setSessions] = useState([]);
-  useEffect(() => {
-    API('/api/plugins').then(setStatus).catch(() => {});
-    API('/api/context').then(setStatus).catch(() => {});
-  }, []);
-  const quickActions = [
-    { icon: '💬', label: 'New Chat', action: () => onNavigate('chat') },
-    { icon: '📊', label: 'Dashboard', action: () => onNavigate('dashboard') },
-    { icon: '🔧', label: 'Tools', action: () => onNavigate('tools') },
-    { icon: '🧠', label: 'Memory', action: () => onNavigate('memory') },
-    { icon: '📚', label: 'Skills', action: () => onNavigate('skills') },
-    { icon: '⚙️', label: 'Settings', action: () => onNavigate('settings') },
-  ];
-  return html`
-    <div class="dashboard">
-      <h2>Dashboard</h2>
-      <div class="quick-actions">
-        ${quickActions.map((a) => html`
-          <button class="quick-action" onClick=${a.action}>
-            <span class="qa-icon">${a.icon}</span>
-            <span class="qa-label">${a.label}</span>
-          </button>
-        `)}
-      </div>
-      <div class="dashboard-grid">
-        <div class="dash-card">
-          <h3>System Status</h3>
-          <div class="dash-stat"><span>Context</span><span>${status ? status.tokens + '/' + status.limit : '—'}</span></div>
-          <div class="dash-stat"><span>Tools</span><span>64+</span></div>
-          <div class="dash-stat"><span>Tests</span><span>257 passing</span></div>
-        </div>
-        <div class="dash-card">
-          <h3>Quick Tips</h3>
-          <ul class="tips">
-            <li>Press <kbd>Ctrl+K</kbd> for command palette</li>
-            <li>Use <kbd>Shift+Enter</kbd> for multi-line input</li>
-            <li>Type <code>/help</code> for all commands</li>
-            <li>Drag & drop files to attach</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 function HelpPanel({ onClose }) {
   const sections = [
-    { title: 'Chat', items: ['Enter — send message', 'Shift+Enter — new line', 'Ctrl+K — command palette', 'Ctrl+/ — toggle help'] },
-    { title: 'Commands', items: ['/help — list all commands', '/clear — clear chat', '/model <name> — switch model', '/compact — compact context', '/tools — list tools'] },
-    { title: 'Shortcuts', items: ['Ctrl+K — command palette', 'Ctrl+N — new chat', 'Ctrl+, — settings', 'Esc — close modal'] },
+    { title: 'Chat', items: ['Enter — send message', 'Shift+Enter — new line', 'Ctrl+K — command palette', 'Ctrl+N — new chat', 'Ctrl+, — settings', 'Ctrl+/ or ? — help'] },
+    { title: 'Commands', items: ['/help — list all commands', '/clear — clear chat', '/model <name> — switch model', '/compact — compact context', '/tools — list tools', '/diff-review — review changes'] },
+    { title: 'Tips', items: ['Drag & drop files to attach', 'Use /squeeze <url>|<question> to extract answers', 'Type /providers to see available backends'] },
   ];
   return html`
     <div class="modal-backdrop" onClick=${onClose}>
@@ -195,124 +134,6 @@ function HelpPanel({ onClose }) {
         `)}
         <button class="btn-primary" onClick=${onClose}>Close</button>
       </div>
-    </div>
-  `;
-}
-
-function App() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [ctx, setCtx] = useState({ tokens: 0, limit: 8192 });
-  const [showConfig, setShowConfig] = useState(false);
-  const [showHelp, setShowHelp] = useState(false);
-  const [showPalette, setShowPalette] = useState(false);
-  const [cfg, setCfg] = useState({});
-  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
-  const [view, setView] = useState(localStorage.getItem('onboarded') ? 'chat' : 'onboarding');
-  const [toasts, setToasts] = useState([]);
-  const inputRef = useRef(null);
-
-  // Toast system
-  useEffect(() => {
-    toastFn = (msg, type) => {
-      const id = Date.now();
-      setToasts((t) => [...t, { id, msg, type }]);
-      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
-    };
-  }, []);
-
-  useEffect(() => {
-    document.body.dataset.theme = theme;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  useEffect(() => { updateCtx(); }, []);
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowPalette(true); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); setMessages([]); toast('New chat started', 'info'); }
-      if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); setShowConfig(true); }
-      if (e.key === '/' && e.ctrlKey) { e.preventDefault(); setShowHelp(true); }
-      if (e.key === 'Escape') { setShowConfig(false); setShowHelp(false); setShowPalette(false); }
-    };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, []);
-
-  async function updateCtx() {
-    try { const d = await API('/api/context'); setCtx(d); } catch (e) {}
-  }
-
-  async function send() {
-    if (!input.trim() || loading) return;
-    const text = input;
-    setInput('');
-    setMessages((m) => [...m, { role: 'user', content: text }]);
-    setLoading(true);
-    try {
-      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: text }) });
-      const d = await r.json();
-      setMessages((m) => [...m, { role: 'assistant', content: d.reply || '(no reply)' }]);
-      updateCtx();
-      toast('Response received', 'success');
-    } catch (e) {
-      setMessages((m) => [...m, { role: 'assistant', content: 'Error: ' + e.message }]);
-      toast('Error: ' + e.message, 'error');
-    } finally { setLoading(false); }
-  }
-
-  const commands = [
-    { icon: '💬', label: 'New Chat', keywords: 'new chat clear', shortcut: 'Ctrl+N', run: () => { setMessages([]); toast('New chat started', 'info'); } },
-    { icon: '⚙️', label: 'Settings', keywords: 'config settings', shortcut: 'Ctrl+,', run: () => setShowConfig(true) },
-    { icon: '❓', label: 'Help', keywords: 'help shortcuts', shortcut: 'Ctrl+/', run: () => setShowHelp(true) },
-    { icon: '🎨', label: 'Toggle Theme', keywords: 'theme dark light', run: () => setTheme(theme === 'dark' ? 'light' : 'dark') },
-    { icon: '🗑️', label: 'Clear Chat', keywords: 'clear reset', run: () => { setMessages([]); toast('Chat cleared', 'info'); } },
-    { icon: '📊', label: 'Context Info', keywords: 'context tokens', run: () => toast('Context: ' + ctx.tokens + '/' + ctx.limit, 'info') },
-  ];
-
-  if (view === 'onboarding') {
-    return html`<${OnboardingWizard} onComplete=${() => setView('chat')} />`;
-  }
-
-  return html`
-    <div class="app" data-theme=${theme}>
-      <${ToastContainer} />
-      <${CommandPalette} open=${showPalette} onClose=${() => setShowPalette(false)} commands=${commands} />
-      ${showConfig ? html`<${ConfigModal} cfg=${cfg} setCfg=${setCfg} onClose=${() => setShowConfig(false)} />` : null}
-      ${showHelp ? html`<${HelpPanel} onClose=${() => setShowHelp(false)} />` : null}
-      <header class="topbar">
-        <h1>AegisAi Harness</h1>
-        <span class="ctx-meter">ctx ${ctx.tokens}/${ctx.limit}${ctx.compacted ? ' · compacted' : ''}</span>
-        <button onClick=${() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme (Ctrl+K → Toggle Theme)">${theme === 'dark' ? '☀️' : '🌙'}</button>
-        <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)">⚙️</button>
-        <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)">⌘</button>
-        <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)">?</button>
-      </header>
-      <main class="chat">
-        ${messages.length === 0 ? html`
-          <div class="empty-state">
-            <h2>Welcome to AegisAi Harness</h2>
-            <p>Start a conversation or press <kbd>Ctrl+K</kbd> for commands.</p>
-            <div class="empty-actions">
-              <button onClick=${() => { setMessages([{ role: 'assistant', content: 'Hello! How can I help you today?' }]); }}>Start chatting</button>
-              <button onClick=${() => setShowHelp(true)}>View shortcuts</button>
-            </div>
-          </div>
-        ` : null}
-        ${messages.map((m) => html`
-          <div class=${'msg ' + m.role}>
-            <div class="bubble" dangerouslySetInnerHTML=${{ __html: m.role === 'assistant' && window.HarnessMarkdown ? window.HarnessMarkdown.render(m.content) : escapeHtml(m.content) }}></div>
-          </div>
-        `)}
-        ${loading ? html`<div class="msg assistant"><div class="bubble loading">Thinking<span class="dots">...</span></div></div>` : null}
-      </main>
-      <footer class="composer">
-        <textarea ref=${inputRef} value=${input} onInput=${(e) => setInput(e.target.value)} onKeyDown=${(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Type a message... (Shift+Enter for new line)" rows="2"></textarea>
-        <button onClick=${send} disabled=${loading || !input.trim()}>Send</button>
-      </footer>
     </div>
   `;
 }
@@ -344,6 +165,221 @@ function ConfigModal({ cfg, setCfg, onClose }) {
           <button onClick=${onClose}>Close</button>
         </div>
       </div>
+    </div>
+  `;
+}
+
+function SessionSidebar({ open, onClose, onSelect }) {
+  const [sessions, setSessions] = useState([]);
+  const [q, setQ] = useState('');
+  useEffect(() => {
+    if (open) {
+      API('/api/sessions').then((d) => setSessions(d.sessions || [])).catch(() => {});
+    }
+  }, [open]);
+  const filtered = sessions.filter((s) => !q || (s.title || s.id || '').toLowerCase().includes(q.toLowerCase()));
+  if (!open) return null;
+  return html`
+    <div class="sidebar">
+      <div class="sidebar-header">
+        <h3>Sessions</h3>
+        <button class="sidebar-close" onClick=${onClose}>×</button>
+      </div>
+      <input class="sidebar-search" value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="Search sessions..." />
+      <div class="sidebar-list">
+        ${filtered.map((s) => html`
+          <div class="session-item" onClick=${() => { onSelect(s); onClose(); }}>
+            <div class="session-title">${s.title || s.id}</div>
+            <div class="session-meta">${s.updated || ''}</div>
+          </div>
+        `)}
+        ${filtered.length === 0 ? html`<div class="sidebar-empty">No sessions found</div>` : null}
+      </div>
+    </div>
+  `;
+}
+
+function ToolTimeline({ tools }) {
+  if (!tools || tools.length === 0) return null;
+  return html`
+    <div class="tool-timeline">
+      ${tools.map((t) => html`
+        <div class="tool-entry">
+          <span class="tool-name">${t.name}</span>
+          <span class="tool-status ${t.ok ? 'ok' : 'err'}">${t.ok ? '✓' : '✗'}</span>
+          ${t.duration ? html`<span class="tool-duration">${t.duration}ms</span>` : null}
+        </div>
+      `)}
+    </div>
+  `;
+}
+
+function App() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [ctx, setCtx] = useState({ tokens: 0, limit: 8192 });
+  const [showConfig, setShowConfig] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showPalette, setShowPalette] = useState(false);
+  const [showSessions, setShowSessions] = useState(false);
+  const [cfg, setCfg] = useState({});
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const [view, setView] = useState(localStorage.getItem('onboarded') ? 'chat' : 'onboarding');
+  const [toasts, setToasts] = useState([]);
+  const [toolLog, setToolLog] = useState([]);
+  const [dragOver, setDragOver] = useState(false);
+  const inputRef = useRef(null);
+  const chatRef = useRef(null);
+
+  useEffect(() => {
+    toastFn = (msg, type) => {
+      const id = Date.now() + Math.random();
+      setToasts((t) => [...t, { id, msg, type }]);
+      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
+    };
+  }, []);
+
+  useEffect(() => {
+    document.body.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  useEffect(() => { updateCtx(); }, []);
+
+  useEffect(() => {
+    const handler = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') { e.preventDefault(); setShowPalette(true); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') { e.preventDefault(); newChat(); }
+      if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); setShowConfig(true); }
+      if (e.key === '/' && e.ctrlKey) { e.preventDefault(); setShowHelp(true); }
+      if (e.key === 'Escape') { setShowConfig(false); setShowHelp(false); setShowPalette(false); setShowSessions(false); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); setShowSessions((s) => !s); }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, []);
+
+  // Drag and drop
+  useEffect(() => {
+    const handler = (e) => {
+      e.preventDefault();
+      if (e.type === 'dragover') setDragOver(true);
+      if (e.type === 'dragleave') setDragOver(false);
+      if (e.type === 'drop') {
+        setDragOver(false);
+        const files = e.dataTransfer.files;
+        if (files.length) {
+          toast('Attached ' + files.length + ' file(s)', 'info');
+          // Read file contents and append to input
+          Array.from(files).forEach((f) => {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+              setInput((prev) => prev + '\n[File: ' + f.name + ']\n' + ev.target.result.slice(0, 2000) + '\n');
+            };
+            reader.readAsText(f);
+          });
+        }
+      }
+    };
+    window.addEventListener('dragover', handler);
+    window.addEventListener('dragleave', handler);
+    window.addEventListener('drop', handler);
+    return () => {
+      window.removeEventListener('dragover', handler);
+      window.removeEventListener('dragleave', handler);
+      window.removeEventListener('drop', handler);
+    };
+  }, []);
+
+  async function updateCtx() {
+    try { const d = await API('/api/context'); setCtx(d); } catch (e) {}
+  }
+
+  function newChat() {
+    setMessages([]);
+    setToolLog([]);
+    toast('New chat started', 'info');
+  }
+
+  async function send() {
+    if (!input.trim() || loading) return;
+    const text = input;
+    setInput('');
+    setMessages((m) => [...m, { role: 'user', content: text }]);
+    setLoading(true);
+    setToolLog([]);
+    try {
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: text }) });
+      const d = await r.json();
+      setMessages((m) => [...m, { role: 'assistant', content: d.reply || '(no reply)' }]);
+      if (d.toolLog) setToolLog(d.toolLog);
+      updateCtx();
+      toast('Response received', 'success');
+    } catch (e) {
+      setMessages((m) => [...m, { role: 'assistant', content: 'Error: ' + e.message }]);
+      toast('Error: ' + e.message, 'error');
+    } finally { setLoading(false); }
+  }
+
+  const commands = [
+    { icon: '💬', label: 'New Chat', keywords: 'new chat clear', shortcut: 'Ctrl+N', run: () => { newChat(); } },
+    { icon: '📂', label: 'Sessions', keywords: 'sessions history', shortcut: 'Ctrl+B', run: () => setShowSessions(true) },
+    { icon: '⚙️', label: 'Settings', keywords: 'config settings', shortcut: 'Ctrl+,', run: () => setShowConfig(true) },
+    { icon: '❓', label: 'Help', keywords: 'help shortcuts', shortcut: 'Ctrl+/', run: () => setShowHelp(true) },
+    { icon: '🎨', label: 'Toggle Theme', keywords: 'theme dark light', run: () => setTheme(theme === 'dark' ? 'light' : 'dark') },
+    { icon: '🗑️', label: 'Clear Chat', keywords: 'clear reset', run: () => { setMessages([]); setToolLog([]); toast('Chat cleared', 'info'); } },
+    { icon: '📊', label: 'Context Info', keywords: 'context tokens', run: () => toast('Context: ' + ctx.tokens + '/' + ctx.limit, 'info') },
+    { icon: '🔧', label: 'Tools', keywords: 'tools list', run: () => toast('64+ tools available', 'info') },
+  ];
+
+  if (view === 'onboarding') {
+    return html`<${OnboardingWizard} onComplete=${() => setView('chat')} />`;
+  }
+
+  return html`
+    <div class="app" data-theme=${theme}>
+      <${ToastContainer} />
+      <${CommandPalette} open=${showPalette} onClose=${() => setShowPalette(false)} commands=${commands} />
+      ${showConfig ? html`<${ConfigModal} cfg=${cfg} setCfg=${setCfg} onClose=${() => setShowConfig(false)} />` : null}
+      ${showHelp ? html`<${HelpPanel} onClose=${() => setShowHelp(false)} />` : null}
+      <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${(s) => { toast('Loaded session: ' + (s.title || s.id), 'info'); }} />
+      <header class="topbar">
+        <h1>AegisAi Harness</h1>
+        <span class="ctx-meter">ctx ${ctx.tokens}/${ctx.limit}${ctx.compacted ? ' · compacted' : ''}</span>
+        <button onClick=${() => setShowSessions(true)} title="Sessions (Ctrl+B)">📂</button>
+        <button onClick=${() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme">${theme === 'dark' ? '☀️' : '🌙'}</button>
+        <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)">⚙️</button>
+        <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)">⌘</button>
+        <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)">?</button>
+      </header>
+      <div class="main-layout">
+        <main class="chat ${dragOver ? 'drag-over' : ''}">
+          ${dragOver ? html`<div class="drag-overlay">Drop files here to attach</div>` : null}
+          ${messages.length === 0 ? html`
+            <div class="empty-state">
+              <h2>Welcome to AegisAi Harness</h2>
+              <p>Start a conversation, or press <kbd>Ctrl+K</kbd> for commands.</p>
+              <div class="empty-actions">
+                <button onClick=${() => { setMessages([{ role: 'assistant', content: 'Hello! How can I help you today?' }]); }}>Start chatting</button>
+                <button onClick=${() => setShowHelp(true)}>View shortcuts</button>
+                <button onClick=${() => setShowSessions(true)}>Browse sessions</button>
+              </div>
+            </div>
+          ` : null}
+          ${messages.map((m) => html`
+            <div class=${'msg ' + m.role}>
+              <div class="bubble" dangerouslySetInnerHTML=${{ __html: m.role === 'assistant' && window.HarnessMarkdown ? window.HarnessMarkdown.render(m.content) : escapeHtml(m.content) }}></div>
+            </div>
+          `)}
+          ${loading ? html`<div class="msg assistant"><div class="bubble loading">Thinking<span class="dots">...</span></div></div>` : null}
+          ${toolLog.length > 0 ? html`<${ToolTimeline} tools=${toolLog} />` : null}
+        </main>
+      </div>
+      <footer class="composer">
+        <textarea ref=${inputRef} value=${input} onInput=${(e) => setInput(e.target.value)} onKeyDown=${(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Type a message... (Shift+Enter for new line, drag files to attach)" rows="2"></textarea>
+        <button onClick=${send} disabled=${loading || !input.trim()}>Send</button>
+      </footer>
     </div>
   `;
 }

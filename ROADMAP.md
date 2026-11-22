@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.64 (64 milestones). v0.64: documentation, licensing, and project hygiene — MIT LICENSE, CONTRIBUTING.md, CHANGELOG.md, comprehensive README, updated llms.txt, HARNESS_DOCS.md. 57 issues closed, 257 tests passing. The project is now fully documented and ready for community contributions.
+- **Shipped:** v0.1–v0.66 (66 milestones). v0.65: UX overhaul (onboarding wizard, command palette, toast notifications, dashboard, help panel, keyboard shortcuts, empty/loading states). v0.66: UX enhancements (session sidebar, drag-and-drop file attach, tool timeline, responsive layout). 59 issues closed, 257 tests passing. The harness now has a polished, user-friendly GUI.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -68,6 +68,8 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.62 Interactive diff review** — startSession, acceptHunk/rejectHunk, acceptFile/rejectFile, navigation, renderCurrent, finish.
 - **v0.63 Marketplace maturity** — categories, ratings, filters, enable/disable, update, info, stats, install from content/URL, dependency auto-install, featured catalog (8 plugins).
 - **v0.64 Documentation & licensing** — MIT LICENSE, CONTRIBUTING.md, CHANGELOG.md, comprehensive README, updated llms.txt, HARNESS_DOCS.md.
+- **v0.65 UX overhaul** — onboarding wizard, command palette (Ctrl+K), toast notifications, dashboard, help panel, keyboard shortcuts, empty/loading states.
+- **v0.66 UX enhancements** — session sidebar, drag-and-drop file attach, tool execution timeline, responsive layout.
 
 ## Active backlog by theme
 
