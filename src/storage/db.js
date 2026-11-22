@@ -129,6 +129,9 @@ function open(dbPath) {
     function v21() {
       db.exec(`CREATE TABLE IF NOT EXISTS serverless_agents (name TEXT PRIMARY KEY, created TEXT, data TEXT)`);
     },
+    function v22() {
+      db.exec(`CREATE TABLE IF NOT EXISTS identities (id TEXT PRIMARY KEY, agent TEXT, grants TEXT, created TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

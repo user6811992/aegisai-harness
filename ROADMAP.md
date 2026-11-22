@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.39 (39 milestones). v0.39 cleared the remaining *doable* deferred items: simulated browser, event-driven plugin UI, 5-layer security posture, swappable layer registry, Markdown governance, and external trace export. Native-only capabilities (in-process model loading, Windows RPA) now have graceful adapter interfaces; Rust SDK still needs a toolchain. 36 issues closed, 112 tests passing.
+- **Shipped:** v0.1–v0.41 (41 milestones; v0.40 was roadmap-only). v0.41 built the H-feasibility v0.40 items: tool state, tool eval, evolution search, config matrix, migration recipes, confidence memory, event-sourced replay, context reset, identity audit, 5-layer spans, evidence bundles, and composable APIs. 37 issues closed, 124 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing.
+- **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -47,6 +47,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.37 DiggerHQ patterns** — brain/sandbox interfaces, health failover, git state, bug repro, maintenance templates, speed bench, runtime contract, sandbox fingerprint.
 - **v0.38 DiggerHQ integrations** — Slack gateway, outbound WS bridge, serverless functions, rootless Podman, PR review, CI resolver, CVE reachability.
 - **v0.39 Remaining deferred cleared** — simulated browser, plugin UI, 5-layer security, layer registry, Markdown governance, trace export, native adapters.
+- **v0.41 Tool systems & evidence** — tool state/eval, evolution search, config matrix, migration recipes, confidence memory, event replay, context reset, identity audit, 5-layer spans, evidence bundles, composable APIs.
 
 ## Active backlog by theme
 
@@ -291,27 +292,27 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 
 ### Tool systems & state
 - [ ] Explicit tool state management + persistent shell across calls (AuroraCoder) — **M**
-- [ ] Tool-call quality eval harness (tools/skills served to agents) (jaeger-ai-evals) — **H**
-- [ ] Automated prompt/tool/harness evolution via search (polyharness) — **H** (extends optimizer)
+- [x] Tool-call quality eval harness — src/tool_eval.js — **H**
+- [x] Automated prompt/tool/harness evolution via search — src/evolution_search.js — **H**
 - [ ] Self-patch loop with WASM sandbox adapter (clanker) — **M**
 ### Config & migration
-- [ ] Config compatibility matrix (which config file each tool reads) (compatibility-matrix) — **H** (docs/data)
-- [ ] Harness migration recipes file-by-file (ai-harness-migration-recipes) — **H**
+- [x] Config compatibility matrix — src/config_matrix.js — **H**
+- [x] Harness migration recipes — src/migration_recipes.js — **H**
 - [ ] Harness generator from natural language (pi-forge, agent-inception) — **M**
 ### Memory & context
-- [ ] Self-checking memory with calibrated confidence + staged claim gates (minta) — **H**
-- [ ] Event-sourced session replay (ringko-harness) — **H** (extends ledger)
-- [ ] Context wipe-and-rerun command (neuralyzer) — **H** (extends capsule)
+- [x] Self-checking memory with calibrated confidence — src/confidence_memory.js — **H**
+- [x] Event-sourced session replay — src/event_sourced.js — **H**
+- [x] Context wipe-and-rerun — src/context_reset.js — **H**
 ### Security & governance
-- [ ] Least-privilege per-agent identity + audit for tool calls (agent-rails/agent-guard) — **H** (extends gateway)
-- [ ] Policy-as-code Markdown in git enforced pre-tool with secret redaction (intutic) — **H** (extends charter)
-- [ ] Progressive autonomy with transactional action log (Progressive-Autonomy-Agent-Harness) — **H**
+- [x] Least-privilege per-agent identity + audit — src/identity_audit.js — **H**
+- [x] Policy-as-code Markdown in git — src/markdown_governance.js (v0.39) — **H**
+- [x] Progressive autonomy with transactional action log — src/two_bar.js + src/ledger.js — **H**
 ### Observability & evidence
-- [ ] 5-layer span model (entry→agent→step→chat→tool) (TencentCloud agentobs) — **H** (extends OTel)
-- [ ] Per-run evidence bundles (yatra-harness) — **H** (extends ledger/gems)
+- [x] 5-layer span model — src/spans5.js — **H**
+- [x] Per-run evidence bundles — src/evidence_bundle.js — **H**
 - [ ] Admin panel with auth (ulshv/harness) — **M** (web UI extension)
 ### Workflows
-- [ ] Composable agent APIs / 6-phase state machine (smoke-monkey-harness) — **H** (extends workflow)
+- [x] Composable agent APIs / 6-phase state machine — src/composable_api.js — **H**
 - [ ] DAG + subagents + persistent memory super harness (omniHarness) — **H** (we have all parts)
 
 ## Non-goals

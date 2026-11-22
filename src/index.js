@@ -452,6 +452,16 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/tool-state ')) { const p = t.slice(12).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./tool_state').set(p[0], p[1] || 'default', JSON.parse(p[2] || '{}')))); rl.prompt(); return; }
+      if (t === '/tool-eval') { const tools = require('./tools/registry').assemble({ includeCoding: true }); console.log(JSON.stringify(require('./tool_eval').grade(tools), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/config-matrix') { console.log(JSON.stringify(require('./config_matrix').all(), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/migration-recipes') { console.log(JSON.stringify(require('./migration_recipes').list())); rl.prompt(); return; }
+      if (t === '/confidence-store') { console.log(JSON.stringify(require('./confidence_memory').store('sample fact', 'test', 0.7))); rl.prompt(); return; }
+      if (t.startsWith('/event-replay ')) { console.log(JSON.stringify(require('./event_sourced').replay(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/span-tree') { console.log(JSON.stringify(require('./spans5').tree(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t === '/evidence-bundle') { console.log(JSON.stringify(require('./evidence_bundle').bundle('manual', { final: 'done', toolLog: lastToolLog }), null, 2)); rl.prompt(); return; }
+      if (t === '/composable') { const api = require('./composable_api').create(); console.log(JSON.stringify(require('./composable_api').status(api))); rl.prompt(); return; }
+      if (t === '/identity-list') { console.log(JSON.stringify(require('./identity_audit').list(), null, 2).slice(0, 1200)); rl.prompt(); return; }
       if (t.startsWith('/sim-nav ')) { const b = new (require('./sim_browser').SimBrowser)(); console.log(JSON.stringify(b.navigate(t.slice(9).trim()))); rl.prompt(); return; }
       if (t === '/security-layers') { console.log(JSON.stringify(require('./security_layers').posture(), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/layer-registry') { const l = require('./layer_registry'); console.log(JSON.stringify(l.layers().map((x) => ({ layer: x, ...l.get(x) })), null, 2)); rl.prompt(); return; }
