@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.35 (35 milestones). v0.35 added decision gates, workflow state machine, two-bar goals, geometric memory, session converter, architecture rule checks, AIBOM, SSH bridge, and journaled persistence. 33 issues closed, 92 tests passing.
+- **Shipped:** v0.1–v0.37 (37 milestones; v0.36 was roadmap-only from diggerhq). v0.37 added brain/sandbox interfaces, health failover, git-backed state, bug repro workflow, maintenance templates, real-world speed benchmark, runtime contract, and sandbox fingerprinting. 34 issues closed, 99 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, scheduled loops, Windows RPA, external trace export, 91-patterns catalog — each needing concrete need or native toolchain.
+- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, Windows RPA, external trace export, Slack gateway, rootless Podman, PR review agent, CI resolver, CVE reachability — each needing concrete need or native toolchain.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -44,6 +44,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.33 Interfaces & governance** — dual-graph memory, constitution, WebDriver BiDi, SSE stream, config installer, multi-engine search, routing eval, control plane.
 - **v0.34 Retrieval & reporting** — semantic tool retrieval, YAML evals, pass@k, failure clustering, ledger rewind, Gems, AHP gateway, SARIF.
 - **v0.35 Decisions & interop** — decision gates, workflow state machine, two-bar goals, geometric memory, session converter, architecture rules, AIBOM, SSH bridge.
+- **v0.37 DiggerHQ patterns** — brain/sandbox interfaces, health failover, git state, bug repro, maintenance templates, speed bench, runtime contract, sandbox fingerprint.
 
 ## Active backlog by theme
 
@@ -258,27 +259,27 @@ Feasibility: **H** = high (fits current local-only architecture), **M** = medium
 - [ ] Slack-native agent gateway: mention → session → steer → PR (opencomputer "Calvin" bridge) — **M** (Slack API + web UI)
 - [ ] Outbound-only WebSocket VM bridge (opencomputer gateway) — **M** (SSE already exists)
 - [ ] Serverless "agent as a function" abstraction (serverlessagentsite) — **M**
-- [ ] Pluggable runtime contract for brain wrappers (oc-runtimes) — **H**
+- [x] Pluggable runtime contract — src/runtime_contract.js — **H**
 
 ### Execution & isolation
-- [ ] Formal brain + sandbox interfaces ("IaC for agents") (open-agent-sdk) — **H** (we have backends + sealed)
+- [x] Formal brain + sandbox interfaces — src/brain_sandbox.js — **H**
 - [ ] Rootless Podman per-session isolation (opencomputer) — **M** (needs Podman)
-- [ ] Sandbox capability fingerprinting (sandbox-fingerprinting) — **M**
-- [ ] Provider health-check failover for brains (open-agent-sdk) — **H** (we have fallback + circuit breaker)
+- [x] Sandbox capability fingerprinting — src/sandbox_fingerprint.js — **M→H**
+- [x] Provider health-check failover — src/health_failover.js — **H**
 
 ### State & durability
-- [ ] Git-backed state store (opencomputer) — **H** (we have ledger/backup)
-- [ ] Journaled durable loop engine (looprig, opencomputer durable sessions) — **H** (we have capsule/ledger)
+- [x] Git-backed state store — src/git_state.js — **H**
+- [x] Journaled durable loop engine — src/capsule.js + src/ledger.js — **H**
 
 ### Workflows & agents
-- [ ] Bug reproduction workflow: clone → failing test → run (example-bug-repro) — **H**
+- [x] Bug reproduction workflow — src/bug_repro.js — **H**
 - [ ] PR review agent with inline comments + dry-run default (example-pr-review) — **M**
 - [ ] CI failure resolver with per-repo GitHub allowlist (example-ci-resolver) — **M**
-- [ ] Scheduled maintenance templates: changelog, quickstart-check, docs fix — **H** (we have scheduler)
+- [x] Scheduled maintenance templates — src/maintenance_templates.js — **H**
 - [ ] CVE reachability proof before patching (cve-swarm, dependency-security) — **M**
 
 ### Evaluation
-- [ ] Real-world speed benchmark (time-to-first-push from external timestamps) (speedbench) — **H** (we have harness score)
+- [x] Real-world speed benchmark — src/speed_bench.js — **H**
 - [ ] Sandbox benchmark catalog (awesome-sandbox-benchmarks) — **H** (docs)
 
 ## Non-goals

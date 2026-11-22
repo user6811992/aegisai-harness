@@ -448,6 +448,14 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t === '/brain-sandbox') { const agent = new (require('./brain_sandbox').Agent)({}); console.log(JSON.stringify({ brain: agent.brain.name, sandbox: agent.sandbox.name }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/health-select ')) { console.log(JSON.stringify(await require('./health_failover').select(t.slice(14).trim().split(/\s+/)))); rl.prompt(); return; }
+      if (t.startsWith('/bug-repro ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); const r = await require('./bug_repro').reproduce(p[0], p[1] || ''); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/maintenance-templates') { console.log(JSON.stringify(require('./maintenance_templates').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/speed-bench ')) { const e = JSON.parse(t.slice(12).trim()); console.log(JSON.stringify(require('./speed_bench').summarize(e), null, 2)); rl.prompt(); return; }
+      if (t === '/runtime-contract') { console.log(JSON.stringify(require('./runtime_contract').CONTRACT, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/git-snapshot ')) { console.log(JSON.stringify(require('./git_state').snapshot(null, { note: t.slice(13).trim() }))); rl.prompt(); return; }
+      if (t === '/sandbox-fingerprint') { console.log(JSON.stringify(require('./sandbox_fingerprint').fingerprint(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/gate-check ')) { console.log(JSON.stringify(require('./decision_gates').evaluate({ input: t.slice(12).trim() }), null, 2)); rl.prompt(); return; }
       if (t === '/workflow-demo') { const wf = require('./workflow').create({ initial: 'start', states: { start: { next: [{ event: 'go', to: 'done' }] }, done: { next: [] } } }); console.log(JSON.stringify(require('./workflow').transition(wf, 'go'))); rl.prompt(); return; }
       if (t === '/geo-wake') { console.log(require('./geometric_memory').wakeInjection('default') || '(no handoff)'); rl.prompt(); return; }
