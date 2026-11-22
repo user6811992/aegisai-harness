@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.46 (46 milestones). v0.46 ported the highest-value reference servers from modelcontextprotocol/servers: Sequential Thinking, fetch_url, time tool, MCP registry browser, and an "Everything" test-server fixture. 41 issues closed, 155 tests passing. The harness is now both a full agent runtime and an MCP client with first-class reflective-thinking, web-fetch, and time tools.
+- **Shipped:** v0.1–v0.47 (47 milestones). v0.47 added Streamable HTTP MCP server mode: exposes the harness as an MCP server with tools/resources/prompts, JSON-RPC 2.0 dispatch, session management, and `--mcp-server` flag + `/mcp` web endpoint. 42 issues closed, 164 tests passing. The harness is now both an MCP client and an MCP server.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -394,6 +394,25 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 ### MCP ecosystem
 - [x] MCP registry browser — src/mcp_registry_browser.js — **M** (network-dependent; falls back gracefully)
 - [ ] Transports: Streamable HTTP server mode for our own MCP exposure — **M** (still deferred)
+
+## v0.47 — From modelcontextprotocol org (beyond servers)
+Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
+
+### MCP protocol extensions (high value, buildable)
+- [ ] MCP Inspector / conformance testing — validate our MCP server against the spec (modelcontextprotocol/inspector, conformance) — **H**
+- [ ] MCP Apps protocol — render UIs embedded in chat served by MCP servers (modelcontextprotocol/ext-apps) — **H** (we have web UI)
+- [ ] MCP Tasks extension — long-running operations via MCP (modelcontextprotocol/ext-tasks) — **H** (we have async tools)
+- [ ] Desktop extensions (.mcpb) — one-click local MCP server install bundles (modelcontextprotocol/mcpb) — **H** (we have config_installer)
+- [ ] Interceptors extension — pre/post tool-call hooks at protocol level (modelcontextprotocol/experimental-ext-interceptors, SEP-2624) — **H** (we have hooks)
+- [ ] File uploads extension — upload files to tools over MCP (modelcontextprotocol/experimental-ext-file-uploads) — **H**
+- [ ] Skills over MCP — discover/distribute skills via MCP primitives (modelcontextprotocol/ext-skills) — **H** (we have skills)
+### Lower priority / platform
+- [ ] Filesystem Resources extension (modelcontextprotocol/experimental-ext-filesystems) — **M**
+- [ ] Variants extension (modelcontextprotocol/experimental-ext-variants) — **M**
+- [ ] Tool annotations interest group (modelcontextprotocol/experimental-ext-tool-annotations) — **M**
+- [ ] Streamable HTTP server mode for our MCP exposure — **M** (we already serve /mcp over HTTP)
+- [ ] MCP access management IaC (modelcontextprotocol/access) — **M**
+- [ ] Remote example server/client patterns (modelcontextprotocol/example-remote-server) — **M**
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
