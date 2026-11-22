@@ -616,6 +616,13 @@ async function main() {
       if (t === '/diff-review-staged') { console.log(JSON.stringify(require('./diff_review').stagedReview(root), null, 2).slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/git-stash')) { const p = t.slice(11).trim() || 'push'; console.log(JSON.stringify(require('./git_integration').stash(root, p))); rl.prompt(); return; }
       if (t.startsWith('/git-show')) { const p = t.slice(10).trim(); console.log(require('./git_integration').show(root, p || 'HEAD').output); rl.prompt(); return; }
+      if (t === '/providers') { console.log(JSON.stringify(await require('./providers').detect(), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/provider-list') { console.log(JSON.stringify(require('./providers').list().map((p) => p.id + ': ' + p.name + ' (' + (p.local ? 'local' : 'cloud') + ')'))); rl.prompt(); return; }
+      if (t.startsWith('/provider-auto')) { console.log(JSON.stringify(await require('./providers').autoSelect())); rl.prompt(); return; }
+      if (t.startsWith('/plugin-search ')) { console.log(JSON.stringify(await require('./plugin_marketplace').search(t.slice(15).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/plugin-install ')) { console.log(JSON.stringify(await require('./plugin_marketplace').install(t.slice(16).trim()))); rl.prompt(); return; }
+      if (t === '/plugin-list') { console.log(JSON.stringify(require('./plugin_marketplace').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/plugin-uninstall ')) { console.log(JSON.stringify(require('./plugin_marketplace').uninstall(t.slice(18).trim()))); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }

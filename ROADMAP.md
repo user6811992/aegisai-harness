@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.60 (60 milestones). v0.60: multi-file diff review (parseDiff, review, fullReview, stagedReview, unstagedReview, applyHunks) via src/diff_review.js. 53 issues closed, 237 tests passing. The harness now matches Aider on multi-file diff review.
+- **Shipped:** v0.1–v0.61 (61 milestones). v0.61: model provider breadth (18 providers with auto-detection) + plugin marketplace (search, install, uninstall, list). 54 issues closed, 244 tests passing. The harness now matches OpenCode on provider breadth and has a plugin marketplace.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -64,6 +64,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.58 TUI + LSP** — multi-pane terminal workbench + LSP client (hover, definition, completion, diagnostics, didOpen).
 - **v0.59 Git-aware editing** — status, diff, commit, blame, branch, stash, log, show, reset, auto-commit.
 - **v0.60 Multi-file diff review** — parseDiff, review, fullReview, stagedReview, unstagedReview, applyHunks.
+- **v0.61 Provider breadth + marketplace** — 18 providers with auto-detection, plugin marketplace (search/install/uninstall/list).
 
 ## Active backlog by theme
 
