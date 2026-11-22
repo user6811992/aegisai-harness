@@ -373,6 +373,27 @@ Comparison of the three repos: the harness is far more capable as an *agent runt
 - [x] AST-aware RAG chunking + watch mode — src/ast_chunk.js
 - [x] Tailscale / Cloudflare Quick Tunnel setup docs — docs/REMOTE_ACCESS.md
 
+## v0.46 — From modelcontextprotocol/servers (reference implementations)
+Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
+
+### Reference servers worth porting
+- [ ] Sequential Thinking tool — dynamic reflective problem-solving with thought sequences (modelcontextprotocol/servers "Sequential Thinking") — **H** (we have agent loop but no explicit reflective-thinking tool)
+- [ ] Dedicated fetch_url tool with HTML→markdown conversion (modelcontextprotocol/servers "Fetch") — **H** (we have markdown_extract.fromUrl but no first-class tool)
+- [ ] Knowledge graph memory exposed via MCP (modelcontextprotocol/servers "Memory") — **M** (we have graph_memory; could wrap as MCP server)
+- [ ] Time/timezone conversion tool (modelcontextprotocol/servers "Time") — **H** (trivial)
+- [ ] "Everything" test server patterns for MCP client testing — **H** (extends mockmcp)
+### Archived servers (domain-specific, mostly covered)
+- [ ] GitHub MCP integration (archived "GitHub") — **M** (we have git via run_command + MCP marketplace entry)
+- [ ] Puppeteer/browser automation (archived "Puppeteer") — **H** (covered by our CDP browser tools)
+- [ ] SQLite MCP server (archived "SQLite") — **H** (covered; we have db module)
+- [ ] PostgreSQL MCP server (archived "PostgreSQL") — **M**
+- [ ] Redis MCP server (archived "Redis") — **M**
+- [ ] Slack MCP server (archived "Slack") — **M** (we have slack_gateway adapter)
+- [ ] Sentry MCP server (archived "Sentry") — **M**
+### MCP ecosystem
+- [ ] MCP registry browser: browse published servers, not just hardcoded catalog (modelcontextprotocol/registry) — **M** (we have mcp_marketplace)
+- [ ] Transports: Streamable HTTP server mode for our own MCP exposure — **M** (we have stdio/HTTP MCP client; could expose harness as MCP server)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
