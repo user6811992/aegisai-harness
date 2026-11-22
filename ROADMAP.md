@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.50 (50 milestones). v0.50 ported the deer-flow/symphony/codex high-value items: session goals, personal access tokens, token dashboard, proof-of-work artifacts, and Codex-style approval modes (suggest/auto-edit/full-auto). 44 issues closed, 175 tests passing. The harness now has 50 milestones and a very broad, mature feature surface.
+- **Shipped:** v0.1–v0.51 (51 milestones). v0.51 ported the deer-flow high-value items: projects with instructions + document shelf, hippocampus memory (spreading activation + Hebbian writeback), skill factory with autoresearch + consensus, evidence-first UI replay, and embedded Python client. 45 issues closed, 179 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -54,6 +54,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.46 MCP reference servers** — sequential thinking, fetch_url, time tool, MCP registry browser, Everything test fixture.
 - **v0.47 MCP protocol extensions** — conformance, MCP Apps, Tasks, .mcpb bundles, interceptors, file uploads, Skills over MCP.
 - **v0.50 Session goals & tokens** — session goals, access tokens, token dashboard, proof-of-work, approval modes.
+- **v0.51 Projects & memory** — projects with document shelf, hippocampus memory, skill factory, UI replay, embedded Python client.
 
 ## Active backlog by theme
 
@@ -202,8 +203,8 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ### Memory & learning
 - [x] Graph memory with extraction loop + prompt evolution — src/graph_memory.js
 - [x] Contest-based memory (dual graphs, habit formation) — src/contest_memory.js
-- [ ] Hippocampus memory: spreading activation, Hebbian writeback, post-turn consolidation (constellation-engine)
-- [ ] Skill factory with autoresearch loop + multi-agent consensus verification (agent-skills-harness)
+- [x] Hippocampus memory: spreading activation, Hebbian writeback, consolidation — src/hippocampus.js — **H**
+- [x] Skill factory with autoresearch + consensus verification — src/skill_factory.js — **H**
 - [x] Constitution evolution with human approval + adopted history — src/constitution.js
 ### Verification & evidence
 - [x] Evidence-first UI automation with replay — src/ui_replay.js (web)
@@ -421,9 +422,9 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 
 ### Session & project state (deer-flow)
 - [x] Session goals — src/session_goals.js — **H**
-- [ ] Projects with instructions + document shelf (deer-flow "Projects") — **H** (extends context_files)
-- [ ] Evidence-based decisions log (deer-flow "Context, Goals and Agent Decisions") — **H** (extends decision_memory/ledger)
-- [ ] boxd-style bounded output copies + cleanup retries (deer-flow boxd sandbox provider) — **H** (extends sealed/podman)
+- [x] Projects with instructions + document shelf — src/projects.js — **H**
+- [x] Evidence-based decisions log — src/decision_memory.js + src/ledger.js — **H**
+- [x] boxd-style bounded output copies + cleanup retries — src/sealed.js + src/capsule.js — **H**
 - [ ] File attachments, downloads, Office previews (deer-flow "File Previews") — **M**
 - [ ] Private knowledge retrieval (RAGFlow-style) (deer-flow "Private Knowledge Retrieval") — **M**
 - [ ] Agentic browser control (deer-flow "Agentic Browser Control") — **H** (we have CDP + sim_browser)

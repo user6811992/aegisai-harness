@@ -10,9 +10,14 @@ function load() { try { return JSON.parse(fs.readFileSync(FILE(), 'utf8')); } ca
 function save(r) { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(FILE(), JSON.stringify(r, null, 2)); }
 function record(step) {
   const r = load();
-  r.steps.push(Object.assign({ seq: r.steps.length + 1, at: new Date().toISOString() }, step));
+  r.steps.push(Object.assign({ seq: r.steps.length + 1, at: new Date().toISOString(), platform: (step && step.platform) || 'web' }, step));
   save(r);
   return r.steps.length;
+}
+function verifyStep(step, result) {
+  if (!step || !step.evidence) return { ok: true, note: 'no evidence required' };
+  const ok = String(result && result.output || '').includes(step.evidence);
+  return { ok, expected: step.evidence, actual: String(result && result.output || '').slice(0, 100) };
 }
 async function replay(opts) {
   opts = opts || {};
@@ -31,4 +36,4 @@ function verify(replayResults) {
   return { verified: (replayResults.results || []).every((r) => r.ok), results: replayResults.results };
 }
 
-module.exports = { load, record, replay, verify };
+module.exports = { load, record, replay, verify, verifyStep };

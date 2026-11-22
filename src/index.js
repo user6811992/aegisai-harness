@@ -217,6 +217,22 @@ async function main() {
         require('./mcp_server').createHandler()(req, res);
         return;
       }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/projects') {
+        const list = require('./projects').list();
+        const details = list.map((n) => require('./projects').get(n));
+        sendJson(res, 200, { projects: details });
+        return;
+      }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/projects') {
+        const parsed = await readJson(req);
+        const p = require('./projects').create(parsed.name, parsed.instructions);
+        sendJson(res, 200, { project: p });
+        return;
+      }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/token-dashboard') {
+        sendJson(res, 200, require('./token_dashboard').summary());
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/plugins') {
         sendJson(res, 200, { events: require('./event_bus').bus.events() });
         return;
@@ -520,6 +536,13 @@ async function main() {
       if (t === '/tokens') { console.log(JSON.stringify(require('./token_dashboard').summary(), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/pow ')) { console.log(JSON.stringify(require('./proof_of_work').create('manual', { ci: { status: t.slice(5).trim() } }), null, 2)); rl.prompt(); return; }
       if (t === '/proofs') { console.log(JSON.stringify(require('./proof_of_work').list().map((p) => p.runId + ':' + p.verdict))); rl.prompt(); return; }
+      if (t.startsWith('/project-create ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./projects').create(p[0], p[1] || ''))); rl.prompt(); return; }
+      if (t === '/projects') { console.log(JSON.stringify(require('./projects').list())); rl.prompt(); return; }
+      if (t.startsWith('/project-add-doc ')) { const p = t.slice(17).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./projects').addDoc(p[0], p[1], p[2] || ''))); rl.prompt(); return; }
+      if (t.startsWith('/hippocampus ')) { console.log(JSON.stringify(require('./hippocampus').consolidate(t.slice(13).trim(), t.slice(13).trim().split(/\s+/)))); rl.prompt(); return; }
+      if (t.startsWith('/skill-factory ')) { const r = await require('./skill_factory').proposeSkill(t.slice(15).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/python ')) { const r = await require('./python_client').run(t.slice(8).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/token-dashboard') { console.log(JSON.stringify(require('./token_dashboard').summary(), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
