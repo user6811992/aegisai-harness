@@ -286,6 +286,34 @@ Feasibility: **H** = high (fits current local-only architecture), **M** = medium
 - [x] Real-world speed benchmark — src/speed_bench.js — **H**
 - [ ] Sandbox benchmark catalog (awesome-sandbox-benchmarks) — **H** (docs)
 
+## v0.40 — From "ai agent harness tools" search pages 1–4
+Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
+
+### Tool systems & state
+- [ ] Explicit tool state management + persistent shell across calls (AuroraCoder) — **M**
+- [ ] Tool-call quality eval harness (tools/skills served to agents) (jaeger-ai-evals) — **H**
+- [ ] Automated prompt/tool/harness evolution via search (polyharness) — **H** (extends optimizer)
+- [ ] Self-patch loop with WASM sandbox adapter (clanker) — **M**
+### Config & migration
+- [ ] Config compatibility matrix (which config file each tool reads) (compatibility-matrix) — **H** (docs/data)
+- [ ] Harness migration recipes file-by-file (ai-harness-migration-recipes) — **H**
+- [ ] Harness generator from natural language (pi-forge, agent-inception) — **M**
+### Memory & context
+- [ ] Self-checking memory with calibrated confidence + staged claim gates (minta) — **H**
+- [ ] Event-sourced session replay (ringko-harness) — **H** (extends ledger)
+- [ ] Context wipe-and-rerun command (neuralyzer) — **H** (extends capsule)
+### Security & governance
+- [ ] Least-privilege per-agent identity + audit for tool calls (agent-rails/agent-guard) — **H** (extends gateway)
+- [ ] Policy-as-code Markdown in git enforced pre-tool with secret redaction (intutic) — **H** (extends charter)
+- [ ] Progressive autonomy with transactional action log (Progressive-Autonomy-Agent-Harness) — **H**
+### Observability & evidence
+- [ ] 5-layer span model (entry→agent→step→chat→tool) (TencentCloud agentobs) — **H** (extends OTel)
+- [ ] Per-run evidence bundles (yatra-harness) — **H** (extends ledger/gems)
+- [ ] Admin panel with auth (ulshv/harness) — **M** (web UI extension)
+### Workflows
+- [ ] Composable agent APIs / 6-phase state machine (smoke-monkey-harness) — **H** (extends workflow)
+- [ ] DAG + subagents + persistent memory super harness (omniHarness) — **H** (we have all parts)
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
