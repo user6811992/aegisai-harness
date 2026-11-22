@@ -344,6 +344,33 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 ### Registries
 - [x] Harness equipment registry with tested verdicts — src/equipment_registry.js — **H**
 
+## v0.44 — Gaps vs aegisai-next / LocalAI (web-UI app parity)
+Comparison of the three repos: the harness is far more capable as an *agent runtime* (policy, charter, ledger, 100+ modules), but the web-UI apps have end-user UX the harness lacks.
+
+### High priority (core UX parity)
+- [ ] Rich chat UI: Markdown rendering + syntax-highlighted code + thinking-block display (apps use marked/highlight.js/DOMPurify)
+- [ ] Memory RAG: cosine-similarity search over memory embeddings + reindex after model change
+- [ ] Memory auto-extract: LLM distills durable facts from conversations
+- [ ] GGUF/HuggingFace model discovery: scan drives for GGUF + Ollama/LM Studio stores, HF pull
+- [ ] Lenient tool-call parsing fallback for small/uncensored models (apps do this)
+- [ ] URL validation / SSRF protection on user-supplied fetches
+- [ ] Context meter + compaction indicator in the web UI
+- [ ] Integration install buttons + env-var config from the UI
+- [ ] Bundled default skill pack (search-before-re, pr-review, doc-discipline, context-compress, etc.)
+- [ ] Squeeze tool: read long docs/URLs and extract the answer with a helper model
+### Medium priority
+- [ ] More keyless search engines (apps ship 9: DuckDuckGo, Bing, Google, ...)
+- [ ] Simulated tool results while awaiting bulk approval (HITL via simulation)
+- [ ] Web citations rendering in streamed replies
+- [ ] netvein MCP integration (123 web-RE tools) alongside our CDP browser
+- [ ] Vision/multimodal image input support
+- [ ] Client-disconnect abort on proxy
+- [ ] Richer desktop launchers: tray icon, auto-start, Edge app window
+### Lower priority
+- [ ] Reverse-engineered project index (17,000+ projects) search
+- [ ] AST-aware RAG chunking + watch mode
+- [ ] Tailscale / Cloudflare Quick Tunnel setup docs
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
