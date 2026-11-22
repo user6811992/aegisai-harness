@@ -4,7 +4,7 @@
 AppName=AegisAi Harness
 AppVersion=0.56.0
 AppPublisher=AegisAi
-AppURL=https://github.com/user6811992/aegisai-harness
+AppPublisherURL=https://github.com/user6811992/aegisai-harness
 DefaultDirName={autopf}\AegisAiHarness
 DefaultGroupName=AegisAi Harness
 OutputDir=..\..\dist

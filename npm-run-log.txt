@@ -1,0 +1,760 @@
+publish	Set up job	﻿2026-11-22T23:33:42.0000893Z Current runner version: '2.338.2'
+publish	Set up job	2026-11-22T23:33:42.0027855Z ##[group]Runner Image Provisioner
+publish	Set up job	2026-11-22T23:33:42.0028811Z Hosted Compute Agent
+publish	Set up job	2026-11-22T23:33:42.0030234Z Version: 20261111.635
+publish	Set up job	2026-11-22T23:33:42.0031277Z Commit: b8a594ea514ff44cadb5342986c68b1eac6e22ed
+publish	Set up job	2026-11-22T23:33:42.0032043Z Build Date: 2026-11-11T01:49:01Z
+publish	Set up job	2026-11-22T23:33:42.0032863Z Worker ID: {3a3addb2-3fce-45f8-bbfe-f6b50020519a}
+publish	Set up job	2026-11-22T23:33:42.0033582Z Region: westus2
+publish	Set up job	2026-11-22T23:33:42.0034166Z Cloud: Azure
+publish	Set up job	2026-11-22T23:33:42.0034823Z ##[endgroup]
+publish	Set up job	2026-11-22T23:33:42.0036417Z ##[group]Operating System
+publish	Set up job	2026-11-22T23:33:42.0037140Z Ubuntu
+publish	Set up job	2026-11-22T23:33:42.0037687Z 26.04.1
+publish	Set up job	2026-11-22T23:33:42.0038182Z LTS
+publish	Set up job	2026-11-22T23:33:42.0038787Z ##[endgroup]
+publish	Set up job	2026-11-22T23:33:42.0039682Z ##[group]Runner Image
+publish	Set up job	2026-11-22T23:33:42.0040403Z Image: ubuntu-26.04
+publish	Set up job	2026-11-22T23:33:42.0041010Z Version: 20261116.202.1
+publish	Set up job	2026-11-22T23:33:42.0042100Z Included Software: https://github.com/actions/runner-images/blob/ubuntu26/20261116.202/images/ubuntu/Ubuntu2604-Readme.md
+publish	Set up job	2026-11-22T23:33:42.0043940Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu26%2F20261116.202
+publish	Set up job	2026-11-22T23:33:42.0044960Z ##[endgroup]
+publish	Set up job	2026-11-22T23:33:42.0046109Z ##[group]GITHUB_TOKEN Permissions
+publish	Set up job	2026-11-22T23:33:42.0048279Z Contents: read
+publish	Set up job	2026-11-22T23:33:42.0048938Z Metadata: read
+publish	Set up job	2026-11-22T23:33:42.0049892Z ##[endgroup]
+publish	Set up job	2026-11-22T23:33:42.0052099Z Secret source: Actions
+publish	Set up job	2026-11-22T23:33:42.0053030Z Cache mode: write
+publish	Set up job	2026-11-22T23:33:42.0054212Z Prepare workflow directory
+publish	Set up job	2026-11-22T23:33:42.0401890Z Prepare all required actions
+publish	Set up job	2026-11-22T23:33:42.0451280Z Getting action download info
+publish	Set up job	2026-11-22T23:33:42.3445367Z Download action repository 'actions/checkout@v5' (SHA:fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09)
+publish	Set up job	2026-11-22T23:33:42.4576956Z Download action repository 'actions/setup-node@v5' (SHA:a0853c24544627f65ddf259abe73b1d18a591444)
+publish	Set up job	2026-11-22T23:33:42.6643688Z Complete job name: publish
+publish	Run actions/checkout@v5	﻿2026-11-22T23:33:42.7522272Z ##[group]Run actions/checkout@v5
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7523218Z with:
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7523685Z   repository: user6811992/aegisai-harness
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7527410Z   token: ***
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7527863Z   ssh-strict: true
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7528316Z   ssh-user: git
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7528768Z   persist-credentials: true
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7529425Z   clean: true
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7529888Z   sparse-checkout-cone-mode: true
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7530423Z   fetch-depth: 1
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7530871Z   fetch-tags: false
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7531329Z   show-progress: true
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7531781Z   lfs: false
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7532205Z   submodules: false
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7532654Z   set-safe-directory: true
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7533172Z   allow-unsafe-pr-checkout: false
+publish	Run actions/checkout@v5	2026-11-22T23:33:42.7533951Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1112973Z Syncing repository: user6811992/aegisai-harness
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1115585Z ##[group]Getting Git version info
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1116889Z Working directory is '/home/runner/work/aegisai-harness/aegisai-harness'
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1118802Z [command]/usr/bin/git version
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1140472Z git version 2.56.1
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1163286Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1181177Z Temporarily overriding HOME='/home/runner/work/_temp/efacb011-93f6-4dfc-9948-89b38dd6c76f' before making global git config changes
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1186870Z Adding repository directory to the temporary git global config as a safe directory
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1188936Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aegisai-harness/aegisai-harness
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1284194Z Deleting the contents of '/home/runner/work/aegisai-harness/aegisai-harness'
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1288930Z ##[group]Initializing the repository
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1293771Z [command]/usr/bin/git init /home/runner/work/aegisai-harness/aegisai-harness
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1447485Z hint: Using 'master' as the name for the initial branch. This default branch name
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1450069Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1451855Z hint: to use in all of your new repositories, which will suppress this warning,
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1452878Z hint: call:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1453422Z hint:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1454125Z hint: 	git config --global init.defaultBranch <name>
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1454969Z hint:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1455761Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1457004Z hint: 'development'. The just-created branch can be renamed via this command:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1457777Z hint:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1458222Z hint: 	git branch -m <name>
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1458870Z hint:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1459860Z hint: Disable this message with "git config set advice.defaultBranchName false"
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1472979Z Initialized empty Git repository in /home/runner/work/aegisai-harness/aegisai-harness/.git/
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1490491Z [command]/usr/bin/git remote add origin https://github.com/user6811992/aegisai-harness
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1570079Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1571523Z ##[group]Disabling automatic garbage collection
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1573560Z [command]/usr/bin/git config --local gc.auto 0
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1619442Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1620887Z ##[group]Setting up auth
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1627354Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.1665774Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2247722Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2286760Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2563705Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2600739Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2876267Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2922242Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2923250Z ##[group]Fetching the repository
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.2936394Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +1f714f5ae12fe3465aaf439c2f1480279c8e97ee:refs/tags/v0.67.2
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6361253Z From https://github.com/user6811992/aegisai-harness
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6362703Z  * [new ref]         1f714f5ae12fe3465aaf439c2f1480279c8e97ee -> v0.67.2
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6372830Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6374551Z ##[group]Determining the checkout info
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6376413Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6377677Z [command]/usr/bin/git sparse-checkout disable
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6438316Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6476799Z ##[group]Checking out the ref
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6482133Z [command]/usr/bin/git checkout --progress --force refs/tags/v0.67.2
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6742226Z Note: switching to 'refs/tags/v0.67.2'.
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6743098Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6743558Z You are in 'detached HEAD' state. You can look around, make experimental
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6744594Z changes and commit them, and you can discard any commits you make in this
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6745606Z state without impacting any branches by switching back to a branch.
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6746192Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6746625Z If you want to create a new branch to retain commits you create, you may
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6747611Z do so (now or later) by using -c with the switch command. Example:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6748160Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6748434Z   git switch -c <new-branch-name>
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6749059Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6749602Z Or undo this operation with:
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6749988Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6750207Z   git switch -
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6750485Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6751013Z Turn off this advice by setting config variable advice.detachedHead to false
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6751680Z 
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6753506Z HEAD is now at 1f714f5 chore: bump to 0.67.2 (ledger CI fix)
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6774421Z ##[endgroup]
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6830183Z [command]/usr/bin/git log -1 --format=%H
+publish	Run actions/checkout@v5	2026-11-22T23:33:43.6856716Z 1f714f5ae12fe3465aaf439c2f1480279c8e97ee
+publish	Run actions/setup-node@v5	﻿2026-11-22T23:33:43.7196148Z ##[group]Run actions/setup-node@v5
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7196925Z with:
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7197423Z   node-version: 24
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7198040Z   registry-url: https://registry.npmjs.org
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7198826Z   always-auth: false
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7199560Z   check-latest: false
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7204683Z   token: ***
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7205238Z   package-manager-cache: true
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.7205935Z ##[endgroup]
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.8778951Z Found in cache @ /opt/hostedtoolcache/node/24.22.3/x64
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.8783112Z (node:2853) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.8785475Z (Use `node --trace-deprecation ...` to show where the warning was created)
+publish	Run actions/setup-node@v5	2026-11-22T23:33:43.8787830Z ##[group]Environment details
+publish	Run actions/setup-node@v5	2026-11-22T23:33:44.3944738Z node: v24.22.3
+publish	Run actions/setup-node@v5	2026-11-22T23:33:44.3946440Z npm: 11.19.1
+publish	Run actions/setup-node@v5	2026-11-22T23:33:44.3947337Z yarn: 1.22.22
+publish	Run actions/setup-node@v5	2026-11-22T23:33:44.3949617Z ##[endgroup]
+publish	Run npm test	﻿2026-11-22T23:33:44.4203063Z ##[group]Run npm test
+publish	Run npm test	2026-11-22T23:33:44.4203747Z ^[[36;1mnpm test^[[0m
+publish	Run npm test	2026-11-22T23:33:44.4255318Z shell: /usr/bin/bash -e {0}
+publish	Run npm test	2026-11-22T23:33:44.4256093Z env:
+publish	Run npm test	2026-11-22T23:33:44.4256791Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Run npm test	2026-11-22T23:33:44.4257697Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Run npm test	2026-11-22T23:33:44.4258425Z ##[endgroup]
+publish	Run npm test	2026-11-22T23:33:44.5255671Z npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+publish	Run npm test	2026-11-22T23:33:44.5539791Z 
+publish	Run npm test	2026-11-22T23:33:44.5540510Z > aegisai-harness@0.67.2 test
+publish	Run npm test	2026-11-22T23:33:44.5541924Z > node --test tests/**/*.test.js
+publish	Run npm test	2026-11-22T23:33:44.5542755Z 
+publish	Run npm test	2026-11-22T23:33:44.6622724Z ✔ browser tool definitions present (1.289351ms)
+publish	Run npm test	2026-11-22T23:33:44.6630638Z ✔ CDP client parses messages (0.729588ms)
+publish	Run npm test	2026-11-22T23:33:59.6698374Z ✔ DAG waves order dependencies (1.704565ms)
+publish	Run npm test	2026-11-22T23:33:59.6700009Z ✔ DAG detects cycles (0.46184ms)
+publish	Run npm test	2026-11-22T23:33:59.6701579Z ✔ DAG detects unknown deps (0.199121ms)
+publish	Run npm test	2026-11-22T23:33:59.6702754Z ✔ skill evaluator detects injection pattern (1.77698ms)
+publish	Run npm test	2026-11-22T23:33:59.6703882Z ✔ adversarial stress passes (2.728743ms)
+publish	Run npm test	2026-11-22T23:33:59.6704929Z ✔ harness lint returns ok (82.879692ms)
+publish	Run npm test	2026-11-22T23:33:59.6706001Z ✔ core modules load (3.410081ms)
+publish	Run npm test	2026-11-22T23:33:59.6706958Z ✔ safePath blocks traversal (0.496775ms)
+publish	Run npm test	2026-11-22T23:33:59.6707810Z ✔ capabilities filter (0.463414ms)
+publish	Run npm test	2026-11-22T23:33:59.6708568Z ✔ registry assembles tools (2.603429ms)
+publish	Run npm test	2026-11-22T23:33:59.6709523Z assembled tools: 64 payload bytes: 10780
+publish	Run npm test	2026-11-22T23:33:59.6710578Z ✔ stress: assemble 1595 tools within budget (7.86552ms)
+publish	Run npm test	2026-11-22T23:33:59.6711523Z ✔ MCP scanner detects poisoned tool (2.67344ms)
+publish	Run npm test	2026-11-22T23:33:59.6712453Z ✔ MCP scanner passes clean tool (0.70869ms)
+publish	Run npm test	2026-11-22T23:33:59.6713322Z ✔ cron parsing and next run (0.776737ms)
+publish	Run npm test	2026-11-22T23:33:59.6714082Z ✔ contract baseline diff (1.967445ms)
+publish	Run npm test	2026-11-22T23:33:59.6714929Z ✔ optimizer returns suggestions shape (0.826549ms)
+publish	Run npm test	2026-11-22T23:33:59.6716037Z ✔ markdown extraction strips scripts and formats headings (2.069665ms)
+publish	Run npm test	2026-11-22T23:33:59.6717204Z ✔ read-only enforcement blocks destructive tools (0.234958ms)
+publish	Run npm test	2026-11-22T23:33:59.6718074Z ✔ team create and list (1.206835ms)
+publish	Run npm test	2026-11-22T23:33:59.6718733Z ✔ PII redaction (1.598808ms)
+publish	Run npm test	2026-11-22T23:33:59.6720472Z ✔ charter parsing and enforcement (0.670199ms)
+publish	Run npm test	2026-11-22T23:33:59.6721457Z ✔ Windows shell separator normalization (0.167742ms)
+publish	Run npm test	2026-11-22T23:33:59.6722344Z ✔ temporal memory supersession (2.153952ms)
+publish	Run npm test	2026-11-22T23:33:59.6723302Z ✔ agent lifecycle provision and decommission (1.9758ms)
+publish	Run npm test	2026-11-22T23:33:59.6724251Z ✔ ledger is hash-chained and verifies (6.15259ms)
+publish	Run npm test	2026-11-22T23:33:59.6725130Z ✔ action guard blocks blind writes (0.376261ms)
+publish	Run npm test	2026-11-22T23:33:59.6726012Z ✔ waste detection flags repeated reads (0.393352ms)
+publish	Run npm test	2026-11-22T23:33:59.6727030Z ✔ counterfactual diagnosis returns shape (0.318424ms)
+publish	Run npm test	2026-11-22T23:33:59.6727958Z ✔ mailbox send and inbox (1.971011ms)
+publish	Run npm test	2026-11-22T23:33:59.6728737Z ✔ capsule write/read (3.278196ms)
+publish	Run npm test	2026-11-22T23:33:59.6729760Z ✔ rollback snapshot and restore (4.042933ms)
+publish	Run npm test	2026-11-22T23:33:59.6730554Z ✔ task state create/update (1.801215ms)
+publish	Run npm test	2026-11-22T23:33:59.6731331Z ✔ content review flags slop (0.467491ms)
+publish	Run npm test	2026-11-22T23:33:59.6732105Z ✔ browser AX tools present (0.217535ms)
+publish	Run npm test	2026-11-22T23:33:59.6732936Z ✔ shadow AI scan returns structure (1.55146ms)
+publish	Run npm test	2026-11-22T23:33:59.6733870Z ✔ harness discovery returns array (0.498128ms)
+publish	Run npm test	2026-11-22T23:33:59.6734660Z ✔ MCP marketplace catalog (0.317741ms)
+publish	Run npm test	2026-11-22T23:33:59.6735512Z ✔ prompt template substitution (0.516051ms)
+publish	Run npm test	2026-11-22T23:33:59.6736184Z ✔ themes (0.299318ms)
+publish	Run npm test	2026-11-22T23:33:59.6736818Z ✔ harness spec parse/validate (0.695355ms)
+publish	Run npm test	2026-11-22T23:33:59.6737589Z ✔ runtime detect returns array (4.538493ms)
+publish	Run npm test	2026-11-22T23:33:59.6738417Z ✔ self-improvement propose (0.678995ms)
+publish	Run npm test	2026-11-22T23:33:59.6739946Z ✔ hardware detection and recommendation (7.81195ms)
+publish	Run npm test	2026-11-22T23:33:59.6741284Z ✔ gateway authorize and inject (3.87139ms)
+publish	Run npm test	2026-11-22T23:33:59.6742029Z ✔ admission gate tokens (1.234789ms)
+publish	Run npm test	2026-11-22T23:33:59.6742816Z ✔ vulnerability scanner finds patterns (1.651586ms)
+publish	Run npm test	2026-11-22T23:33:59.6743518Z ✔ security KB match (0.445831ms)
+publish	Run npm test	2026-11-22T23:33:59.6744160Z ✔ continual cycle returns shape (1.045177ms)
+publish	Run npm test	2026-11-22T23:33:59.6744823Z ✔ memory hierarchy status (0.379136ms)
+publish	Run npm test	2026-11-22T23:33:59.6745508Z ✔ task board dependency unblocking (5.682544ms)
+publish	Run npm test	2026-11-22T23:33:59.6746265Z ✔ event bus priority and wildcard (1.672295ms)
+publish	Run npm test	2026-11-22T23:33:59.6746886Z ✔ ACP initialize and session (0.642567ms)
+publish	Run npm test	2026-11-22T23:33:59.6747444Z ✔ benchmark catalogs (0.197408ms)
+publish	Run npm test	2026-11-22T23:33:59.6748127Z ✔ pentest pipeline on local dir (2.75444ms)
+publish	Run npm test	2026-11-22T23:33:59.6748879Z ✔ context filesystem lists docs (0.932217ms)
+publish	Run npm test	2026-11-22T23:33:59.6749853Z ✔ A2A agent card and task dispatch (3056.754524ms)
+publish	Run npm test	2026-11-22T23:33:59.6750510Z ✔ voice adapter status (0.452693ms)
+publish	Run npm test	2026-11-22T23:33:59.6751204Z ✔ sealed runner available check (19.611649ms)
+publish	Run npm test	2026-11-22T23:33:59.6752002Z ✔ tenant registry (0.843581ms)
+publish	Run npm test	2026-11-22T23:33:59.6752765Z ✔ graph memory observe and recall (4.56196ms)
+publish	Run npm test	2026-11-22T23:33:59.6753551Z ✔ UI replay records steps (0.545686ms)
+publish	Run npm test	2026-11-22T23:33:59.6754420Z ✔ separation rejects self-verification (0.351836ms)
+publish	Run npm test	2026-11-22T23:33:59.6755271Z ✔ auto policy learns from attack (1.965511ms)
+publish	Run npm test	2026-11-22T23:33:59.6756098Z ✔ debugger breakpoints and step (0.316319ms)
+publish	Run npm test	2026-11-22T23:33:59.6756897Z ✔ cheapest model module loads (0.130353ms)
+publish	Run npm test	2026-11-22T23:33:59.6757673Z ✔ code map builds (3.150168ms)
+publish	Run npm test	2026-11-22T23:33:59.6758361Z ✔ contest memory habits (4.744227ms)
+publish	Run npm test	2026-11-22T23:33:59.6759278Z ✔ constitution propose/decide (1.31009ms)
+publish	Run npm test	2026-11-22T23:33:59.6760047Z ✔ BiDi backend loads (0.149308ms)
+publish	Run npm test	2026-11-22T23:33:59.6760757Z ✔ event stream has subscribe (0.156201ms)
+publish	Run npm test	2026-11-22T23:33:59.6761494Z ✔ config installer preview (0.340685ms)
+publish	Run npm test	2026-11-22T23:33:59.6762249Z ✔ multi search engines array (0.139951ms)
+publish	Run npm test	2026-11-22T23:33:59.6762997Z ✔ routing eval (0.419522ms)
+publish	Run npm test	2026-11-22T23:33:59.6763666Z ✔ control plane govern (0.865662ms)
+publish	Run npm test	2026-11-22T23:33:59.6764386Z ✔ semantic tool retrieval (1.258374ms)
+publish	Run npm test	2026-11-22T23:33:59.6765117Z ✔ yaml eval parse (0.386119ms)
+publish	Run npm test	2026-11-22T23:33:59.6765722Z ✔ pass@k metrics (0.386771ms)
+publish	Run npm test	2026-11-22T23:33:59.6766434Z ✔ failure clustering (0.3385ms)
+publish	Run npm test	2026-11-22T23:33:59.6767441Z ✔ ledger rewind (1.602816ms)
+publish	Run npm test	2026-11-22T23:33:59.6768069Z ✔ gems list (0.24191ms)
+publish	Run npm test	2026-11-22T23:33:59.6768637Z ✔ AHP supervision (0.93414ms)
+publish	Run npm test	2026-11-22T23:33:59.6769632Z ✔ SARIF conversion (0.28463ms)
+publish	Run npm test	2026-11-22T23:33:59.6770333Z ✔ decision gates (1.067148ms)
+publish	Run npm test	2026-11-22T23:33:59.6771051Z ✔ workflow state machine (0.445058ms)
+publish	Run npm test	2026-11-22T23:33:59.6771899Z ✔ geometric memory store and query (1.003529ms)
+publish	Run npm test	2026-11-22T23:33:59.6772693Z ✔ architecture layers (22.803704ms)
+publish	Run npm test	2026-11-22T23:33:59.6773386Z ✔ AIBOM CycloneDX (1.50361ms)
+publish	Run npm test	2026-11-22T23:33:59.6774053Z ✔ SSH bridge peers (0.173674ms)
+publish	Run npm test	2026-11-22T23:33:59.6774714Z ✔ session converter (1.113334ms)
+publish	Run npm test	2026-11-22T23:33:59.6775343Z ✔ two-bar goal (0.250356ms)
+publish	Run npm test	2026-11-22T23:33:59.6775970Z ✔ brain/sandbox agent (0.99354ms)
+publish	Run npm test	2026-11-22T23:33:59.6776662Z ✔ health failover select (0.261837ms)
+publish	Run npm test	2026-11-22T23:33:59.6777486Z ✔ bug repro clone fails gracefully (0.137936ms)
+publish	Run npm test	2026-11-22T23:33:59.6778316Z ✔ maintenance templates (0.175557ms)
+publish	Run npm test	2026-11-22T23:33:59.6779075Z ✔ speed bench summarize (0.430712ms)
+publish	Run npm test	2026-11-22T23:33:59.6780131Z ✔ runtime contract (0.206545ms)
+publish	Run npm test	2026-11-22T23:33:59.6780863Z ✔ sandbox fingerprint (130.581094ms)
+publish	Run npm test	2026-11-22T23:33:59.6781614Z ✔ slack parse and status (1.048202ms)
+publish	Run npm test	2026-11-22T23:33:59.6782324Z ✔ ws bridge status (0.162643ms)
+publish	Run npm test	2026-11-22T23:33:59.6783063Z ✔ serverless define and list (0.970388ms)
+publish	Run npm test	2026-11-22T23:33:59.6783851Z ✔ podman status (1940.320508ms)
+publish	Run npm test	2026-11-22T23:33:59.6784589Z ✔ pr review inline comments (0.425603ms)
+publish	Run npm test	2026-11-22T23:33:59.6785303Z ✔ CI allowlist (0.409753ms)
+publish	Run npm test	2026-11-22T23:33:59.6785978Z ✔ CVE reachability (0.340865ms)
+publish	Run npm test	2026-11-22T23:33:59.6786875Z ✔ simulated browser navigate/snapshot/click (1.782821ms)
+publish	Run npm test	2026-11-22T23:33:59.6788183Z ✔ 5-layer security posture (1.068951ms)
+publish	Run npm test	2026-11-22T23:33:59.6788970Z ✔ layer registry swap (0.256248ms)
+publish	Run npm test	2026-11-22T23:33:59.6789986Z ✔ markdown governance parse (0.554864ms)
+publish	Run npm test	2026-11-22T23:33:59.6790773Z ✔ trace export status (0.226642ms)
+publish	Run npm test	2026-11-22T23:33:59.6791533Z ✔ native adapters status (0.171739ms)
+publish	Run npm test	2026-11-22T23:33:59.6792209Z ✔ tool state (1.121218ms)
+publish	Run npm test	2026-11-22T23:33:59.6792724Z ✔ tool eval (0.29018ms)
+publish	Run npm test	2026-11-22T23:33:59.6793262Z ✔ evolution search (0.288648ms)
+publish	Run npm test	2026-11-22T23:33:59.6793780Z ✔ config matrix (0.233785ms)
+publish	Run npm test	2026-11-22T23:33:59.6794339Z ✔ migration recipes (0.156301ms)
+publish	Run npm test	2026-11-22T23:33:59.6794905Z ✔ confidence memory (0.96105ms)
+publish	Run npm test	2026-11-22T23:33:59.6795502Z ✔ event sourced replay (0.658406ms)
+publish	Run npm test	2026-11-22T23:33:59.6796176Z ✔ context wipe (1.359001ms)
+publish	Run npm test	2026-11-22T23:33:59.6796749Z ✔ identity audit (1.59999ms)
+publish	Run npm test	2026-11-22T23:33:59.6797253Z ✔ spans5 (0.336647ms)
+publish	Run npm test	2026-11-22T23:33:59.6797763Z ✔ evidence bundle (0.636054ms)
+publish	Run npm test	2026-11-22T23:33:59.6798367Z ✔ composable api (0.180867ms)
+publish	Run npm test	2026-11-22T23:33:59.6798917Z ✔ session brief (1.05259ms)
+publish	Run npm test	2026-11-22T23:33:59.6800149Z ✔ deterministic compaction keeps errors and restores (0.576634ms)
+publish	Run npm test	2026-11-22T23:33:59.6801069Z ✔ error recovery policy (0.202658ms)
+publish	Run npm test	2026-11-22T23:33:59.6801774Z ✔ chaos injection (0.168383ms)
+publish	Run npm test	2026-11-22T23:33:59.6802525Z ✔ silent failure detection (0.31114ms)
+publish	Run npm test	2026-11-22T23:33:59.6803193Z ✔ honesty score (0.360602ms)
+publish	Run npm test	2026-11-22T23:33:59.6803869Z ✔ boundary benchmark (0.221252ms)
+publish	Run npm test	2026-11-22T23:33:59.6804465Z ✔ replay guard (0.21952ms)
+publish	Run npm test	2026-11-22T23:33:59.6805139Z ✔ MCP pinning (1.829047ms)
+publish	Run npm test	2026-11-22T23:33:59.6805718Z ✔ merkle root (0.436453ms)
+publish	Run npm test	2026-11-22T23:33:59.6806316Z ✔ readiness audit (0.324674ms)
+publish	Run npm test	2026-11-22T23:33:59.6807045Z ✔ cost routing and convergence (0.348609ms)
+publish	Run npm test	2026-11-22T23:33:59.6807902Z ✔ tool contract and agents-as-tools (0.295079ms)
+publish	Run npm test	2026-11-22T23:33:59.6808643Z ✔ equipment registry (1.214442ms)
+publish	Run npm test	2026-11-22T23:33:59.6809596Z ✔ memory RAG index and search (3.570371ms)
+publish	Run npm test	2026-11-22T23:33:59.6810472Z ✔ lenient tool parsing (1.271419ms)
+publish	Run npm test	2026-11-22T23:33:59.6811302Z ✔ URL validation blocks private hosts (0.503027ms)
+publish	Run npm test	2026-11-22T23:33:59.6812068Z ✔ default skills pack (0.273179ms)
+publish	Run npm test	2026-11-22T23:33:59.6812731Z ✔ model discovery (0.45603ms)
+publish	Run npm test	2026-11-22T23:33:59.6813446Z ✔ keyless search engines list (1.002478ms)
+publish	Run npm test	2026-11-22T23:33:59.6814485Z ✔ simulated approval (0.432315ms)
+publish	Run npm test	2026-11-22T23:33:59.6815168Z ✔ citations (0.473101ms)
+publish	Run npm test	2026-11-22T23:33:59.6815807Z ✔ netvein adapter status (0.190805ms)
+publish	Run npm test	2026-11-22T23:33:59.6816536Z ✔ vision image message (0.254985ms)
+publish	Run npm test	2026-11-22T23:33:59.6817178Z ✔ RE index search (0.334934ms)
+publish	Run npm test	2026-11-22T23:33:59.6817776Z ✔ AST chunking (5.466872ms)
+publish	Run npm test	2026-11-22T23:33:59.6818475Z ✔ sequential thinking (1.418852ms)
+publish	Run npm test	2026-11-22T23:33:59.6819421Z ✔ fetch url validates (0.830427ms)
+publish	Run npm test	2026-11-22T23:33:59.6820070Z ✔ time tool (49.213395ms)
+publish	Run npm test	2026-11-22T23:33:59.6820690Z ✔ mcp registry browser (290.594465ms)
+publish	Run npm test	2026-11-22T23:33:59.6821385Z ✔ everything manifest (0.425041ms)
+publish	Run npm test	2026-11-22T23:33:59.6821990Z ✔ MCP tools list (2.219294ms)
+publish	Run npm test	2026-11-22T23:33:59.6822713Z ✔ MCP dispatch initialize (0.577114ms)
+publish	Run npm test	2026-11-22T23:33:59.6823560Z ✔ MCP dispatch tools/list (0.325867ms)
+publish	Run npm test	2026-11-22T23:33:59.6824227Z ✔ MCP dispatch tools/call get_time (14.486352ms)
+publish	Run npm test	2026-11-22T23:33:59.6824981Z ✔ MCP dispatch tools/call sequential_thinking (0.615035ms)
+publish	Run npm test	2026-11-22T23:33:59.6826090Z ✔ MCP dispatch resources/list and read (0.378284ms)
+publish	Run npm test	2026-11-22T23:33:59.6826865Z ✔ MCP dispatch prompts/list and get (0.779552ms)
+publish	Run npm test	2026-11-22T23:33:59.6827549Z ✔ MCP dispatch unknown method (0.218066ms)
+publish	Run npm test	2026-11-22T23:33:59.6828346Z ✔ MCP HTTP handler initialize returns session id (0.695115ms)
+publish	Run npm test	2026-11-22T23:33:59.6829261Z ✔ MCP conformance (2.245993ms)
+publish	Run npm test	2026-11-22T23:33:59.6829805Z ✔ MCP apps (0.355602ms)
+publish	Run npm test	2026-11-22T23:33:59.6830271Z ✔ MCP tasks (0.432095ms)
+publish	Run npm test	2026-11-22T23:33:59.6830728Z ✔ MCPB install (1.406009ms)
+publish	Run npm test	2026-11-22T23:33:59.6831221Z ✔ interceptors (0.331447ms)
+publish	Run npm test	2026-11-22T23:33:59.6831704Z ✔ file uploads (0.464536ms)
+publish	Run npm test	2026-11-22T23:33:59.6832421Z ✔ MCP skills (0.201415ms)
+publish	Run npm test	2026-11-22T23:33:59.6833044Z ✔ session goals create/update/active (2.697544ms)
+publish	Run npm test	2026-11-22T23:33:59.6833777Z ✔ access tokens mint/verify/revoke (2.002771ms)
+publish	Run npm test	2026-11-22T23:33:59.6834432Z ✔ token dashboard summary (0.336517ms)
+publish	Run npm test	2026-11-22T23:33:59.6834953Z ✔ proof of work (0.520279ms)
+publish	Run npm test	2026-11-22T23:33:59.6835622Z ✔ projects create/addDoc/systemText (2.294474ms)
+publish	Run npm test	2026-11-22T23:33:59.6836395Z ✔ hippocampus consolidate and recall (2.662149ms)
+publish	Run npm test	2026-11-22T23:33:59.6837106Z ✔ skill factory propose (1548.791182ms)
+publish	Run npm test	2026-11-22T23:33:59.6837739Z ✔ python client run (17.519893ms)
+publish	Run npm test	2026-11-22T23:33:59.6838308Z ✔ channels status (0.967943ms)
+publish	Run npm test	2026-11-22T23:33:59.6838928Z ✔ github webhook handle push (3044.377228ms)
+publish	Run npm test	2026-11-22T23:33:59.6839826Z ✔ github webhook verify signature (0.830517ms)
+publish	Run npm test	2026-11-22T23:33:59.6840589Z ✔ file attachments save/list/preview (0.856635ms)
+publish	Run npm test	2026-11-22T23:33:59.6841292Z ✔ graph mcp tools and handle (1.898244ms)
+publish	Run npm test	2026-11-22T23:33:59.6841960Z ✔ private KB add/search (1.820531ms)
+publish	Run npm test	2026-11-22T23:33:59.6842598Z ✔ office preview unsupported (0.493399ms)
+publish	Run npm test	2026-11-22T23:33:59.6843215Z ✔ fs resources list (4.071293ms)
+publish	Run npm test	2026-11-22T23:33:59.6843747Z ✔ variants pick (0.267097ms)
+publish	Run npm test	2026-11-22T23:33:59.6844300Z ✔ tool annotations (0.305058ms)
+publish	Run npm test	2026-11-22T23:33:59.6844886Z ✔ access IaC parse/apply (1.781778ms)
+publish	Run npm test	2026-11-22T23:33:59.6845445Z ✔ REA status (1.018847ms)
+publish	Run npm test	2026-11-22T23:33:59.6845936Z ✔ Ghidra status (0.244876ms)
+publish	Run npm test	2026-11-22T23:33:59.6846424Z ✔ Craft status (0.19335ms)
+publish	Run npm test	2026-11-22T23:33:59.6847015Z ✔ RE index expanded catalog (1.183915ms)
+publish	Run npm test	2026-11-22T23:33:59.6847641Z ✔ RE index byCategory (0.234898ms)
+publish	Run npm test	2026-11-22T23:33:59.6848210Z ✔ swarm toSubtasks (1.053502ms)
+publish	Run npm test	2026-11-22T23:33:59.6848876Z ✔ patch proposePatch (dry run) (0.809979ms)
+publish	Run npm test	2026-11-22T23:33:59.6849636Z ✔ task sandbox (0.883225ms)
+publish	Run npm test	2026-11-22T23:33:59.6850297Z ✔ hunt start/vulnSearch/report/list (0.605037ms)
+publish	Run npm test	2026-11-22T23:33:59.6850976Z ✔ awesome-re search (0.294829ms)
+publish	Run npm test	2026-11-22T23:33:59.6851507Z ✔ mcp presets (0.286243ms)
+publish	Run npm test	2026-11-22T23:33:59.6851974Z ✔ vuln patterns (0.214369ms)
+publish	Run npm test	2026-11-22T23:33:59.6852526Z ✔ markdown memory (0.640382ms)
+publish	Run npm test	2026-11-22T23:33:59.6852991Z ✔ metrics (1.302376ms)
+publish	Run npm test	2026-11-22T23:33:59.6853513Z ✔ delivery channels (1.980809ms)
+publish	Run npm test	2026-11-22T23:33:59.6854108Z ✔ durable sessions/jobs (4.247561ms)
+publish	Run npm test	2026-11-22T23:33:59.6854712Z ✔ isolation policy (0.924321ms)
+publish	Run npm test	2026-11-22T23:33:59.6855545Z ✔ timers schedule/cancel (0.529395ms)
+publish	Run npm test	2026-11-22T23:33:59.6856217Z ✔ consolidation scheduler (0.535477ms)
+publish	Run npm test	2026-11-22T23:33:59.6856877Z ✔ mcp search candidates (0.301772ms)
+publish	Run npm test	2026-11-22T23:33:59.6857548Z ✔ mcp registry fetch (network) (231.231059ms)
+publish	Run npm test	2026-11-22T23:33:59.6858290Z ✔ mcp registry buildSpec (0.842109ms)
+publish	Run npm test	2026-11-22T23:33:59.6858916Z ✔ settings load/save (0.57401ms)
+publish	Run npm test	2026-11-22T23:33:59.6859815Z ✔ TUI module loads and has launch (0.919273ms)
+publish	Run npm test	2026-11-22T23:33:59.6860454Z ✔ TUI stripAnsi (0.251719ms)
+publish	Run npm test	2026-11-22T23:33:59.6860853Z ✔ LSP module loads (0.172251ms)
+publish	Run npm test	2026-11-22T23:33:59.6861236Z ✔ LSP language servers catalog (0.820037ms)
+publish	Run npm test	2026-11-22T23:33:59.6861649Z ✔ LSP list (none running) (0.785873ms)
+publish	Run npm test	2026-11-22T23:33:59.6862030Z ✔ LSP stop non-existent (0.187099ms)
+publish	Run npm test	2026-11-22T23:33:59.6862353Z ✔ git isRepo (6.965113ms)
+publish	Run npm test	2026-11-22T23:33:59.6862641Z ✔ git status (3.770463ms)
+publish	Run npm test	2026-11-22T23:33:59.6863034Z ✔ git status with changes (3.705562ms)
+publish	Run npm test	2026-11-22T23:33:59.6863363Z ✔ git diff (3.37181ms)
+publish	Run npm test	2026-11-22T23:33:59.6863646Z ✔ git commit (13.393273ms)
+publish	Run npm test	2026-11-22T23:33:59.6863925Z ✔ git log (2.991763ms)
+publish	Run npm test	2026-11-22T23:33:59.6864200Z ✔ git blame (3.823281ms)
+publish	Run npm test	2026-11-22T23:33:59.6864480Z ✔ git branch (6.220787ms)
+publish	Run npm test	2026-11-22T23:33:59.6864755Z ✔ git stash (22.716532ms)
+publish	Run npm test	2026-11-22T23:33:59.6865063Z ✔ git autoCommit (14.349477ms)
+publish	Run npm test	2026-11-22T23:33:59.6865354Z ✔ git show (3.266714ms)
+publish	Run npm test	2026-11-22T23:33:59.6865626Z ✔ git runGit (2.470832ms)
+publish	Run npm test	2026-11-22T23:33:59.6865944Z ✔ parseDiff empty (1.601303ms)
+publish	Run npm test	2026-11-22T23:33:59.6866292Z ✔ parseDiff single file (0.334533ms)
+publish	Run npm test	2026-11-22T23:33:59.6866642Z ✔ review unstaged (4.522524ms)
+publish	Run npm test	2026-11-22T23:33:59.6867160Z ✔ fullReview (6.019973ms)
+publish	Run npm test	2026-11-22T23:33:59.6867446Z ✔ applyHunks (0.2522ms)
+publish	Run npm test	2026-11-22T23:33:59.6867745Z ✔ stagedReview (17.485508ms)
+publish	Run npm test	2026-11-22T23:33:59.6868163Z ✔ providers list (1.000293ms)
+publish	Run npm test	2026-11-22T23:33:59.6868793Z ✔ providers local/cloud (0.207276ms)
+publish	Run npm test	2026-11-22T23:33:59.6869762Z ✔ provider autoSelect (39.343131ms)
+publish	Run npm test	2026-11-22T23:33:59.6870335Z ✔ plugin marketplace list (0.407319ms)
+publish	Run npm test	2026-11-22T23:33:59.6870746Z ✔ plugin marketplace search (128.857107ms)
+publish	Run npm test	2026-11-22T23:33:59.6871205Z ✔ plugin marketplace install (missing) (30.315556ms)
+publish	Run npm test	2026-11-22T23:33:59.6871667Z ✔ plugin marketplace isInstalled (0.315118ms)
+publish	Run npm test	2026-11-22T23:33:59.6872034Z ✔ startSession (5.016453ms)
+publish	Run npm test	2026-11-22T23:33:59.6872384Z ✔ acceptHunk/rejectHunk (3.367683ms)
+publish	Run npm test	2026-11-22T23:33:59.6872761Z ✔ acceptFile/rejectFile (3.137273ms)
+publish	Run npm test	2026-11-22T23:33:59.6873086Z ✔ navigation (3.221661ms)
+publish	Run npm test	2026-11-22T23:33:59.6873391Z ✔ renderCurrent (3.159344ms)
+publish	Run npm test	2026-11-22T23:33:59.6873685Z ✔ finish (3.145609ms)
+publish	Run npm test	2026-11-22T23:33:59.6874065Z ✔ startSession with no changes (11.794579ms)
+publish	Run npm test	2026-11-22T23:33:59.6874464Z ✔ marketplace categories (0.948216ms)
+publish	Run npm test	2026-11-22T23:33:59.6874883Z ✔ marketplace search with filters (70.328624ms)
+publish	Run npm test	2026-11-22T23:33:59.6875276Z ✔ marketplace info (0.414933ms)
+publish	Run npm test	2026-11-22T23:33:59.6875748Z ✔ marketplace install + enable/disable + uninstall (9.227177ms)
+publish	Run npm test	2026-11-22T23:33:59.6876216Z ✔ marketplace stats (0.324655ms)
+publish	Run npm test	2026-11-22T23:33:59.6876633Z ✔ marketplace install from content (7.048519ms)
+publish	Run npm test	2026-11-22T23:33:59.6876954Z ℹ tests 257
+publish	Run npm test	2026-11-22T23:33:59.6877175Z ℹ suites 0
+publish	Run npm test	2026-11-22T23:33:59.6877392Z ℹ pass 257
+publish	Run npm test	2026-11-22T23:33:59.6877604Z ℹ fail 0
+publish	Run npm test	2026-11-22T23:33:59.6877840Z ℹ cancelled 0
+publish	Run npm test	2026-11-22T23:33:59.6878064Z ℹ skipped 0
+publish	Run npm test	2026-11-22T23:33:59.6878306Z ℹ todo 0
+publish	Run npm test	2026-11-22T23:33:59.6878562Z ℹ duration_ms 15081.743343
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	﻿2026-11-22T23:33:59.6985339Z ##[group]Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	2026-11-22T23:33:59.6986068Z ^[[36;1mnode -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"^[[0m
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	2026-11-22T23:33:59.7021869Z shell: /usr/bin/bash -e {0}
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	2026-11-22T23:33:59.7022144Z env:
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	2026-11-22T23:33:59.7022424Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	2026-11-22T23:33:59.7022803Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Run node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"	2026-11-22T23:33:59.7023095Z ##[endgroup]
+publish	Run npm publish --access public	﻿2026-11-22T23:33:59.8172761Z ##[group]Run npm publish --access public
+publish	Run npm publish --access public	2026-11-22T23:33:59.8173171Z ^[[36;1mnpm publish --access public^[[0m
+publish	Run npm publish --access public	2026-11-22T23:33:59.8211956Z shell: /usr/bin/bash -e {0}
+publish	Run npm publish --access public	2026-11-22T23:33:59.8212243Z env:
+publish	Run npm publish --access public	2026-11-22T23:33:59.8212509Z   NPM_CONFIG_USERCONFIG: /home/runner/work/_temp/.npmrc
+publish	Run npm publish --access public	2026-11-22T23:33:59.8212871Z   NODE_AUTH_TOKEN: XXXXX-XXXXX-XXXXX-XXXXX
+publish	Run npm publish --access public	2026-11-22T23:33:59.8213153Z ##[endgroup]
+publish	Run npm publish --access public	2026-11-22T23:34:00.4626828Z npm warn Unknown user config "always-auth". This will stop working in the next major version of npm. See `npm help npmrc` for supported config options.
+publish	Run npm publish --access public	2026-11-22T23:34:00.7318994Z npm warn publish npm auto-corrected some errors in your package.json when publishing.  Please run "npm pkg fix" to address these errors.
+publish	Run npm publish --access public	2026-11-22T23:34:00.7320626Z npm warn publish errors corrected:
+publish	Run npm publish --access public	2026-11-22T23:34:00.7321840Z npm warn publish "repository.url" was normalized to "git+https://github.com/user6811992/aegisai-harness.git"
+publish	Run npm publish --access public	2026-11-22T23:34:00.7351256Z npm notice
+publish	Run npm publish --access public	2026-11-22T23:34:00.7354503Z npm notice 📦  aegisai-harness@0.67.2
+publish	Run npm publish --access public	2026-11-22T23:34:00.7355223Z npm notice Tarball Contents
+publish	Run npm publish --access public	2026-11-22T23:34:00.7395875Z npm notice 8.7kB CHANGELOG.md
+publish	Run npm publish --access public	2026-11-22T23:34:00.7396614Z npm notice 1.6kB CONTRIBUTING.md
+publish	Run npm publish --access public	2026-11-22T23:34:00.7397140Z npm notice 2.4kB HARNESS_DOCS.md
+publish	Run npm publish --access public	2026-11-22T23:34:00.7397604Z npm notice 1.1kB LICENSE
+publish	Run npm publish --access public	2026-11-22T23:34:00.7398035Z npm notice 5.6kB README.md
+publish	Run npm publish --access public	2026-11-22T23:34:00.7398331Z npm notice 33.0kB ROADMAP.md
+publish	Run npm publish --access public	2026-11-22T23:34:00.7398753Z npm notice 2.4kB llms.txt
+publish	Run npm publish --access public	2026-11-22T23:34:00.7399354Z npm notice 978B package.json
+publish	Run npm publish --access public	2026-11-22T23:34:00.7399895Z npm notice 462B packaging/build-binary.sh
+publish	Run npm publish --access public	2026-11-22T23:34:00.7400436Z npm notice 1.3kB packaging/build.ps1
+publish	Run npm publish --access public	2026-11-22T23:34:00.7401004Z npm notice 805B packaging/install.ps1
+publish	Run npm publish --access public	2026-11-22T23:34:00.7401628Z npm notice 675B packaging/linux/build-appimage.sh
+publish	Run npm publish --access public	2026-11-22T23:34:00.7402340Z npm notice 753B packaging/macos/build-dmg.sh
+publish	Run npm publish --access public	2026-11-22T23:34:00.7402962Z npm notice 308B packaging/tauri/Cargo.toml
+publish	Run npm publish --access public	2026-11-22T23:34:00.7403576Z npm notice 255B packaging/tauri/src/main.rs
+publish	Run npm publish --access public	2026-11-22T23:34:00.7404230Z npm notice 546B packaging/tauri/tauri.conf.json
+publish	Run npm publish --access public	2026-11-22T23:34:00.7404922Z npm notice 167B packaging/windows/aegisai-harness.cmd
+publish	Run npm publish --access public	2026-11-22T23:34:00.7405611Z npm notice 1.8kB packaging/windows/installer.iss
+publish	Run npm publish --access public	2026-11-22T23:34:00.7406019Z npm notice 17.9kB public/app.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7406533Z npm notice 1.6kB public/dag.html
+publish	Run npm publish --access public	2026-11-22T23:34:00.7407046Z npm notice 464B public/index.html
+publish	Run npm publish --access public	2026-11-22T23:34:00.7407522Z npm notice 182B public/manifest.json
+publish	Run npm publish --access public	2026-11-22T23:34:00.7407938Z npm notice 2.0kB public/markdown.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7408286Z npm notice 1.1kB public/plugins.html
+publish	Run npm publish --access public	2026-11-22T23:34:00.7408627Z npm notice 17.7kB public/style.css
+publish	Run npm publish --access public	2026-11-22T23:34:00.7408909Z npm notice 352B public/sw.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7409466Z npm notice 598B public/trajectory.html
+publish	Run npm publish --access public	2026-11-22T23:34:00.7409769Z npm notice 1.6kB src/a2a.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7410059Z npm notice 981B src/access_iac.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7410368Z npm notice 1.4kB src/access_tokens.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7410677Z npm notice 1.8kB src/acp.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7410963Z npm notice 1.2kB src/action_guard.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7411276Z npm notice 918B src/admission.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7411584Z npm notice 1.6kB src/adversarial.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7411896Z npm notice 1.8kB src/agent/compact.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7412208Z npm notice 30.3kB src/agent/run.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7412520Z npm notice 786B src/agents_as_tools.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7412859Z npm notice 2.3kB src/agents/profiles.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7413165Z npm notice 1.6kB src/ahp.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7413426Z npm notice 1.8kB src/aibom.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7413717Z npm notice 1.9kB src/alwayson.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7414012Z npm notice 1.1kB src/arch_rules.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7414310Z npm notice 1.4kB src/ast_chunk.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7414612Z npm notice 2.6kB src/async_tools.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7414932Z npm notice 2.4kB src/auto_policy.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7415233Z npm notice 3.3kB src/awesome_re.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7415984Z npm notice 12.6kB src/backends/index.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7416305Z npm notice 2.0kB src/backup.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7416598Z npm notice 1.6kB src/benchmark.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7416909Z npm notice 2.0kB src/benchmarks_real.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7417236Z npm notice 973B src/boundary_bench.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7417545Z npm notice 1.9kB src/brain_sandbox.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7417846Z npm notice 1.4kB src/bug_repro.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7418139Z npm notice 1.7kB src/capsule.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7418422Z npm notice 775B src/capture.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7418704Z npm notice 2.3kB src/channels.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7418975Z npm notice 910B src/chaos.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7419717Z npm notice 2.1kB src/charter.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7420043Z npm notice 1.4kB src/cheapest_model.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7420359Z npm notice 1.4kB src/ci_resolver.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7420655Z npm notice 747B src/citations.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7420955Z npm notice 1.7kB src/code_map.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7421272Z npm notice 777B src/composable_api.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7421603Z npm notice 1.1kB src/confidence_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7421940Z npm notice 1.1kB src/config_installer.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7422261Z npm notice 1.1kB src/config_matrix.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7422565Z npm notice 1.5kB src/config_toml.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7422906Z npm notice 2.0kB src/consolidation_scheduler.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7423257Z npm notice 1.0kB src/constitution.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7423573Z npm notice 938B src/content_review.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7423885Z npm notice 1.5kB src/contest_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7424197Z npm notice 1.2kB src/context_files.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7424500Z npm notice 1.6kB src/context_fs.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7424800Z npm notice 549B src/context_reset.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7425103Z npm notice 1.3kB src/continual.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7425397Z npm notice 1.5kB src/contracts.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7425694Z npm notice 1.4kB src/control_plane.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7426022Z npm notice 778B src/core/capabilities.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7426344Z npm notice 1.2kB src/core/config.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7426640Z npm notice 736B src/core/logger.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7426937Z npm notice 2.2kB src/core/plugins.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7427250Z npm notice 1.8kB src/core/security.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7427562Z npm notice 1.1kB src/cost_routing.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7427874Z npm notice 1.8kB src/counterfactual.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7428163Z npm notice 1.8kB src/craft.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7428446Z npm notice 2.0kB src/critic.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7428747Z npm notice 1.6kB src/cve_reachability.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7429043Z npm notice 1.3kB src/dag.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7429565Z npm notice 1.1kB src/debugger.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7429867Z npm notice 850B src/decision_gates.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7430181Z npm notice 2.3kB src/decision_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7430499Z npm notice 1.8kB src/deep_research.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7430808Z npm notice 2.6kB src/default_skills.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7431124Z npm notice 1.9kB src/delivery.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7431445Z npm notice 1.5kB src/deterministic_compact.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7431789Z npm notice 4.7kB src/diff_review_ui.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7432099Z npm notice 2.7kB src/diff_review.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7432408Z npm notice 1.4kB src/dingtalk_feishu.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7432716Z npm notice 2.8kB src/doomloop.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7433002Z npm notice 4.3kB src/durable.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7433316Z npm notice 1.2kB src/equipment_registry.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7433646Z npm notice 680B src/error_recovery.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7433926Z npm notice 4.2kB src/eval.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7434206Z npm notice 1.3kB src/event_bus.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7434500Z npm notice 1.1kB src/event_sourced.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7434824Z npm notice 712B src/event_stream.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7435135Z npm notice 1.1kB src/evidence_bundle.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7435455Z npm notice 787B src/evolution_search.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7435972Z npm notice 1.1kB src/failure_cluster.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7436421Z npm notice 739B src/fetch_url.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7436727Z npm notice 1.2kB src/file_attachments.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7437039Z npm notice 1.1kB src/formats.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7437336Z npm notice 1.5kB src/fs_resources.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7437633Z npm notice 1.1kB src/fs_robust.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7437916Z npm notice 1.5kB src/gateway.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7438176Z npm notice 1.4kB src/gems.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7438479Z npm notice 1.3kB src/geometric_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7438796Z npm notice 1.6kB src/ghidra.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7439332Z npm notice 4.0kB src/git_integration.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7439677Z npm notice 1.2kB src/git_state.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7459478Z npm notice 1.6kB src/github_webhooks.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7460012Z npm notice 2.1kB src/graph_mcp.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7460344Z npm notice 2.2kB src/graph_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7460666Z npm notice 988B src/guardrails.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7460994Z npm notice 1.7kB src/hardware.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7461316Z npm notice 1.1kB src/harness_discovery.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7461648Z npm notice 2.0kB src/harness_lint.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7461960Z npm notice 1.2kB src/harness_score.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7462267Z npm notice 1.6kB src/harness_spec.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7462586Z npm notice 1.2kB src/health_failover.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7462912Z npm notice 917B src/hippocampus.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7463213Z npm notice 687B src/honesty.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7463482Z npm notice 2.6kB src/hooks.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7463751Z npm notice 2.6kB src/hunt.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7464047Z npm notice 1.1kB src/identity_audit.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7464359Z npm notice 86.2kB src/index.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7464666Z npm notice 4.3kB src/indexing/codeindex.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7465011Z npm notice 2.1kB src/integrations/bidi.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7465360Z npm notice 7.7kB src/integrations/browser.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7465706Z npm notice 6.7kB src/integrations/mcp.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7466053Z npm notice 1.4kB src/integrations/retools.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7466371Z npm notice 1.6kB src/isolation.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7466677Z npm notice 2.8kB src/keyless_search.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7466989Z npm notice 1.4kB src/layer_registry.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7467283Z npm notice 2.2kB src/ledger.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7467573Z npm notice 1.7kB src/lenient_parse.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7467874Z npm notice 2.0kB src/lifecycle.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7468145Z npm notice 6.7kB src/lsp.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7468428Z npm notice 1.1kB src/mailbox.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7468745Z npm notice 1.3kB src/maintenance_templates.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7469207Z npm notice 1.8kB src/markdown_extract.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7469660Z npm notice 1.5kB src/markdown_governance.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7470001Z npm notice 1.0kB src/markdown_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7470306Z npm notice 864B src/mcp_apps.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7470616Z npm notice 1.7kB src/mcp_conformance.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7470947Z npm notice 1.7kB src/mcp_everything.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7471267Z npm notice 996B src/mcp_file_uploads.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7471583Z npm notice 954B src/mcp_interceptors.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7471894Z npm notice 1.1kB src/mcp_marketplace.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7472198Z npm notice 986B src/mcp_pinning.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7472504Z npm notice 1.9kB src/mcp_presets.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7472835Z npm notice 1.0kB src/mcp_registry_browser.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7473169Z npm notice 5.7kB src/mcp_registry.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7473470Z npm notice 2.6kB src/mcp_search.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7473767Z npm notice 2.3kB src/mcp_security.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7474064Z npm notice 7.6kB src/mcp_server.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7474364Z npm notice 705B src/mcp_skills.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7474655Z npm notice 873B src/mcp_tasks.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7474919Z npm notice 1.4kB src/mcpb.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7475211Z npm notice 1.3kB src/memory_extract.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7475534Z npm notice 1.4kB src/memory_hierarchy.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7476176Z npm notice 1.0kB src/memory_rag.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7476458Z npm notice 884B src/merkle.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7476742Z npm notice 1.1kB src/metrics.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7477051Z npm notice 929B src/migration_recipes.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7477373Z npm notice 1.4kB src/model_discovery.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7477691Z npm notice 1.3kB src/multi_search.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7477998Z npm notice 1.0kB src/native_adapters.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7478315Z npm notice 905B src/netvein_adapter.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7478632Z npm notice 1.3kB src/observability.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7478939Z npm notice 2.5kB src/office_preview.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7479377Z npm notice 1.8kB src/optimizer.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7479676Z npm notice 1.8kB src/orchestrator.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7479978Z npm notice 489B src/output_compress.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7480281Z npm notice 1.8kB src/pairing.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7480571Z npm notice 1.1kB src/pass_at_k.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7480852Z npm notice 2.7kB src/patch.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7481140Z npm notice 1.3kB src/peer_review.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7481454Z npm notice 1.4kB src/pentest_pipeline.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7481743Z npm notice 776B src/pii.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7482042Z npm notice 8.7kB src/plugin_marketplace.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7482367Z npm notice 1.1kB src/podman.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7482646Z npm notice 2.4kB src/policy.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7482921Z npm notice 1.2kB src/pr_review.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7483212Z npm notice 1.5kB src/private_kb.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7483503Z npm notice 1.8kB src/projects.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7483806Z npm notice 1.2kB src/prompt_templates.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7484136Z npm notice 1.1kB src/proof_of_work.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7484436Z npm notice 4.7kB src/providers.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7484728Z npm notice 792B src/python_client.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7485019Z npm notice 5.5kB src/re_index.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7485282Z npm notice 2.0kB src/rea.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7485557Z npm notice 658B src/read_only.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7485867Z npm notice 1.1kB src/readiness_audit.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7486193Z npm notice 1.3kB src/reliability.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7486526Z npm notice 655B src/replay_guard.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7486830Z npm notice 1.3kB src/replay.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7487117Z npm notice 1.7kB src/rollback.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7487421Z npm notice 1.4kB src/routing_eval.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7487750Z npm notice 751B src/runtime_contract.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7488078Z npm notice 1.6kB src/runtime_manager.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7488414Z npm notice 898B src/sandbox_fingerprint.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7488746Z npm notice 882B src/sandbox_rings.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7489031Z npm notice 975B src/sarif.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7489433Z npm notice 3.0kB src/scheduler.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7489744Z npm notice 1.0kB src/sealed.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7490032Z npm notice 3.1kB src/security_kb.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7490345Z npm notice 1.4kB src/security_layers.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7490665Z npm notice 2.4kB src/self_improve.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7490978Z npm notice 1.2kB src/semantic_tools.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7491290Z npm notice 1.0kB src/separation.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7491621Z npm notice 1.1kB src/sequential_thinking.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7491956Z npm notice 1.2kB src/serverless.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7492252Z npm notice 959B src/session_brief.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7492569Z npm notice 1.3kB src/session_converter.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7492966Z npm notice 1.6kB src/session_goals.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7493285Z npm notice 1.3kB src/session_search.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7493586Z npm notice 513B src/settings.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7493874Z npm notice 1.0kB src/shadow_ai.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7494171Z npm notice 836B src/silent_failure.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7494477Z npm notice 2.1kB src/sim_browser.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7494796Z npm notice 851B src/simulated_approval.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7495144Z npm notice 817B src/skill_auto.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7495434Z npm notice 2.5kB src/skill_eval.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7496003Z npm notice 1.9kB src/skill_factory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7496303Z npm notice 1.4kB src/skill_pkg.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7496638Z npm notice 1.0kB src/skills_import.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7496975Z npm notice 1.6kB src/slack_gateway.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7497299Z npm notice 910B src/source_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7497579Z npm notice 550B src/spans5.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7497873Z npm notice 931B src/speed_bench.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7498157Z npm notice 1.2kB src/squeeze.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7498443Z npm notice 764B src/ssh_bridge.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7498709Z npm notice 972B src/state.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7498996Z npm notice 699B src/stopconditions.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7499407Z npm notice 11.2kB src/storage/db.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7499727Z npm notice 1.3kB src/stream_actions.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7500011Z npm notice 4.3kB src/swarm.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7500291Z npm notice 2.2kB src/task_board.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7500585Z npm notice 1.3kB src/task_state.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7500860Z npm notice 3.6kB src/task.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7501141Z npm notice 3.1kB src/teams.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7501425Z npm notice 789B src/telemetry.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7501727Z npm notice 2.2kB src/temporal_memory.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7502030Z npm notice 1.3kB src/tenants.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7502327Z npm notice 1.9kB src/testing/mockmcp.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7502607Z npm notice 619B src/themes.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7502886Z npm notice 1.0kB src/time_tool.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7503173Z npm notice 2.4kB src/timers.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7503473Z npm notice 1.2kB src/token_dashboard.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7503778Z npm notice 610B src/tokenizer.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7504084Z npm notice 1.4kB src/tool_annotations.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7504403Z npm notice 747B src/tool_contract.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7504709Z npm notice 773B src/tool_discovery.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7505007Z npm notice 1.1kB src/tool_eval.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7505304Z npm notice 843B src/tool_state.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7505602Z npm notice 7.2kB src/tools/coding.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7505910Z npm notice 2.0kB src/tools/registry.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7506209Z npm notice 700B src/toolsets.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7506493Z npm notice 1.5kB src/trace_export.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7506785Z npm notice 1.8kB src/tracing.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7507049Z npm notice 4.6kB src/tui.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7507334Z npm notice 784B src/two_bar.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7507613Z npm notice 2.0kB src/ui_replay.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7507956Z npm notice 1.9kB src/updater.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7508243Z npm notice 1.2kB src/url_validate.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7508540Z npm notice 990B src/variants.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7508798Z npm notice 1.9kB src/vault.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7509081Z npm notice 2.2kB src/verifier.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7509555Z npm notice 784B src/vision.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7509849Z npm notice 1.5kB src/voice_adapter.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7510158Z npm notice 4.5kB src/vuln_patterns.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7510484Z npm notice 2.0kB src/vuln_scan.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7510752Z npm notice 1.1kB src/waste.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7511037Z npm notice 1.3kB src/web_search.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7511339Z npm notice 851B src/workflow.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7511631Z npm notice 1.1kB src/ws_bridge.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7511923Z npm notice 1.7kB src/yaml_eval.js
+publish	Run npm publish --access public	2026-11-22T23:34:00.7512187Z npm notice Tarball Details
+publish	Run npm publish --access public	2026-11-22T23:34:00.7512479Z npm notice name: aegisai-harness
+publish	Run npm publish --access public	2026-11-22T23:34:00.7512765Z npm notice version: 0.67.2
+publish	Run npm publish --access public	2026-11-22T23:34:00.7513103Z npm notice filename: aegisai-harness-0.67.2.tgz
+publish	Run npm publish --access public	2026-11-22T23:34:00.7513465Z npm notice package size: 194.3 kB
+publish	Run npm publish --access public	2026-11-22T23:34:00.7513774Z npm notice unpacked size: 684.1 kB
+publish	Run npm publish --access public	2026-11-22T23:34:00.7514155Z npm notice shasum: 03db02a838fa8491c4692c633f60342009c06792
+publish	Run npm publish --access public	2026-11-22T23:34:00.7514639Z npm notice integrity: sha512-awIrwHARO8ksl[...]VOrP4FADu/PfQ==
+publish	Run npm publish --access public	2026-11-22T23:34:00.7515025Z npm notice total files: 288
+publish	Run npm publish --access public	2026-11-22T23:34:00.7515262Z npm notice
+publish	Run npm publish --access public	2026-11-22T23:34:01.8211237Z npm notice npm tokens that bypass 2FA are being restricted for account changes and direct publishing. Learn how to prepare: https://gh.io/npm-gat-bypass2fa-deprecation
+publish	Run npm publish --access public	2026-11-22T23:34:01.8872520Z npm notice Publishing to https://registry.npmjs.org/ with tag latest and public access
+publish	Run npm publish --access public	2026-11-22T23:34:02.5692763Z npm notice publish Signed provenance statement with source and build information from GitHub Actions
+publish	Run npm publish --access public	2026-11-22T23:34:02.5694218Z npm notice publish Provenance statement published to transparency log: https://search.sigstore.dev/?logIndex=4048916161
+publish	Run npm publish --access public	2026-11-22T23:34:04.3993312Z npm notice Your package is being processed and may take a few minutes to become available.
+publish	Run npm publish --access public	2026-11-22T23:34:04.3995897Z + aegisai-harness@0.67.2
+publish	Post Run actions/setup-node@v5	﻿2026-11-22T23:34:04.4510452Z Post job cleanup.
+publish	Post Run actions/setup-node@v5	2026-11-22T23:34:04.5828486Z (node:3364) [DEP0040] DeprecationWarning: The `punycode` module is deprecated. Please use a userland alternative instead.
+publish	Post Run actions/setup-node@v5	2026-11-22T23:34:04.5830009Z (Use `node --trace-deprecation ...` to show where the warning was created)
+publish	Post Run actions/checkout@v5	﻿2026-11-22T23:34:04.6206717Z Post job cleanup.
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7110451Z [command]/usr/bin/git version
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7155690Z git version 2.56.1
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7201894Z Temporarily overriding HOME='/home/runner/work/_temp/5790c3f1-dce9-42a3-b8e0-e86248dd291c' before making global git config changes
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7203688Z Adding repository directory to the temporary git global config as a safe directory
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7207901Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/aegisai-harness/aegisai-harness
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7253564Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7307964Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7620948Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7647849Z http.https://github.com/.extraheader
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7663777Z [command]/usr/bin/git config --local --unset-all http.https://github.com/.extraheader
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.7700891Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.8029619Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+publish	Post Run actions/checkout@v5	2026-11-22T23:34:04.8070201Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+publish	Complete job	﻿2026-11-22T23:34:04.8538591Z Cleaning up orphan processes
