@@ -3,15 +3,22 @@
 const crypto = require('crypto');
 const db = require('./storage/db');
 
+let _seqCounter = 0;
+function nextSeq() { return Date.now() * 1000 + (++_seqCounter); }
+
 function hash(data) { return crypto.createHash('sha256').update(data).digest('hex'); }
 
+function ensureTable() {
+  try { db.get().exec('CREATE TABLE IF NOT EXISTS ledger (seq INTEGER PRIMARY KEY, event TEXT, payload TEXT, prev TEXT, hash TEXT)'); } catch (e) {}
+}
 function append(event, payload) {
+  ensureTable();
   let prev = '0'.repeat(64);
   try {
     const last = db.get().prepare('SELECT hash FROM ledger ORDER BY seq DESC LIMIT 1').get();
     if (last) prev = last.hash;
   } catch (e) {}
-  const seq = Date.now();
+  const seq = nextSeq();
   const body = JSON.stringify({ seq, event, payload: payload || {}, prev });
   const h = hash(body);
   try {
