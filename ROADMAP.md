@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.51 (51 milestones). v0.51 ported the deer-flow high-value items: projects with instructions + document shelf, hippocampus memory (spreading activation + Hebbian writeback), skill factory with autoresearch + consensus, evidence-first UI replay, and embedded Python client. 45 issues closed, 179 tests passing.
+- **Shipped:** v0.1–v0.52 (52 milestones). v0.52 ported the deer-flow M-feasibility items: IM channel adapters (Telegram/Discord), GitHub webhook event-driven agents, file attachments, and knowledge-graph memory exposed via MCP. 46 issues closed, 184 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -55,6 +55,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.47 MCP protocol extensions** — conformance, MCP Apps, Tasks, .mcpb bundles, interceptors, file uploads, Skills over MCP.
 - **v0.50 Session goals & tokens** — session goals, access tokens, token dashboard, proof-of-work, approval modes.
 - **v0.51 Projects & memory** — projects with document shelf, hippocampus memory, skill factory, UI replay, embedded Python client.
+- **v0.52 IM & integrations** — Telegram/Discord channels, GitHub webhooks, file attachments, graph memory via MCP.
 
 ## Active backlog by theme
 
@@ -383,7 +384,7 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 ### Reference servers worth porting
 - [x] Sequential Thinking tool — src/sequential_thinking.js — **H**
 - [x] Dedicated fetch_url tool — src/fetch_url.js — **H**
-- [ ] Knowledge graph memory exposed via MCP — **M** (we have graph_memory; MCP wrapping still deferred)
+- [x] Knowledge graph memory exposed via MCP — src/graph_mcp.js — **M**
 - [x] Time/timezone tool — src/time_tool.js — **H**
 - [x] "Everything" test server fixture — src/mcp_everything.js — **H**
 ### Archived servers (domain-specific, mostly covered)
@@ -425,12 +426,12 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [x] Projects with instructions + document shelf — src/projects.js — **H**
 - [x] Evidence-based decisions log — src/decision_memory.js + src/ledger.js — **H**
 - [x] boxd-style bounded output copies + cleanup retries — src/sealed.js + src/capsule.js — **H**
-- [ ] File attachments, downloads, Office previews (deer-flow "File Previews") — **M**
+- [x] File attachments, downloads, Office previews — src/file_attachments.js — **M** (Office preview still deferred)
 - [ ] Private knowledge retrieval (RAGFlow-style) (deer-flow "Private Knowledge Retrieval") — **M**
 - [ ] Agentic browser control (deer-flow "Agentic Browser Control") — **H** (we have CDP + sim_browser)
 ### Messaging & events (deer-flow)
-- [ ] IM channels: Telegram, Discord, DingTalk, Feishu (deer-flow "IM Channels") — **M** (we have slack_gateway)
-- [ ] GitHub webhook event-driven agents (deer-flow "GitHub Event-Driven Agents") — **M** (we have scheduler/mailbox)
+- [x] IM channels: Telegram + Discord adapters — src/channels.js — **M** (DingTalk/Feishu still deferred)
+- [x] GitHub webhook event-driven agents — src/github_webhooks.js — **M**
 - [x] Personal access tokens + stream actions — src/access_tokens.js — **H**
 - [x] Token usage dashboard — src/token_dashboard.js — **H**
 - [ ] Terminal workbench (TUI) (deer-flow "Terminal Workbench") — **M** (we have REPL)

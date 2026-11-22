@@ -17,6 +17,7 @@ function toolsList() {
   out.push({ name: 'fetch_url', description: 'Fetch a URL and return its content as Markdown.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] } });
   out.push({ name: 'sequential_thinking', description: 'Structured reflective thinking.', inputSchema: { type: 'object', properties: { thought: { type: 'string' } } } });
   out.push({ name: 'get_time', description: 'Current time in a timezone.', inputSchema: { type: 'object', properties: { timezone: { type: 'string' } } } });
+  out.push(...require('./graph_mcp').tools());
   return out;
 }
 
@@ -25,6 +26,7 @@ async function callTool(name, args) {
   const projectRoot = process.cwd();
   // built-in direct handlers for a curated subset
   if (name === 'get_time') return { content: [{ type: 'text', text: JSON.stringify(require('./time_tool').now(args.timezone)) }] };
+  if (['create_entities', 'create_relations', 'add_observations', 'search_nodes', 'read_graph'].includes(name)) return require('./graph_mcp').handle(name, args);
   if (name === 'fetch_url') { const r = await require('./fetch_url').fetch(args.url); return { content: [{ type: 'text', text: r.ok ? r.content : 'error: ' + r.error }], isError: !r.ok }; }
   if (name === 'sequential_thinking') { const r = require('./sequential_thinking').think(args.thought, args.nextThoughtNeeded, args.thoughtNumber, args.totalThoughts, args.isRevision, null, null, args.branchId); return { content: [{ type: 'text', text: JSON.stringify(r) }] }; }
   // generic coding tools

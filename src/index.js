@@ -543,6 +543,11 @@ async function main() {
       if (t.startsWith('/skill-factory ')) { const r = await require('./skill_factory').proposeSkill(t.slice(15).trim()); console.log(JSON.stringify(r, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/python ')) { const r = await require('./python_client').run(t.slice(8).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/token-dashboard') { console.log(JSON.stringify(require('./token_dashboard').summary(), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/channel ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(await require('./channels').handle(p[0], { text: p[1] || '' }))); rl.prompt(); return; }
+      if (t === '/channels') { console.log(JSON.stringify(require('./channels').status(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/gh-webhook ')) { const p = t.slice(12).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(await require('./github_webhooks').handle(p[0], JSON.parse(p[1] || '{}')))); rl.prompt(); return; }
+      if (t.startsWith('/attach ')) { console.log(JSON.stringify(require('./file_attachments').saveAttachment(t.slice(8).trim(), ''))); rl.prompt(); return; }
+      if (t === '/attachments') { console.log(JSON.stringify(require('./file_attachments').list(), null, 2).slice(0, 1200)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
