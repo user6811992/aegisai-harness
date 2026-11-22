@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.58 (58 milestones). v0.57: final polish (Tailwind CDN, pdf-parse, Windows installer, README, aegisai-next deprecated, repo public). v0.58: TUI (multi-pane terminal workbench) + LSP integration (hover, definition, completion, diagnostics). 51 issues closed, 219 tests passing. The harness now matches OpenCode/Claude Code on TUI + LSP.
+- **Shipped:** v0.1–v0.59 (59 milestones). v0.59: git-aware editing (status, diff, commit, blame, branch, stash, log, show, reset, auto-commit) via src/git_integration.js. 52 issues closed, 231 tests passing. The harness now matches Aider/OpenCode on git-aware editing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -62,6 +62,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.56 aegisai-next parity** — swarm, patch, task, hunt, awesome-re, mcp-presets, vuln-patterns, markdown-memory, metrics.
 - **v0.57 Final polish** — Tailwind CDN, pdf-parse, Windows installer, README rewrite, aegisai-next deprecated, repo public.
 - **v0.58 TUI + LSP** — multi-pane terminal workbench + LSP client (hover, definition, completion, diagnostics, didOpen).
+- **v0.59 Git-aware editing** — status, diff, commit, blame, branch, stash, log, show, reset, auto-commit.
 
 ## Active backlog by theme
 

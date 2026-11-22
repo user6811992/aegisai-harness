@@ -74,6 +74,7 @@ async function main() {
   const acpFlag = args.includes('--acp');
   const mcpServerFlag = args.includes('--mcp-server');
   const tuiFlag = args.includes('--tui');
+  const autoCommitFlag = args.includes('--auto-commit');
 
   if (tuiFlag) {
     const tui = require('./tui').launch({ title: 'AegisAi Harness TUI', status: 'ready' });
@@ -471,6 +472,7 @@ async function main() {
         contextFiles: true,
         debuggerInstance: global.__dbg,
         approvalMode,
+        autoCommit: autoCommitFlag,
       });
       lastToolLog = result.toolLog || [];
       process.stdout.write('\n');
@@ -604,6 +606,14 @@ async function main() {
       if (t.startsWith('/lsp-open ')) { const p = t.slice(10).trim().split(/\s+/); console.log(JSON.stringify(require('./lsp').openDocument(p[0], p[1]))); rl.prompt(); return; }
       if (t.startsWith('/lsp-diag ')) { console.log(JSON.stringify(require('./lsp').allDiagnostics(t.slice(11).trim()))); rl.prompt(); return; }
       if (t.startsWith('/lsp-stop ')) { console.log(JSON.stringify(require('./lsp').stop(t.slice(10).trim()))); rl.prompt(); return; }
+      if (t === '/git-status') { console.log(JSON.stringify(require('./git_integration').status(root), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/git-diff')) { const p = t.slice(9).trim(); console.log(require('./git_integration').diff(root, { staged: p === '--staged', stat: p === '--stat' }).diff || '(no diff)'); rl.prompt(); return; }
+      if (t.startsWith('/git-commit ')) { console.log(JSON.stringify(require('./git_integration').commit(root, t.slice(12).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/git-blame ')) { console.log(JSON.stringify(require('./git_integration').blame(root, t.slice(11).trim()), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/git-branch')) { const p = t.slice(12).trim(); console.log(JSON.stringify(require('./git_integration').branch(root, p || null))); rl.prompt(); return; }
+      if (t === '/git-log') { console.log(JSON.stringify(require('./git_integration').log(root), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/git-stash')) { const p = t.slice(11).trim() || 'push'; console.log(JSON.stringify(require('./git_integration').stash(root, p))); rl.prompt(); return; }
+      if (t.startsWith('/git-show')) { const p = t.slice(10).trim(); console.log(require('./git_integration').show(root, p || 'HEAD').output); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }

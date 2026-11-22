@@ -39,6 +39,7 @@ async function runAgent(opts) {
     approvalHandler = null,
     autoApprove = false,
     approvalMode = null,
+    autoCommit = false,
     sandbox = false,
     offline = CONFIG_OFFLINE,
     trace = false,
@@ -261,6 +262,7 @@ async function runAgent(opts) {
         if (!check.safe) finalText = '(blocked by output guardrail: ' + check.hits.join(', ') + ')';
       }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
+      if (autoCommit && toolLog.length > 0) { try { const r = require('../git_integration').autoCommit(projectRoot, 'auto: agent changes'); if (r.ok && !r.skipped) finalText += '\n\n[auto-commit] ' + (r.output || 'committed'); } catch (e) {} }
       capture(finalText);
       if (capsuleSession) { try { require('../capsule').write(capsuleSession, msgs, { reason: 'complete', final: String(finalText).slice(0, 200) }); } catch (e) {} }
       try { require('../ledger').append('run_complete', { model, prompt: String((messages || [])[0]?.content || '').slice(0, 200), final: String(finalText).slice(0, 500), tools: toolLog.length }); } catch (e) {}
