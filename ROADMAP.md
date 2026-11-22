@@ -315,6 +315,34 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [x] Composable agent APIs / 6-phase state machine — src/composable_api.js — **H**
 - [ ] DAG + subagents + persistent memory super harness (omniHarness) — **H** (we have all parts)
 
+## v0.42 — From "ai agent harness tools" search pages 5–8
+Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
+
+### Session & context
+- [ ] Auto session brief on return (analyze logs → summary) (harness-mem) — **H**
+- [ ] Zero-LLM deterministic compaction: query-aware, fail-open, keep errors, recoverable originals (tameru) — **H**
+- [ ] Multi-turn automated error recovery policy (ample-insight) — **H**
+- [ ] Config version control for harness configs (aVer) — **H** (git_state)
+### Testing & reliability
+- [ ] Chaos testing: inject failing tools + stale state, grade recovery (agent-test-harness) — **H**
+- [ ] Silent-failure detection: tool reports success but wrong outcome (sermtech case studies) — **H** (verifier)
+- [ ] Agent honesty scoring: final claim vs tool actions (agent-honesty-harness) — **H**
+- [ ] Agent boundary/overreach benchmark + capability gateway (co2water) — **H**
+- [ ] Replay protection + cancellation tokens (AgentHarnessDemo) — **H**
+### Security & governance
+- [ ] MCP server pinning (hash config, detect drift) (aiguard) — **H**
+- [ ] Merkle-tree root verification for audit ledger (OpenAgentLock) — **H**
+- [ ] Project agent-readiness audit (AGENTS.md/context/eval) (rulebased-io) — **H** (harness_lint)
+### Observability & interfaces
+- [ ] Live trajectory monitor page: tool calls/tokens/context (agent-trajectory) — **H** (SSE)
+- [ ] Cost-aware routing + convergence loops (aieos) — **H** (extends router)
+- [ ] Tool contract export: discoverable/runnable/skill-exportable (agent-tool-harness) — **H**
+### Orchestration & resources
+- [ ] Agents-as-tools registration (agents-as-tools starter) — **H**
+- [ ] Shared heavyweight tool/device/cache broker across tenants (agent-runtime-harness) — **M**
+### Registries
+- [ ] Harness equipment registry with tested-vs-catalogued verdicts (harness-registry) — **H**
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
