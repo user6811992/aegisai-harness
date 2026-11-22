@@ -614,6 +614,17 @@ async function main() {
       if (t === '/git-log') { console.log(JSON.stringify(require('./git_integration').log(root), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/diff-review') { console.log(JSON.stringify(require('./diff_review').fullReview(root), null, 2).slice(0, 3000)); rl.prompt(); return; }
       if (t === '/diff-review-staged') { console.log(JSON.stringify(require('./diff_review').stagedReview(root), null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t === '/review-start') { const s = require('./diff_review_ui').startSession(root); if (!s.ok) { console.log('error:', s.error); rl.prompt(); return; } global.__reviewSession = s.session; console.log('Started review: ' + s.session.files.length + ' files'); console.log(require('./diff_review_ui').renderCurrent(s.session)); rl.prompt(); return; }
+      if (t === '/review-accept') { const r = require('./diff_review_ui').acceptHunk(global.__reviewSession); console.log(JSON.stringify(r)); console.log(require('./diff_review_ui').renderCurrent(global.__reviewSession)); rl.prompt(); return; }
+      if (t === '/review-reject') { const r = require('./diff_review_ui').rejectHunk(global.__reviewSession); console.log(JSON.stringify(r)); console.log(require('./diff_review_ui').renderCurrent(global.__reviewSession)); rl.prompt(); return; }
+      if (t === '/review-accept-file') { console.log(JSON.stringify(require('./diff_review_ui').acceptFile(global.__reviewSession))); rl.prompt(); return; }
+      if (t === '/review-reject-file') { console.log(JSON.stringify(require('./diff_review_ui').rejectFile(global.__reviewSession))); rl.prompt(); return; }
+      if (t === '/review-next') { require('./diff_review_ui').nextHunk(global.__reviewSession); console.log(require('./diff_review_ui').renderCurrent(global.__reviewSession)); rl.prompt(); return; }
+      if (t === '/review-prev') { require('./diff_review_ui').prevHunk(global.__reviewSession); console.log(require('./diff_review_ui').renderCurrent(global.__reviewSession)); rl.prompt(); return; }
+      if (t === '/review-next-file') { require('./diff_review_ui').nextFile(global.__reviewSession); console.log(require('./diff_review_ui').renderCurrent(global.__reviewSession)); rl.prompt(); return; }
+      if (t === '/review-prev-file') { require('./diff_review_ui').prevFile(global.__reviewSession); console.log(require('./diff_review_ui').renderCurrent(global.__reviewSession)); rl.prompt(); return; }
+      if (t === '/review-status') { console.log(JSON.stringify(require('./diff_review_ui').status(global.__reviewSession), null, 2)); rl.prompt(); return; }
+      if (t === '/review-finish') { console.log(JSON.stringify(require('./diff_review_ui').finish(global.__reviewSession), null, 2)); global.__reviewSession = null; rl.prompt(); return; }
       if (t.startsWith('/git-stash')) { const p = t.slice(11).trim() || 'push'; console.log(JSON.stringify(require('./git_integration').stash(root, p))); rl.prompt(); return; }
       if (t.startsWith('/git-show')) { const p = t.slice(10).trim(); console.log(require('./git_integration').show(root, p || 'HEAD').output); rl.prompt(); return; }
       if (t === '/providers') { console.log(JSON.stringify(await require('./providers').detect(), null, 2).slice(0, 2000)); rl.prompt(); return; }
