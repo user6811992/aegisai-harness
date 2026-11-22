@@ -1,11 +1,18 @@
 # AegisAi Harness
 
-A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
-offline-first: no cloud dependencies, no telemetry. 56 milestones, ~200 modules,
-213 tests, CI green.
+[![CI](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml/badge.svg)](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Node.js](https://img.shields.io/badge/Node.js-22.5%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![GitHub release](https://img.shields.io/github/v/release/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/releases)
+[![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
-> Status: v0.57.0 (see [ROADMAP.md](./ROADMAP.md)).
+A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
+offline-first: no cloud dependencies, no telemetry. 66 milestones, ~200 modules,
+257 tests, CI green.
+
+> Status: v0.66.0 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
+> **Live docs:** https://user6811992.github.io/aegisai-harness/
 
 ## What a harness is here
 
@@ -18,12 +25,18 @@ The harness is the runtime that hosts an agent loop around a local LLM:
 - **Context management** (compaction + retrievable archive + capsules).
 - **Local-only guarantees** (offline mode, local embeddings, no phone-home).
 - **MCP client + server** (stdio + Streamable HTTP, conformance, Apps, Tasks, .mcpb, interceptors, uploads, skills).
-- **Web UI** (Preact via CDN, Markdown rendering, context meter, dark/light theme, voice, config panel).
-- **Reverse engineering** (REA, Ghidra, Craft, awesome-re 17k index, squeeze, pentest pipeline, vuln scanner).
-- **Observability** (run capture, harness score, reliability attribution, OTel export, SARIF, Merkle ledger).
+- **Web UI** (Preact, Markdown rendering, context meter, dark/light theme, voice, config panel, onboarding wizard, command palette).
+- **Terminal UI** (multi-pane TUI with status bar, chat, sidebar, command palette).
+- **Reverse engineering** (REA, Ghidra, Craft, 30+ index, awesome-re 17k, pentest pipeline, vuln scanner, security KB).
+- **Observability** (run capture, harness score, reliability attribution, OTel export, SARIF, Merkle ledger, evidence bundles).
 - **Always-on layer** (events, timers, approvals, outbox, scheduler, cron, mailbox).
-- **Multi-agent** (DAG orchestration, swarm, teams, multi-critic, task phases).
-- **Quality gates** (skill eval, harness lint, adversarial stress, CI template, conformance).
+- **Multi-agent** (DAG orchestration, swarm, teams, multi-critic, task phases, async/background tools).
+- **Quality gates** (skill eval, harness lint, adversarial stress, CI template, conformance testing).
+- **Git-aware editing** (status, diff, commit, blame, branch, stash, log, multi-file diff review, auto-commit).
+- **Model providers** (18: Ollama, LM Studio, llama.cpp, vLLM, OpenAI, Anthropic, Groq, Mistral, DeepSeek, Together, Fireworks, Cohere, OpenRouter, Gemini, etc.).
+- **Plugin marketplace** (search, install, uninstall, enable/disable, categories, ratings).
+- **IM channels** (Telegram, Discord, DingTalk, Feishu).
+- **LSP integration** (hover, definition, completion, diagnostics).
 
 ## Quick start
 
@@ -43,6 +56,12 @@ npm start -- --web
 # Open http://127.0.0.1:8080
 ```
 
+### Terminal UI
+
+```bash
+npm start -- --tui
+```
+
 ### MCP server (for Claude Code, Cursor, etc.)
 
 ```bash
@@ -54,23 +73,6 @@ npm start -- --mcp-server
 
 ```bash
 node src/index.js --json "your prompt here"
-```
-
-## Layout
-
-```
-src/
-  index.js            entry point (CLI / web / MCP server / RPC)
-  core/               config, logger, security, capabilities
-  agent/              agent loop (run.js), compact.js
-  tools/              tool registry + coding tools
-  backends/           backend adapters (Ollama, OpenAI-compat, router)
-  storage/            SQLite persistence
-  integrations/       MCP client, browser (CDP), retools
-  (140+ modules)      policy, charter, ledger, hooks, doomloop, ...
-public/               web UI (Preact via CDN, no build step)
-tests/                node:test suites (213 tests)
-packaging/            Windows/macOS/Linux installers + binary build
 ```
 
 ## Build
@@ -100,6 +102,16 @@ See [ROADMAP.md](./ROADMAP.md) for the full list. Key ones:
 | `AEGISAI_DATA_DIR` | Data directory | ./data |
 | `AEGISAI_PROJECT_ROOT_ALLOWLIST` | Allow-list for agent project roots | (none) |
 
+## Layout
+
+```
+src/              150+ modules (agent, tools, backends, storage, integrations, ...)
+public/           web UI (Preact via CDN, no build step)
+tests/            257 tests (node:test)
+packaging/        Windows/macOS/Linux installers + binary build
+docs/             landing page (GitHub Pages)
+```
+
 ## License
 
 MIT
@@ -107,4 +119,12 @@ MIT
 ## Acknowledgments
 
 Built with inspiration from the open-source community. See [ROADMAP.md](./ROADMAP.md) for the full list of explored projects and patterns.
+
+### Prior art & inspiration
+- **Agent harnesses** — OpenCode, Claude Code, Aider, Cline, OpenHands, Goose, Codex, DeerFlow, Symphony, diggerhq
+- **MCP** — Model Context Protocol (modelcontextprotocol/servers, registry, extensions)
+- **Reverse engineering** — REA, Ghidra, Craft Anything, awesome-reverse-engineered, netvein
+- **Memory & learning** — bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
+- **Security** — Microsoft agent-governance-toolkit, spec-kitty
+- **Observability** — OpenTelemetry, SARIF, LangSmith, Langfuse
 ```
