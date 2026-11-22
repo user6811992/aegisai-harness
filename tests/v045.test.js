@@ -35,7 +35,7 @@ test('vision image message', () => {
 });
 
 test('RE index search', () => {
-  assert.ok(reindex.search('ghidra').local.length > 0);
+  assert.ok(reindex.search('ghidra').results.length > 0);
 });
 
 test('AST chunking', () => {

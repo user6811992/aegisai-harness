@@ -558,6 +558,12 @@ async function main() {
       if (t.startsWith('/office-preview ')) { console.log(JSON.stringify(require('./office_preview').preview(t.slice(16).trim()), null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/fs-resources ')) { console.log(JSON.stringify(require('./fs_resources').list(t.slice(14).trim() || process.cwd()).slice(0, 20), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/stream-action ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log('use /stream-action via HTTP: GET /api/stream?token=...&prompt=...'); rl.prompt(); return; }
+      if (t === '/rea-status') { console.log(JSON.stringify(require('./rea').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/ghidra-status') { console.log(JSON.stringify(require('./ghidra').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/craft-status') { console.log(JSON.stringify(require('./craft').status(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/re-search ')) { const r = require('./re_index').search(t.slice(11).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/re-categories') { console.log(JSON.stringify(require('./re_index').categories())); rl.prompt(); return; }
+      if (t.startsWith('/re-online ')) { const r = await require('./re_index').online(t.slice(11).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }

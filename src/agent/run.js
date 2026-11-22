@@ -156,6 +156,9 @@ async function runAgent(opts) {
   tools.push(asyncTools.TASK_TOOL_DEF);
   tools.push({ type: 'function', function: { name: 'get_repo_map', description: 'Return a compact repo map: files, symbols, imports.', parameters: { type: 'object', properties: { maxFiles: { type: 'number' } } } } });
   tools.push({ type: 'function', function: { name: 'handoff_to_agent', description: 'Hand off task with full conversation context to a named agent.', parameters: { type: 'object', properties: { agent: { type: 'string' }, instruction: { type: 'string' } }, required: ['instruction'] } } });
+  tools.push(...require('../rea').TOOLS);
+  tools.push(...require('../ghidra').TOOLS);
+  tools.push(...require('../craft').TOOLS);
   tools.push({ type: 'function', function: { name: 'sequential_thinking', description: 'Structured reflective thinking: record a thought, decide if more thoughts needed.', parameters: { type: 'object', properties: { thought: { type: 'string' }, thoughtNumber: { type: 'number' }, totalThoughts: { type: 'number' }, nextThoughtNeeded: { type: 'boolean' }, isRevision: { type: 'boolean' }, branchId: { type: 'string' } } } } });
   tools.push({ type: 'function', function: { name: 'fetch_url', description: 'Fetch a URL and return its content as Markdown.', parameters: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] } } });
   tools.push({ type: 'function', function: { name: 'get_time', description: 'Current time in a timezone.', parameters: { type: 'object', properties: { timezone: { type: 'string' } } } } });
@@ -357,6 +360,12 @@ async function runAgent(opts) {
           result = await require('../fetch_url').fetch(args.url);
         } else if (name === 'get_time') {
           result = require('../time_tool').now(args.timezone);
+        } else if (name.startsWith('rea_')) {
+          result = require('../rea').invoke(name, args);
+        } else if (name.startsWith('ghidra_')) {
+          result = require('../ghidra').invoke(name, args);
+        } else if (name.startsWith('craft_')) {
+          result = require('../craft').invoke(name, args);
         } else if (name === 'task') {
           result = asyncTools.handleTask(bgPool, args);
         } else if (name.startsWith('browser_')) {
