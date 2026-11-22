@@ -126,6 +126,9 @@ function open(dbPath) {
     function v20() {
       db.exec(`CREATE TABLE IF NOT EXISTS geo_memory (id TEXT PRIMARY KEY, concept TEXT, text TEXT, vec TEXT, meta TEXT, created TEXT)`);
     },
+    function v21() {
+      db.exec(`CREATE TABLE IF NOT EXISTS serverless_agents (name TEXT PRIMARY KEY, created TEXT, data TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

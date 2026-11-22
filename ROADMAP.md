@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.37 (37 milestones; v0.36 was roadmap-only from diggerhq). v0.37 added brain/sandbox interfaces, health failover, git-backed state, bug repro workflow, maintenance templates, real-world speed benchmark, runtime contract, and sandbox fingerprinting. 34 issues closed, 99 tests passing.
+- **Shipped:** v0.1–v0.38 (38 milestones). v0.38 added the M-feasibility diggerhq items: Slack gateway adapter, outbound WebSocket bridge, serverless agent-as-function, rootless Podman backend, PR review with inline comments, CI resolver with allowlist, and CVE reachability proof. 35 issues closed, 106 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, Windows RPA, external trace export, Slack gateway, rootless Podman, PR review agent, CI resolver, CVE reachability — each needing concrete need or native toolchain.
+- **Remaining deferred:** simulated browser, event-driven plugin UI, 5-layer security, in-process model loading, Rust SDK, swappable layer registry, Markdown governance, Windows RPA, external trace export — each needing concrete need or native toolchain.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -45,6 +45,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.34 Retrieval & reporting** — semantic tool retrieval, YAML evals, pass@k, failure clustering, ledger rewind, Gems, AHP gateway, SARIF.
 - **v0.35 Decisions & interop** — decision gates, workflow state machine, two-bar goals, geometric memory, session converter, architecture rules, AIBOM, SSH bridge.
 - **v0.37 DiggerHQ patterns** — brain/sandbox interfaces, health failover, git state, bug repro, maintenance templates, speed bench, runtime contract, sandbox fingerprint.
+- **v0.38 DiggerHQ integrations** — Slack gateway, outbound WS bridge, serverless functions, rootless Podman, PR review, CI resolver, CVE reachability.
 
 ## Active backlog by theme
 
@@ -256,14 +257,14 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 Feasibility: **H** = high (fits current local-only architecture), **M** = medium (needs external service/tool), **L** = low (platform-scale/native).
 
 ### Interfaces & gateways
-- [ ] Slack-native agent gateway: mention → session → steer → PR (opencomputer "Calvin" bridge) — **M** (Slack API + web UI)
-- [ ] Outbound-only WebSocket VM bridge (opencomputer gateway) — **M** (SSE already exists)
-- [ ] Serverless "agent as a function" abstraction (serverlessagentsite) — **M**
+- [x] Slack-native gateway adapter — src/slack_gateway.js — **M**
+- [x] Outbound-only WebSocket bridge — src/ws_bridge.js — **M**
+- [x] Serverless "agent as a function" — src/serverless.js — **M**
 - [x] Pluggable runtime contract — src/runtime_contract.js — **H**
 
 ### Execution & isolation
 - [x] Formal brain + sandbox interfaces — src/brain_sandbox.js — **H**
-- [ ] Rootless Podman per-session isolation (opencomputer) — **M** (needs Podman)
+- [x] Rootless Podman per-session isolation — src/podman.js — **M** (falls back to sealed)
 - [x] Sandbox capability fingerprinting — src/sandbox_fingerprint.js — **M→H**
 - [x] Provider health-check failover — src/health_failover.js — **H**
 
@@ -273,10 +274,10 @@ Feasibility: **H** = high (fits current local-only architecture), **M** = medium
 
 ### Workflows & agents
 - [x] Bug reproduction workflow — src/bug_repro.js — **H**
-- [ ] PR review agent with inline comments + dry-run default (example-pr-review) — **M**
-- [ ] CI failure resolver with per-repo GitHub allowlist (example-ci-resolver) — **M**
+- [x] PR review agent with inline comments + dry-run — src/pr_review.js — **M**
+- [x] CI failure resolver with per-repo allowlist — src/ci_resolver.js — **M**
 - [x] Scheduled maintenance templates — src/maintenance_templates.js — **H**
-- [ ] CVE reachability proof before patching (cve-swarm, dependency-security) — **M**
+- [x] CVE reachability proof — src/cve_reachability.js — **M**
 
 ### Evaluation
 - [x] Real-world speed benchmark — src/speed_bench.js — **H**

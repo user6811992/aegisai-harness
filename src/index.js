@@ -448,6 +448,15 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t === '/slack-status') { console.log(JSON.stringify(require('./slack_gateway').status(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/slack-handle ')) { const r = await require('./slack_gateway').handle({ text: t.slice(13).trim(), channel: 'mock', user: 'mock' }); console.log(JSON.stringify(r, null, 2).slice(0, 1000)); rl.prompt(); return; }
+      if (t === '/ws-status') { console.log(JSON.stringify(require('./ws_bridge').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/fn-list') { console.log(JSON.stringify(require('./serverless').list(), null, 2)); rl.prompt(); return; }
+      if (t === '/podman-status') { console.log(JSON.stringify(require('./podman').status(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/pr-review ')) { const r = await require('./pr_review').review(t.slice(11).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/ci-allowlist') { console.log(JSON.stringify(require('./ci_resolver').allowlist(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/ci-allow ')) { console.log(JSON.stringify(require('./ci_resolver').setAllowlist(t.slice(9).trim().split(',').map((s) => s.trim())))); rl.prompt(); return; }
+      if (t.startsWith('/cve-reach ')) { console.log(JSON.stringify(require('./cve_reachability').prove(root, t.slice(11).trim()), null, 2)); rl.prompt(); return; }
       if (t === '/brain-sandbox') { const agent = new (require('./brain_sandbox').Agent)({}); console.log(JSON.stringify({ brain: agent.brain.name, sandbox: agent.sandbox.name }, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/health-select ')) { console.log(JSON.stringify(await require('./health_failover').select(t.slice(14).trim().split(/\s+/)))); rl.prompt(); return; }
       if (t.startsWith('/bug-repro ')) { const p = t.slice(11).trim().split('|').map((x) => x.trim()); const r = await require('./bug_repro').reproduce(p[0], p[1] || ''); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
