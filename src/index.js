@@ -633,6 +633,13 @@ async function main() {
       if (t.startsWith('/plugin-search ')) { console.log(JSON.stringify(await require('./plugin_marketplace').search(t.slice(15).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/plugin-install ')) { console.log(JSON.stringify(await require('./plugin_marketplace').install(t.slice(16).trim()))); rl.prompt(); return; }
       if (t === '/plugin-list') { console.log(JSON.stringify(require('./plugin_marketplace').list(), null, 2)); rl.prompt(); return; }
+      if (t === '/plugin-categories') { console.log(JSON.stringify(require('./plugin_marketplace').categories())); rl.prompt(); return; }
+      if (t.startsWith('/plugin-search ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(await require('./plugin_marketplace').search(p[0], { category: p[1], tag: p[2], minRating: Number(p[3] || 0) }), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/plugin-info ')) { console.log(JSON.stringify(require('./plugin_marketplace').info(t.slice(13).trim()), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/plugin-enable ')) { console.log(JSON.stringify(require('./plugin_marketplace').enable(t.slice(15).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/plugin-disable ')) { console.log(JSON.stringify(require('./plugin_marketplace').disable(t.slice(16).trim()))); rl.prompt(); return; }
+      if (t === '/plugin-stats') { console.log(JSON.stringify(require('./plugin_marketplace').stats(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/plugin-update ')) { console.log(JSON.stringify(await require('./plugin_marketplace').update(t.slice(15).trim()))); rl.prompt(); return; }
       if (t.startsWith('/plugin-uninstall ')) { console.log(JSON.stringify(require('./plugin_marketplace').uninstall(t.slice(18).trim()))); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
