@@ -452,6 +452,22 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
+      if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
+      if (t.startsWith('/chaos ')) { console.log(JSON.stringify(require('./chaos').inject(t.slice(7).trim()))); rl.prompt(); return; }
+      if (t === '/honesty') { console.log(JSON.stringify(require('./honesty').score('done', lastToolLog), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/boundary ')) { console.log(JSON.stringify(require('./boundary_bench').evaluate(t.slice(10).trim().split(/\s+/)))); rl.prompt(); return; }
+      if (t === '/replay-guard-reset') { require('./replay_guard').clear(); console.log('cleared'); rl.prompt(); return; }
+      if (t.startsWith('/mcp-pin ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./mcp_pinning').pin(p[0], { command: p[1] }))); rl.prompt(); return; }
+      if (t === '/merkle-root') { console.log(JSON.stringify(require('./merkle').ledgerRoot())); rl.prompt(); return; }
+      if (t === '/readiness') { console.log(JSON.stringify(require('./readiness_audit').audit(root), null, 2)); rl.prompt(); return; }
+      if (t === '/trajectory-ui') { console.log('Open /trajectory.html in the web UI (--web)'); rl.prompt(); return; }
+      if (t === '/cost-route') { console.log(JSON.stringify(require('./cost_routing').route([{ name: 'a', quality: 0.9, cost: 0.01 }, { name: 'b', quality: 0.5, cost: 0.001 }], { budget: 0.005 }))); rl.prompt(); return; }
+      if (t === '/tool-contract') { const tools = require('./tools/registry').assemble({ includeCoding: true }); console.log(JSON.stringify(require('./tool_contract').exportContract(tools).slice(0, 5), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/agent-tool ')) { console.log(JSON.stringify(require('./agents_as_tools').register(t.slice(12).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/equipment-add ')) { const p = t.slice(14).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./equipment_registry').add(p[0], p[1] || 'tool'))); rl.prompt(); return; }
+      if (t === '/equipment') { console.log(JSON.stringify(require('./equipment_registry').list(), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/tool-state ')) { const p = t.slice(12).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./tool_state').set(p[0], p[1] || 'default', JSON.parse(p[2] || '{}')))); rl.prompt(); return; }
       if (t === '/tool-eval') { const tools = require('./tools/registry').assemble({ includeCoding: true }); console.log(JSON.stringify(require('./tool_eval').grade(tools), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/config-matrix') { console.log(JSON.stringify(require('./config_matrix').all(), null, 2).slice(0, 1500)); rl.prompt(); return; }

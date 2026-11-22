@@ -132,6 +132,12 @@ function open(dbPath) {
     function v22() {
       db.exec(`CREATE TABLE IF NOT EXISTS identities (id TEXT PRIMARY KEY, agent TEXT, grants TEXT, created TEXT)`);
     },
+    function v23() {
+      db.exec(`CREATE TABLE IF NOT EXISTS mcp_pins (name TEXT PRIMARY KEY, hash TEXT, created TEXT)`);
+    },
+    function v24() {
+      db.exec(`CREATE TABLE IF NOT EXISTS equipment (name TEXT PRIMARY KEY, created TEXT, data TEXT)`);
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();

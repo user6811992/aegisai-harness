@@ -3,9 +3,9 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.41 (41 milestones; v0.40 was roadmap-only). v0.41 built the H-feasibility v0.40 items: tool state, tool eval, evolution search, config matrix, migration recipes, confidence memory, event-sourced replay, context reset, identity audit, 5-layer spans, evidence bundles, and composable APIs. 37 issues closed, 124 tests passing.
+- **Shipped:** v0.1–v0.43 (43 milestones; v0.42 was roadmap-only). v0.43 built the H-feasibility v0.42 items: session briefs, deterministic compaction, error recovery, chaos testing, silent-failure detection, honesty scoring, boundary benchmarks, replay guards, MCP pinning, Merkle roots, readiness audits, trajectory monitor, cost/convergence routing, tool contracts, agents-as-tools, and equipment registry. 38 issues closed, 138 tests passing.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
-- **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel.
+- **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
 
 ## Completed milestones
@@ -48,6 +48,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.38 DiggerHQ integrations** — Slack gateway, outbound WS bridge, serverless functions, rootless Podman, PR review, CI resolver, CVE reachability.
 - **v0.39 Remaining deferred cleared** — simulated browser, plugin UI, 5-layer security, layer registry, Markdown governance, trace export, native adapters.
 - **v0.41 Tool systems & evidence** — tool state/eval, evolution search, config matrix, migration recipes, confidence memory, event replay, context reset, identity audit, 5-layer spans, evidence bundles, composable APIs.
+- **v0.43 Reliability & verification** — session briefs, deterministic compaction, error recovery, chaos, silent-failure, honesty, boundary bench, replay guard, MCP pinning, Merkle, readiness, trajectory UI, cost routing, tool contracts, agents-as-tools, equipment registry.
 
 ## Active backlog by theme
 
@@ -319,29 +320,29 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
 
 ### Session & context
-- [ ] Auto session brief on return (analyze logs → summary) (harness-mem) — **H**
-- [ ] Zero-LLM deterministic compaction: query-aware, fail-open, keep errors, recoverable originals (tameru) — **H**
-- [ ] Multi-turn automated error recovery policy (ample-insight) — **H**
-- [ ] Config version control for harness configs (aVer) — **H** (git_state)
+- [x] Auto session brief on return — src/session_brief.js — **H**
+- [x] Zero-LLM deterministic compaction — src/deterministic_compact.js — **H**
+- [x] Multi-turn automated error recovery policy — src/error_recovery.js — **H**
+- [x] Config version control for harness configs — src/git_state.js — **H**
 ### Testing & reliability
-- [ ] Chaos testing: inject failing tools + stale state, grade recovery (agent-test-harness) — **H**
-- [ ] Silent-failure detection: tool reports success but wrong outcome (sermtech case studies) — **H** (verifier)
-- [ ] Agent honesty scoring: final claim vs tool actions (agent-honesty-harness) — **H**
-- [ ] Agent boundary/overreach benchmark + capability gateway (co2water) — **H**
-- [ ] Replay protection + cancellation tokens (AgentHarnessDemo) — **H**
+- [x] Chaos testing with fault injection — src/chaos.js — **H**
+- [x] Silent-failure detection — src/silent_failure.js — **H**
+- [x] Agent honesty scoring — src/honesty.js — **H**
+- [x] Agent boundary/overreach benchmark — src/boundary_bench.js — **H**
+- [x] Replay protection + cancellation tokens — src/replay_guard.js — **H**
 ### Security & governance
-- [ ] MCP server pinning (hash config, detect drift) (aiguard) — **H**
-- [ ] Merkle-tree root verification for audit ledger (OpenAgentLock) — **H**
-- [ ] Project agent-readiness audit (AGENTS.md/context/eval) (rulebased-io) — **H** (harness_lint)
+- [x] MCP server pinning — src/mcp_pinning.js — **H**
+- [x] Merkle-tree root verification — src/merkle.js — **H**
+- [x] Project agent-readiness audit — src/readiness_audit.js — **H**
 ### Observability & interfaces
-- [ ] Live trajectory monitor page: tool calls/tokens/context (agent-trajectory) — **H** (SSE)
-- [ ] Cost-aware routing + convergence loops (aieos) — **H** (extends router)
-- [ ] Tool contract export: discoverable/runnable/skill-exportable (agent-tool-harness) — **H**
+- [x] Live trajectory monitor page — public/trajectory.html — **H**
+- [x] Cost-aware routing + convergence loops — src/cost_routing.js — **H**
+- [x] Tool contract export — src/tool_contract.js — **H**
 ### Orchestration & resources
-- [ ] Agents-as-tools registration (agents-as-tools starter) — **H**
+- [x] Agents-as-tools registration — src/agents_as_tools.js — **H**
 - [ ] Shared heavyweight tool/device/cache broker across tenants (agent-runtime-harness) — **M**
 ### Registries
-- [ ] Harness equipment registry with tested-vs-catalogued verdicts (harness-registry) — **H**
+- [x] Harness equipment registry with tested verdicts — src/equipment_registry.js — **H**
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
