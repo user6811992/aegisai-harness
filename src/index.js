@@ -70,6 +70,13 @@ async function main() {
   const actionGuardFlag = args.includes('--action-guard');
   const rpcFlag = args.includes('--rpc');
   const acpFlag = args.includes('--acp');
+  const mcpServerFlag = args.includes('--mcp-server');
+
+  if (mcpServerFlag) {
+    const port = parseInt(process.env.AEGISAI_MCP_PORT || '3001', 10);
+    require('./mcp_server').start(port, process.env.HOST || '127.0.0.1');
+    return;
+  }
 
   if (acpFlag) {
     const acp = require('./acp').createServer();
@@ -202,6 +209,10 @@ async function main() {
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
         const tokens = tokenizer.countMessages(sessions.get(sid) || []);
         sendJson(res, 200, { tokens, limit: 8192, ratio: +(tokens / 8192).toFixed(3), compacted: (lastToolLog || []).some((t) => t.name === '__compact__') });
+        return;
+      }
+      if (req.url.split('?')[0] === '/mcp') {
+        require('./mcp_server').createHandler()(req, res);
         return;
       }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/plugins') {
@@ -531,6 +542,13 @@ async function main() {
       if (t === '/trace-status') { console.log(JSON.stringify(require('./trace_export').status(), null, 2)); rl.prompt(); return; }
       if (t === '/native-adapters') { console.log(JSON.stringify(require('./native_adapters').status(), null, 2)); rl.prompt(); return; }
       if (t === '/plugins-ui') { console.log('Open /plugins.html in the web UI (--web)'); rl.prompt(); return; }
+      if (t === '/conformance') { const tools = require('./mcp_server').toolsList().map((x) => ({ name: x.name, description: x.description, inputSchema: x.inputSchema })); const resources = require('./mcp_server').resourcesList().map((x) => ({ uri: x.uri, name: x.name })); const prompts = require('./mcp_server').promptsList().map((x) => ({ name: x.name, arguments: x.arguments })); const r = require('./mcp_conformance').run({ tools, resources, prompts }); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/mcpb-install ')) { console.log(JSON.stringify(require('./mcpb').install(t.slice(14).trim()))); rl.prompt(); return; }
+      if (t === '/mcpb-list') { console.log(JSON.stringify(require('./mcpb').list(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t === '/mcp-skills') { console.log(JSON.stringify(require('./mcp_skills').list())); rl.prompt(); return; }
+      if (t.startsWith('/intercept ')) { const id = require('./mcp_interceptors').register(async () => ({ ok: true }), { phase: t.slice(11).trim() || 'pre' }); console.log('registered', id); rl.prompt(); return; }
+      if (t === '/interceptors') { console.log(JSON.stringify(require('./mcp_interceptors').interceptors.map((i) => i.id + ':' + i.phase))); rl.prompt(); return; }
+      if (t.startsWith('/mcp-upload ')) { console.log(JSON.stringify(require('./mcp_file_uploads').store({ data: t.slice(12).trim(), filename: 'upload.txt' }))); rl.prompt(); return; }
       if (t === '/slack-status') { console.log(JSON.stringify(require('./slack_gateway').status(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/slack-handle ')) { const r = await require('./slack_gateway').handle({ text: t.slice(13).trim(), channel: 'mock', user: 'mock' }); console.log(JSON.stringify(r, null, 2).slice(0, 1000)); rl.prompt(); return; }
       if (t === '/ws-status') { console.log(JSON.stringify(require('./ws_bridge').status(), null, 2)); rl.prompt(); return; }

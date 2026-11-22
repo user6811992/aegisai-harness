@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.47 (47 milestones). v0.47 added Streamable HTTP MCP server mode: exposes the harness as an MCP server with tools/resources/prompts, JSON-RPC 2.0 dispatch, session management, and `--mcp-server` flag + `/mcp` web endpoint. 42 issues closed, 164 tests passing. The harness is now both an MCP client and an MCP server.
+- **Shipped:** v0.1–v0.48 (48 milestones). v0.48 ported the buildable MCP protocol extensions from the modelcontextprotocol org: conformance testing, MCP Apps, Tasks, .mcpb desktop bundles, interceptors, file uploads, and Skills over MCP. 43 issues closed, 171 tests passing. The harness now implements the full MCP extension surface.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -52,6 +52,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.44 App-parity gaps** — rich chat UI, memory RAG/auto-extract, model discovery, lenient parsing, SSRF guard, context meter, UI config, default skills, squeeze.
 - **v0.45 Full app parity** — keyless engines (7), simulated approval, citations, netvein adapter, vision input, proxy abort, RE index, AST chunking, remote-access docs.
 - **v0.46 MCP reference servers** — sequential thinking, fetch_url, time tool, MCP registry browser, Everything test fixture.
+- **v0.47 MCP protocol extensions** — conformance, MCP Apps, Tasks, .mcpb bundles, interceptors, file uploads, Skills over MCP.
 
 ## Active backlog by theme
 
@@ -399,13 +400,13 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
 
 ### MCP protocol extensions (high value, buildable)
-- [ ] MCP Inspector / conformance testing — validate our MCP server against the spec (modelcontextprotocol/inspector, conformance) — **H**
-- [ ] MCP Apps protocol — render UIs embedded in chat served by MCP servers (modelcontextprotocol/ext-apps) — **H** (we have web UI)
-- [ ] MCP Tasks extension — long-running operations via MCP (modelcontextprotocol/ext-tasks) — **H** (we have async tools)
-- [ ] Desktop extensions (.mcpb) — one-click local MCP server install bundles (modelcontextprotocol/mcpb) — **H** (we have config_installer)
-- [ ] Interceptors extension — pre/post tool-call hooks at protocol level (modelcontextprotocol/experimental-ext-interceptors, SEP-2624) — **H** (we have hooks)
-- [ ] File uploads extension — upload files to tools over MCP (modelcontextprotocol/experimental-ext-file-uploads) — **H**
-- [ ] Skills over MCP — discover/distribute skills via MCP primitives (modelcontextprotocol/ext-skills) — **H** (we have skills)
+- [x] MCP conformance testing — src/mcp_conformance.js — **H**
+- [x] MCP Apps protocol — src/mcp_apps.js — **H**
+- [x] MCP Tasks extension — src/mcp_tasks.js — **H**
+- [x] Desktop extensions (.mcpb) — src/mcpb.js — **H**
+- [x] Interceptors extension — src/mcp_interceptors.js — **H**
+- [x] File uploads extension — src/mcp_file_uploads.js — **H**
+- [x] Skills over MCP — src/mcp_skills.js — **H**
 ### Lower priority / platform
 - [ ] Filesystem Resources extension (modelcontextprotocol/experimental-ext-filesystems) — **M**
 - [ ] Variants extension (modelcontextprotocol/experimental-ext-variants) — **M**
