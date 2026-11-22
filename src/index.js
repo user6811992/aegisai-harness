@@ -73,6 +73,19 @@ async function main() {
   const rpcFlag = args.includes('--rpc');
   const acpFlag = args.includes('--acp');
   const mcpServerFlag = args.includes('--mcp-server');
+  const tuiFlag = args.includes('--tui');
+
+  if (tuiFlag) {
+    const tui = require('./tui').launch({ title: 'AegisAi Harness TUI', status: 'ready' });
+    tui.on('command', async (cmd) => {
+      if (!cmd) return;
+      try {
+        const r = await runAgent({ model: process.env.AEGISAI_MODEL || 'llama3.2:3b', messages: [{ role: 'user', content: cmd }], projectRoot: root, autoApprove: true, onEvent: () => {} });
+        tui.addMessage('assistant', (r.final && r.final.final) || '(no reply)');
+      } catch (e) { tui.addMessage('assistant', 'Error: ' + (e.message || e)); }
+    });
+    return;
+  }
 
   if (mcpServerFlag) {
     const port = parseInt(process.env.AEGISAI_MCP_PORT || '3001', 10);
@@ -584,6 +597,13 @@ async function main() {
       if (t.startsWith('/mcp-search ')) { console.log(JSON.stringify(await require('./mcp_search').search(t.slice(12).trim()))); rl.prompt(); return; }
       if (t.startsWith('/mcp-registry-full ')) { const r = await require('./mcp_registry').fetchRegistry({ query: t.slice(19).trim(), limit: 5 }); console.log(JSON.stringify(r, null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/mcp-preset ')) { console.log(JSON.stringify(require('./mcp_presets').buildPresets(t.slice(12).trim().split(/\s+/), process.cwd()), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t.startsWith('/lsp-start ')) { console.log(JSON.stringify(require('./lsp').start(t.slice(11).trim(), root))); rl.prompt(); return; }
+      if (t === '/lsp-list') { console.log(JSON.stringify(require('./lsp').list())); rl.prompt(); return; }
+      if (t.startsWith('/lsp-hover ')) { const p = t.slice(11).trim().split(/\s+/); console.log(JSON.stringify(await require('./lsp').hover(p[0], p[1], Number(p[2] || 1), Number(p[3] || 1)))); rl.prompt(); return; }
+      if (t.startsWith('/lsp-def ')) { const p = t.slice(9).trim().split(/\s+/); console.log(JSON.stringify(await require('./lsp').definition(p[0], p[1], Number(p[2] || 1), Number(p[3] || 1)))); rl.prompt(); return; }
+      if (t.startsWith('/lsp-open ')) { const p = t.slice(10).trim().split(/\s+/); console.log(JSON.stringify(require('./lsp').openDocument(p[0], p[1]))); rl.prompt(); return; }
+      if (t.startsWith('/lsp-diag ')) { console.log(JSON.stringify(require('./lsp').allDiagnostics(t.slice(11).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/lsp-stop ')) { console.log(JSON.stringify(require('./lsp').stop(t.slice(10).trim()))); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }

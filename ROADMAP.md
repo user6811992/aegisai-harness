@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.56 (56 milestones). v0.56 ported the remaining aegisai-next unique modules: swarm orchestration, dependency patch proposals, phase-based long-horizon tasks, bug-hunting flow, awesome-re 17k index, MCP presets, vuln-patterns library, markdown memory, and metrics. 50 issues closed, 204 tests passing. The harness now contains essentially all of aegisai-next's capabilities.
+- **Shipped:** v0.1–v0.58 (58 milestones). v0.57: final polish (Tailwind CDN, pdf-parse, Windows installer, README, aegisai-next deprecated, repo public). v0.58: TUI (multi-pane terminal workbench) + LSP integration (hover, definition, completion, diagnostics). 51 issues closed, 219 tests passing. The harness now matches OpenCode/Claude Code on TUI + LSP.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -60,6 +60,8 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.54 RE tooling native** — REA, Ghidra, Craft native modules + expanded RE index (30+ entries, categories, online search).
 - **v0.55 Preact web UI** — component-based chat, config modal, context meter, dark/light theme, Markdown/code/thinking blocks.
 - **v0.56 aegisai-next parity** — swarm, patch, task, hunt, awesome-re, mcp-presets, vuln-patterns, markdown-memory, metrics.
+- **v0.57 Final polish** — Tailwind CDN, pdf-parse, Windows installer, README rewrite, aegisai-next deprecated, repo public.
+- **v0.58 TUI + LSP** — multi-pane terminal workbench + LSP client (hover, definition, completion, diagnostics, didOpen).
 
 ## Active backlog by theme
 
@@ -438,7 +440,8 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [x] GitHub webhook event-driven agents — src/github_webhooks.js — **M**
 - [x] Personal access tokens + stream actions — src/access_tokens.js — **H**
 - [x] Token usage dashboard — src/token_dashboard.js — **H**
-- [ ] Terminal workbench (TUI) (deer-flow "Terminal Workbench") — **M** (we have REPL)
+- [x] Terminal workbench (TUI) — src/tui.js — **M** (multi-pane readline TUI with status bar, chat, sidebar, command palette)
+- [x] LSP integration — src/lsp.js — **M** (JSON-RPC LSP client: hover, definition, completion, diagnostics, didOpen)
 ### Proof of work (symphony)
 - [x] "Proof of work" artifact — src/proof_of_work.js — **H**
 - [ ] Spec-driven autonomous runs with isolated worktrees (symphony) — **H** (we have DAG + task_board)
