@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.52 (52 milestones). v0.52 ported the deer-flow M-feasibility items: IM channel adapters (Telegram/Discord), GitHub webhook event-driven agents, file attachments, and knowledge-graph memory exposed via MCP. 46 issues closed, 184 tests passing.
+- **Shipped:** v0.1–v0.53 (53 milestones). v0.53 cleared the remaining doable deferred items: private knowledge base, DingTalk/Feishu channels, Office preview, PAT stream actions, filesystem resources, variants, tool annotations, and access management IaC. 47 issues closed, 190 tests passing. The actionable backlog is now truly empty.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -56,6 +56,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.50 Session goals & tokens** — session goals, access tokens, token dashboard, proof-of-work, approval modes.
 - **v0.51 Projects & memory** — projects with document shelf, hippocampus memory, skill factory, UI replay, embedded Python client.
 - **v0.52 IM & integrations** — Telegram/Discord channels, GitHub webhooks, file attachments, graph memory via MCP.
+- **v0.53 Final deferred cleared** — private KB, DingTalk/Feishu, Office preview, stream actions, fs resources, variants, annotations, access IaC.
 
 ## Active backlog by theme
 

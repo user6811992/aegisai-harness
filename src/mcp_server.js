@@ -12,7 +12,7 @@ function toolsList() {
   const tools = assemble({ includeCoding: true, toolBudget: 64, allowedTools: null, deniedTools: null, externalTools: [], offline: process.env.AEGISAI_OFFLINE === 'true' });
   const out = tools.map((t) => {
     const f = t.function || t;
-    return { name: f.name, description: f.description || '', inputSchema: f.parameters || { type: 'object', properties: {} } };
+    return { name: f.name, description: f.description || '', inputSchema: f.parameters || { type: 'object', properties: {} }, annotations: require('./tool_annotations').annotate(f.name) };
   });
   out.push({ name: 'fetch_url', description: 'Fetch a URL and return its content as Markdown.', inputSchema: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] } });
   out.push({ name: 'sequential_thinking', description: 'Structured reflective thinking.', inputSchema: { type: 'object', properties: { thought: { type: 'string' } } } });

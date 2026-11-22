@@ -206,6 +206,11 @@ async function main() {
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/stream') {
+        const u = new URL(req.url, 'http://x');
+        require('./stream_actions').stream(u.searchParams.get('token'), u.searchParams.get('prompt') || '', res, { projectRoot: process.cwd() });
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/context') {
         const tokenizer = require('./tokenizer');
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
@@ -548,6 +553,11 @@ async function main() {
       if (t.startsWith('/gh-webhook ')) { const p = t.slice(12).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(await require('./github_webhooks').handle(p[0], JSON.parse(p[1] || '{}')))); rl.prompt(); return; }
       if (t.startsWith('/attach ')) { console.log(JSON.stringify(require('./file_attachments').saveAttachment(t.slice(8).trim(), ''))); rl.prompt(); return; }
       if (t === '/attachments') { console.log(JSON.stringify(require('./file_attachments').list(), null, 2).slice(0, 1200)); rl.prompt(); return; }
+      if (t.startsWith('/kb-add ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./private_kb').add(p[0], p[1] || ''))); rl.prompt(); return; }
+      if (t.startsWith('/kb-search ')) { console.log(JSON.stringify(require('./private_kb').search(t.slice(11).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t.startsWith('/office-preview ')) { console.log(JSON.stringify(require('./office_preview').preview(t.slice(16).trim()), null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/fs-resources ')) { console.log(JSON.stringify(require('./fs_resources').list(t.slice(14).trim() || process.cwd()).slice(0, 20), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/stream-action ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log('use /stream-action via HTTP: GET /api/stream?token=...&prompt=...'); rl.prompt(); return; }
       if (t.startsWith('/session-brief ')) { console.log(JSON.stringify(require('./session_brief').brief(t.slice(14).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/det-compact ')) { const r = require('./deterministic_compact').compact([{ role: 'tool', content: t.slice(13).trim() }]); console.log(JSON.stringify({ originalsId: r.originalsId, compacted: r.compacted })); rl.prompt(); return; }
       if (t.startsWith('/recover-decide ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./error_recovery').decide(p[0], Number(p[1] || 0)))); rl.prompt(); return; }
