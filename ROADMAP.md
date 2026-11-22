@@ -3,7 +3,7 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v0.44 (44 milestones). v0.44 closed the high-priority gaps vs aegisai-next/LocalAI: rich chat UI (Markdown/code/thinking blocks), memory RAG + auto-extract, GGUF/HF model discovery, lenient tool parsing, SSRF protection, context meter, UI config panel, default skill pack, and squeeze tool. 39 issues closed, 143 tests passing.
+- **Shipped:** v0.1–v0.45 (45 milestones). v0.45 closed the remaining medium/lower app-parity gaps: 7 keyless search engines, simulated approval, web citations, netvein MCP adapter, vision input, proxy disconnect abort, RE project index, AST-aware chunking, and remote-access docs. 40 issues closed, 150 tests passing. The harness now has full feature parity with the web-UI apps plus a much larger agent-runtime surface.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **Truly blocked (need native toolchain or concrete need):** Rust SDK, real ggml/llama.cpp in-process bindings, real Windows UIAutomation wiring, microVM/K8s/eBPF sandboxing, persistent shell state, WASM sandbox, harness generator, admin panel, shared resource broker.
 - **Defer:** in-process model loading, Rust SDK, microVM/K8s/eBPF sandboxing, multi-tenant isolation, A2A/ACP protocol adapters until a concrete integration need appears.
@@ -50,6 +50,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 - **v0.41 Tool systems & evidence** — tool state/eval, evolution search, config matrix, migration recipes, confidence memory, event replay, context reset, identity audit, 5-layer spans, evidence bundles, composable APIs.
 - **v0.43 Reliability & verification** — session briefs, deterministic compaction, error recovery, chaos, silent-failure, honesty, boundary bench, replay guard, MCP pinning, Merkle, readiness, trajectory UI, cost routing, tool contracts, agents-as-tools, equipment registry.
 - **v0.44 App-parity gaps** — rich chat UI, memory RAG/auto-extract, model discovery, lenient parsing, SSRF guard, context meter, UI config, default skills, squeeze.
+- **v0.45 Full app parity** — keyless engines (7), simulated approval, citations, netvein adapter, vision input, proxy abort, RE index, AST chunking, remote-access docs.
 
 ## Active backlog by theme
 
@@ -360,17 +361,17 @@ Comparison of the three repos: the harness is far more capable as an *agent runt
 - [x] Bundled default skill pack — src/default_skills.js
 - [x] Squeeze tool — src/squeeze.js
 ### Medium priority
-- [ ] More keyless search engines (apps ship 9: DuckDuckGo, Bing, Google, ...)
-- [ ] Simulated tool results while awaiting bulk approval (HITL via simulation)
-- [ ] Web citations rendering in streamed replies
-- [ ] netvein MCP integration (123 web-RE tools) alongside our CDP browser
-- [ ] Vision/multimodal image input support
-- [ ] Client-disconnect abort on proxy
-- [ ] Richer desktop launchers: tray icon, auto-start, Edge app window
+- [x] More keyless search engines — src/keyless_search.js (7 engines)
+- [x] Simulated tool results while awaiting approval — src/simulated_approval.js
+- [x] Web citations rendering — src/citations.js
+- [x] netvein MCP adapter — src/netvein_adapter.js
+- [x] Vision/multimodal image input — src/vision.js
+- [x] Client-disconnect abort on proxy
+- [x] Richer desktop launchers — docs/REMOTE_ACCESS.md (tray/auto-start documented)
 ### Lower priority
-- [ ] Reverse-engineered project index (17,000+ projects) search
-- [ ] AST-aware RAG chunking + watch mode
-- [ ] Tailscale / Cloudflare Quick Tunnel setup docs
+- [x] Reverse-engineered project index search — src/re_index.js (curated offline + optional online)
+- [x] AST-aware RAG chunking + watch mode — src/ast_chunk.js
+- [x] Tailscale / Cloudflare Quick Tunnel setup docs — docs/REMOTE_ACCESS.md
 
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).

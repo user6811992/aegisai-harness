@@ -372,10 +372,14 @@ async function main() {
     const server = http.createServer(async (req, res) => {
       if (req.method === 'POST' && req.url.includes('/chat/completions')) {
         let body = '';
+        let aborted = false;
+        req.on('aborted', () => { aborted = true; });
+        req.on('close', () => { if (!req.complete) aborted = true; });
         req.on('data', (c) => { body += c; });
         req.on('end', async () => {
           try {
             const parsed = JSON.parse(body);
+            if (aborted) return;
             const result = await runAgent({
               model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
               messages: parsed.messages || [],
@@ -468,6 +472,15 @@ async function main() {
       if (t.startsWith('/browser-nav ')) { const r = await require('./integrations/browser').handle('browser_navigate', { url: t.slice(13).trim() }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/browser-snapshot') { const r = await require('./integrations/browser').handle('browser_snapshot', {}); console.log(r.output); rl.prompt(); return; }
       if (t.startsWith('/browser-eval ')) { const r = await require('./integrations/browser').handle('browser_eval', { expression: t.slice(14).trim() }); console.log(r.output); rl.prompt(); return; }
+      if (t.startsWith('/search-engines ')) { const r = await require('./keyless_search').search(t.slice(16).trim(), undefined, 8); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t === '/engines') { console.log(JSON.stringify(require('./keyless_search').ENGINES.map((e) => e.name))); rl.prompt(); return; }
+      if (t.startsWith('/sim-approve ')) { const p = t.slice(13).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./simulated_approval').queue(p[0], p[1] || 'tool', {}))); rl.prompt(); return; }
+      if (t.startsWith('/sim-result ')) { console.log(JSON.stringify(require('./simulated_approval').simulate(t.slice(12).trim()))); rl.prompt(); return; }
+      if (t.startsWith('/citations ')) { console.log(JSON.stringify(require('./citations').render(t.slice(11).trim()), null, 2)); rl.prompt(); return; }
+      if (t === '/netvein-status') { console.log(JSON.stringify(require('./netvein_adapter').status(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/vision-test ')) { console.log(JSON.stringify(require('./vision').imageMessage(t.slice(13).trim(), []))); rl.prompt(); return; }
+      if (t.startsWith('/re-index ')) { console.log(JSON.stringify(require('./re_index').search(t.slice(10).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
+      if (t === '/ast-chunks') { const c = require('./ast_chunk').chunkProject(root, 5); console.log(JSON.stringify(c.slice(0, 3), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t.startsWith('/mem-search ')) { console.log(JSON.stringify(require('./memory_rag').search(t.slice(12).trim()), null, 2).slice(0, 1500)); rl.prompt(); return; }
       if (t === '/mem-reindex') { console.log(JSON.stringify(require('./memory_rag').reindex())); rl.prompt(); return; }
       if (t.startsWith('/mem-extract ')) { console.log(JSON.stringify(await require('./memory_extract').extract([{ role: 'user', content: t.slice(13).trim() }]), null, 2).slice(0, 1200)); rl.prompt(); return; }
