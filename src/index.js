@@ -27,8 +27,7 @@ function askApproval(name, args) {
 }
 
 async function main() {
-  const args = process.argv.slice(2);
-  if (args.includes('--version') || args.includes('-v')) {
+  if (process.argv.includes('--version') || process.argv.includes('-v')) {
     console.log(require('../package.json').version);
     process.exit(0);
   }
