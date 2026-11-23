@@ -27,6 +27,11 @@ function askApproval(name, args) {
 }
 
 async function main() {
+  const args = process.argv.slice(2);
+  if (args.includes('--version') || args.includes('-v')) {
+    console.log(require('../package.json').version);
+    process.exit(0);
+  }
   await detectBackend();
   logger.info('backend', { type: getType(), url: getUrl() });
   try {
@@ -452,7 +457,7 @@ async function main() {
   }
 
   if (args.length === 0 || replFlag) {
-    console.log('AegisAi Harness v0.3.0 REPL. Type /exit to quit, /help for commands.');
+    console.log('AegisAi Harness v' + require('../package.json').version + ' REPL. Type /exit to quit, /help for commands.');
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: 'harness> ' });
     let model = process.env.AEGISAI_MODEL || 'llama3.2:3b';
     let root = process.cwd();
