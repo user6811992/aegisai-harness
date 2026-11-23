@@ -63,11 +63,14 @@ function OnboardingWizard({ onComplete }) {
   const steps = ['Welcome', 'Backend', 'Model', 'Security', 'Done'];
 
   async function finish() {
-    const body = { BACKEND_TYPE: backend };
-    if (token) body.AEGISAI_TOKEN = token;
-    await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
-    localStorage.setItem('onboarded', '1');
-    toast('Setup complete! Welcome to AegisAi Harness.', 'success');
+    try {
+      const body = { BACKEND_TYPE: backend };
+      if (token) body.AEGISAI_TOKEN = token;
+      await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    } catch (e) {
+      console.error('config save failed:', e);
+    }
+    try { localStorage.setItem('onboarded', '1'); } catch (e) {}
     onComplete();
   }
 
