@@ -1,0 +1,10 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+const log = execSync('gh run view 45090685978 --log', { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+const lines = log.split(/\r?\n/);
+const errors = lines.filter((l) => /npm error/i.test(l));
+console.log('npm errors:', errors.length);
+errors.forEach((l) => console.log(l.slice(0, 200)));
+const publishLines = lines.filter((l) => l.includes('+ aegisai-harness@'));
+console.log('publish output:', publishLines.length);
+publishLines.forEach((l) => console.log(l.slice(0, 100)));
