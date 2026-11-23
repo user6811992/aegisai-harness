@@ -2,13 +2,13 @@
 ; Build with: iscc packaging\windows\installer.iss
 [Setup]
 AppName=AegisAi Harness
-AppVersion=0.56.0
+AppVersion=0.67.3
 AppPublisher=AegisAi
 AppPublisherURL=https://github.com/user6811992/aegisai-harness
 DefaultDirName={autopf}\AegisAiHarness
 DefaultGroupName=AegisAi Harness
 OutputDir=..\..\dist
-OutputBaseFilename=AegisAi-Harness-0.56.0-Setup
+OutputBaseFilename=AegisAi-Harness-0.67.3-Setup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest

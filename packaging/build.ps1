@@ -13,6 +13,13 @@ Write-Host "Building AegisAi Harness v$Version" -ForegroundColor Cyan
 
 New-Item -ItemType Directory -Force -Path dist | Out-Null
 
+# Update version in installer.iss
+$issPath = "packaging\windows\installer.iss"
+$iss = Get-Content $issPath -Raw
+$iss = $iss -replace 'AppVersion=\d+\.\d+\.\d+', "AppVersion=$Version"
+$iss = $iss -replace 'OutputBaseFilename=AegisAi-Harness-[\d.]+-Setup', "OutputBaseFilename=AegisAi-Harness-$Version-Setup"
+Set-Content $issPath $iss
+
 if ($Binary -or (-not $Installer)) {
   Write-Host "Building standalone binary..." -ForegroundColor Yellow
   npx --yes @yao-pkg/pkg@5 src/index.js --targets node22-win-x64 --output "dist\aegisai-harness-$Version.exe"
