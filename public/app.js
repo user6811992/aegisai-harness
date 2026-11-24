@@ -156,15 +156,111 @@ function ConfigModal({ cfg, setCfg, onClose }) {
     onClose();
   }
   const keys = ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN', 'sttUrl', 'ttsUrl'];
+  const [tab, setTab] = useState('config');
+  const [models, setModels] = useState([]);
+  const [scanResults, setScanResults] = useState([]);
+  const [hfQuery, setHfQuery] = useState('');
+  const [hfResults, setHfResults] = useState([]);
+  const [scanning, setScanning] = useState(false);
+  const [searching, setSearching] = useState(false);
+
+  useEffect(() => {
+    if (tab === 'models') {
+      API('/api/models').then((d) => setModels(d.models || [])).catch(() => {});
+    }
+  }, [tab]);
+
+  async function scanDrives() {
+    setScanning(true);
+    try {
+      const d = await API('/api/models/scan');
+      setScanResults(d.models || []);
+      toast('Found ' + (d.models || []).length + ' GGUF models', 'success');
+    } catch (e) { toast('Scan failed: ' + e.message, 'error'); }
+    setScanning(false);
+  }
+
+  async function searchHF() {
+    if (!hfQuery.trim()) return;
+    setSearching(true);
+    try {
+      const d = await API('/api/models/hf-search?q=' + encodeURIComponent(hfQuery));
+      setHfResults(d.results || []);
+      toast('Found ' + (d.results || []).length + ' models', 'info');
+    } catch (e) { toast('Search failed: ' + e.message, 'error'); }
+    setSearching(false);
+  }
+
+  async function pullModel(name) {
+    toast('Pulling ' + name + '...', 'info');
+    try {
+      const r = await fetch('/api/models/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: name }) });
+      const d = await r.json();
+      if (d.ok) toast('Pulled ' + name + ' successfully', 'success');
+      else toast('Pull failed: ' + (d.error || 'unknown'), 'error');
+      const m = await API('/api/models');
+      setModels(m.models || []);
+    } catch (e) { toast('Pull failed: ' + e.message, 'error'); }
+  }
+
   return html`
     <div class="modal-backdrop" onClick=${onClose}>
-      <div class="modal" onClick=${(e) => e.stopPropagation()}>
-        <h2>Configuration</h2>
-        ${keys.map((k) => html`
-          <label>${k}
-            <input value=${local[k] || ''} onInput=${(e) => setLocal({ ...local, [k]: e.target.value })} />
-          </label>
-        `)}
+      <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
+        <h2>Configuration & Models</h2>
+        <div class="tab-bar">
+          <button class=${'tab' + (tab === 'config' ? ' active' : '')} onClick=${() => setTab('config')}>Config</button>
+          <button class=${'tab' + (tab === 'models' ? ' active' : '')} onClick=${() => setTab('models')}>Models</button>
+          <button class=${'tab' + (tab === 'discover' ? ' active' : '')} onClick=${() => setTab('discover')}>Discover</button>
+        </div>
+        ${tab === 'config' ? html`
+          ${keys.map((k) => html`
+            <label>${k}
+              <input value=${local[k] || ''} onInput=${(e) => setLocal({ ...local, [k]: e.target.value })} />
+            </label>
+          `)}
+        ` : null}
+        ${tab === 'models' ? html`
+          <div class="model-list">
+            <h3>Installed Models</h3>
+            ${models.length === 0 ? html`<p class="hint">No models found. Start Ollama and refresh.</p>` : null}
+            ${models.map((m) => html`
+              <div class="model-item">
+                <span class="model-name">${m.name || m}</span>
+                <button class="btn-sm" onClick=${() => { setLocal({ ...local, AEGISAI_MODEL: m.name || m }); toast('Selected ' + (m.name || m), 'info'); }}>Use</button>
+              </div>
+            `)}
+            <button class="btn-secondary" onClick=${() => API('/api/models').then((d) => setModels(d.models || []))}>Refresh</button>
+          </div>
+        ` : null}
+        ${tab === 'discover' ? html`
+          <div class="discover-section">
+            <h3>Scan Drives for GGUF Models</h3>
+            <button class="btn-primary" onClick=${scanDrives} disabled=${scanning}>${scanning ? 'Scanning...' : 'Scan Drives'}</button>
+            ${scanResults.length > 0 ? html`
+              <div class="scan-results">
+                ${scanResults.slice(0, 20).map((m) => html`
+                  <div class="scan-item">${m.name} (${m.sizeGB} GB) <span class="hint">${m.path}</span></div>
+                `)}
+              </div>
+            ` : null}
+            <h3 style="margin-top: 16px">Search HuggingFace</h3>
+            <div class="search-bar">
+              <input value=${hfQuery} onInput=${(e) => setHfQuery(e.target.value)} placeholder="e.g. llama, mistral, phi" style="flex:1" />
+              <button class="btn-primary" onClick=${searchHF} disabled=${searching}>${searching ? 'Searching...' : 'Search'}</button>
+            </div>
+            ${hfResults.length > 0 ? html`
+              <div class="hf-results">
+                ${hfResults.map((m) => html`
+                  <div class="hf-item">
+                    <span class="model-name">${m.id}</span>
+                    <span class="hint">${m.downloads} downloads</span>
+                    <button class="btn-sm" onClick=${() => pullModel(m.id)}>Pull</button>
+                  </div>
+                `)}
+              </div>
+            ` : null}
+          </div>
+        ` : null}
         <div class="modal-actions">
           <button class="btn-primary" onClick=${save} disabled=${saving}>${saving ? 'Saving...' : 'Save'}</button>
           <button onClick=${onClose}>Close</button>

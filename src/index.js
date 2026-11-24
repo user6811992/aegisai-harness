@@ -238,6 +238,57 @@ async function main() {
           sendJson(res, 200, { models });
           return;
         }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/scan') {
+          const roots = new URL(req.url, 'http://x').searchParams.get('roots');
+          const rootList = roots ? roots.split(',') : undefined;
+          const found = require('./model_discovery').scan(rootList);
+          sendJson(res, 200, { models: found });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {
+          const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
+          let results = [];
+          try {
+            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&filter=gguf&sort=downloads&direction=-1&limit=20');
+            if (r.ok) {
+              const data = await r.json();
+              results = (Array.isArray(data) ? data : []).map((m) => ({
+                id: m.id || m.modelId,
+                downloads: m.downloads || 0,
+                likes: m.likes || 0,
+                tags: m.tags || [],
+              }));
+            }
+          } catch (e) {}
+          sendJson(res, 200, { results });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/scan') {
+          const roots = new URL(req.url, 'http://x').searchParams.get('roots');
+          const rootList = roots ? roots.split(',') : undefined;
+          const found = require('./model_discovery').scan(rootList);
+          sendJson(res, 200, { models: found });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {
+          const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
+          // Simple HuggingFace search via their API
+          let results = [];
+          try {
+            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&filter=gguf&sort=downloads&direction=-1&limit=20');
+            if (r.ok) {
+              const data = await r.json();
+              results = (Array.isArray(data) ? data : []).map((m) => ({
+                id: m.id || m.modelId,
+                downloads: m.downloads || 0,
+                likes: m.likes || 0,
+                tags: m.tags || [],
+              }));
+            }
+          } catch (e) {}
+          sendJson(res, 200, { results });
+          return;
+        }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/models/pull') {
           const parsed = await readJson(req);
           let ok = false;
