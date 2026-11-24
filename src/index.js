@@ -171,6 +171,11 @@ async function main() {
     }
 
     const server = http.createServer(async (req, res) => {
+      // CORS headers (needed for browser fetch with application/json content type)
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+      if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
       // auth (fixed-length comparison; token may change via /api/config)
       const expectedToken = currentToken();
       if (expectedToken) {
