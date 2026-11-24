@@ -95,6 +95,22 @@ async function detectBackend() {
       if (r.ok) { state.type = p.type; state.url = p.url; return; }
     } catch (e) {}
   }
+  // Auto-start Ollama if not running (unless disabled via AEGISAI_AUTO_START_OLLAMA=false)
+  if (!state.type && process.env.AEGISAI_AUTO_START_OLLAMA !== 'false') {
+    try {
+      const { spawn } = require('child_process');
+      const child = spawn('ollama', ['serve'], { detached: true, stdio: 'ignore', shell: true });
+      child.unref();
+      // Wait for Ollama to start (up to 10 seconds)
+      for (let i = 0; i < 10; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        try {
+          const r = await fetch('http://127.0.0.1:11434/api/version', { signal: AbortSignal.timeout(2000) });
+          if (r.ok) { state.type = 'ollama'; state.url = 'http://127.0.0.1:11434'; return; }
+        } catch (e) {}
+      }
+    } catch (e) {}
+  }
   if (!state.type) { state.type = 'ollama'; state.url = state.url || 'http://127.0.0.1:11434'; }
 }
 
