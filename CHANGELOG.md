@@ -2,6 +2,20 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [0.68.0] - 2026-11-23
+
+### Fixed
+- Installation: Windows installer now preflights Node.js 22.13+ with actionable messages; launcher no longer hides npm failures, uses `--omit=dev`, and records a dependency marker. Inno uninstall removes stale `node_modules`/lockfiles; `install.ps1` preserves `data/` and handles GitHub source zips.
+- Packaging: `package.json` is the single version source; CI checks version strings across installer/docs/changelog. Release workflow honors its `tag` input, derives versions from the tag, refuses mismatches, and publishes SHA-256 checksums. Standalone binary builds use pkg 6 + Node 24 targets and `--out-path` (pkg 5/node22 produced broken binaries).
+- Web UI: chat now posts `message` (server API field), onboarding actually applies the chosen model and auth token, token auth is read per request with a constant-time comparison, and tool auto-approval from the browser is opt-in (`AEGISAI_WEB_AUTO_APPROVE`).
+- TUI: fixed a temporal-dead-zone `root` reference that made `node src/index.js --tui` crash immediately.
+- Offline: Preact/htm/Tailwind are vendored under `public/vendor/`; service worker is registered, versioned, and caches all UI assets.
+- Security: static file serving rejects `../` and encoded traversal paths; new `src/http_utils.js` helper with tests.
+- npm global installs: added a shebang and a `preinstall` Node version guard so `npm i -g` fails clearly on unsupported runtimes instead of leaving a broken CLI.
+
+### Added
+- `scripts/check-version-consistency.js`, `scripts/check-node.js`, `docs/TROUBLESHOOTING.md`, and regression tests for entry points, web auth, path traversal, and UI wiring.
+
 ## [0.63.0] - 2026-11-22
 
 ### Added

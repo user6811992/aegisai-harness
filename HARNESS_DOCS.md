@@ -11,7 +11,7 @@ Layers:
 4. **Integrations** (`src/integrations`) — MCP client + security scanner, CDP browser (AX-first), REA/Ghidra/Craft.
 5. **Memory & context** — SQLite persistence, compaction + archive, source-bound/bi-temporal memory, context files, context filesystem, capsules.
 6. **Quality** — evals, benchmarks, harness score, reliability attribution, counterfactual optimizer, adversarial tests, CI template.
-7. **Interfaces** — CLI/REPL, `--web` UI, `--rpc`, OpenAI-compatible `--proxy`, JSON `--json`.
+7. **Interfaces** — CLI/REPL, `--web` UI, `--rpc`, OpenAI-compatible `--proxy`, JSON `--json`. The web UI's Preact/Tailwind assets are vendored in `public/vendor/` (no CDN), and the service worker caches them for offline restarts. Web chat does not auto-approve tool calls unless `AEGISAI_WEB_AUTO_APPROVE=true`.
 
 ## Guides
 

@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g. v0.66.0)'
+        description: 'Tag to release (e.g. v0.68.0)'
         required: true
 
 jobs:
@@ -13,20 +13,33 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
       - uses: actions/setup-node@v5
         with:
           node-version: 24
+      - name: Verify tag matches package.json
+        shell: pwsh
+        run: |
+          $tag = '${{ inputs.tag || github.ref_name }}'
+          $expected = $tag.TrimStart('v')
+          $actual = (Get-Content package.json | ConvertFrom-Json).version
+          if ($expected -ne $actual) { throw "Tag $tag does not match package.json version $actual" }
+          Write-Host "Releasing $tag"
       - run: npm test
+      - run: node scripts/check-version-consistency.js
       - run: node -e "const r=require('./src/harness_lint').lint(); if(!r.ok) process.exit(1)"
       - name: Build installer
         run: |
-          choco install innosetup -y
+          choco install innosetup -y --no-progress
           .\packaging\build.ps1 -Installer
-      - name: Upload installer
+      - name: Upload installer + checksum
         uses: actions/upload-artifact@v4
         with:
           name: installer
-          path: dist/*.exe
+          path: |
+            dist/*.exe
+            dist/*.sha256
 
   release:
     needs: build
@@ -42,6 +55,7 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ inputs.tag || github.ref_name }}
           files: dist/*
           generate_release_notes: true
           draft: false

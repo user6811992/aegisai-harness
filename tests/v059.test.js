@@ -1,4 +1,4 @@
-const test = require('node:test');
+const nodeTest = require('node:test');
 const assert = require('node:assert');
 const git = require('../src/git_integration');
 const os = require('os');
@@ -6,14 +6,18 @@ const path = require('path');
 const fs = require('fs');
 const { execSync } = require('child_process');
 
+const hasGit = (() => { try { execSync('git --version', { stdio: 'ignore' }); return true; } catch (e) { return false; } })();
+const test = hasGit ? nodeTest : ((name, fn) => nodeTest.skip(name + ' (git unavailable)', fn));
+
 const dir = path.join(os.tmpdir(), 'aegisai-v059-test');
-fs.mkdirSync(dir, { recursive: true });
-// init a git repo
-try { execSync('git init', { cwd: dir, stdio: 'ignore' }); } catch (e) {}
-try { execSync('git config user.email "t@t.com"', { cwd: dir, stdio: 'ignore' }); } catch (e) {}
-try { execSync('git config user.name "T"', { cwd: dir, stdio: 'ignore' }); } catch (e) {}
-fs.writeFileSync(path.join(dir, 'a.txt'), 'hello');
-execSync('git add -A && git commit -m "init"', { cwd: dir, stdio: 'ignore' });
+if (hasGit) {
+  fs.mkdirSync(dir, { recursive: true });
+  try { execSync('git init', { cwd: dir, stdio: 'ignore' }); } catch (e) {}
+  try { execSync('git config user.email "t@t.com"', { cwd: dir, stdio: 'ignore' }); } catch (e) {}
+  try { execSync('git config user.name "T"', { cwd: dir, stdio: 'ignore' }); } catch (e) {}
+  fs.writeFileSync(path.join(dir, 'a.txt'), 'hello');
+  execSync('git add -A && git commit -m "init"', { cwd: dir, stdio: 'ignore' });
+}
 
 test('git isRepo', () => {
   assert.equal(git.isRepo(dir), true);

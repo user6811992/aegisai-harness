@@ -1,5 +1,8 @@
-const test = require('node:test');
+const nodeTest = require('node:test');
 const assert = require('node:assert');
+const { execSync } = require('child_process');
+const hasPython = (() => { try { execSync('python --version', { stdio: 'ignore' }); return true; } catch (e) { return false; } })();
+const test = nodeTest;
 const projects = require('../src/projects');
 const hippocampus = require('../src/hippocampus');
 const skillFactory = require('../src/skill_factory');
@@ -37,7 +40,7 @@ test('skill factory propose', async () => {
   assert.ok(typeof skillFactory.consensusVerify === 'function');
 });
 
-test('python client run', async () => {
+test('python client run', { skip: !hasPython && 'python not installed' }, async () => {
   const r = await python.run('print(2+2)');
   assert.equal(r.ok, true);
   assert.equal(r.stdout, '4');

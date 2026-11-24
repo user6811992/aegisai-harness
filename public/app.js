@@ -1,6 +1,7 @@
-import { h, render } from 'https://esm.sh/preact@10.25.4';
-import { useState, useEffect, useRef, useCallback } from 'https://esm.sh/preact@10.25.4/hooks';
-import htm from 'https://esm.sh/htm@3.1.1';
+// Vendored locally so the web UI works with no internet connection.
+import { h, render } from '/vendor/preact.mjs';
+import { useState, useEffect, useRef, useCallback } from '/vendor/hooks.mjs';
+import htm from '/vendor/htm.mjs';
 const html = htm.bind(h);
 
 const API = (p) => fetch(p).then((r) => r.json());
@@ -65,6 +66,7 @@ function OnboardingWizard({ onComplete }) {
   async function finish() {
     try {
       const body = { BACKEND_TYPE: backend };
+      if (model) body.AEGISAI_MODEL = model;
       if (token) body.AEGISAI_TOKEN = token;
       await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     } catch (e) {
@@ -313,7 +315,7 @@ function App() {
     setLoading(true);
     setToolLog([]);
     try {
-      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: text }) });
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
       const d = await r.json();
       setMessages((m) => [...m, { role: 'assistant', content: d.reply || '(no reply)' }]);
       if (d.toolLog) setToolLog(d.toolLog);
@@ -388,3 +390,9 @@ function App() {
 }
 
 render(html`<${App} />`, document.getElementById('app'));
+
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').then((reg) => reg.update()).catch(() => {});
+  });
+}

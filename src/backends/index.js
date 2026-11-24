@@ -23,12 +23,6 @@ function pickRouterUrl() {
   return u;
 }
 
-function isOpenaiCompat() {
-  if (state.type === 'router') return !!state._routerCompat;
-  const t = state.type;
-  return ['llamacpp','lmstudio','openai','strata','robin','hyperqwen','exllamav3'].includes(t);
-}
-
 // circuit breaker
 const cb = { failures: 0, openUntil: 0, threshold: 5, cooldownMs: 30000 };
 function isCircuitOpen() { return Date.now() < cb.openUntil; }

@@ -1,6 +1,6 @@
 # AegisAi Harness — agent-readable catalog
 
-A feature-rich, local-only AI agent harness. CLI-first, offline-first. v0.63.0.
+A feature-rich, local-only AI agent harness. CLI-first, offline-first. v0.68.0.
 
 ## Capabilities
 - Multi-backend LLM adapter (Ollama + OpenAI-compatible + 18 providers)
@@ -33,6 +33,7 @@ A feature-rich, local-only AI agent harness. CLI-first, offline-first. v0.63.0.
 - `node src/index.js --mcp-server` — MCP server
 - `node src/index.js --json "<prompt>"` — headless JSON output
 - `node src/index.js --update` — version check
+- `node src/index.js --help` — list all flags
 
 ## Docs
 - README.md, ROADMAP.md, HARNESS_DOCS.md, CONTRIBUTING.md, CHANGELOG.md, LICENSE

@@ -3,11 +3,30 @@ on: [push, pull_request]
 jobs:
   check:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: ['22.13', '24']
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: npm test
+      - run: node scripts/check-version-consistency.js
+      - run: node -e "const r=require('./src/harness_lint').lint(); console.log(JSON.stringify(r)); if(!r.ok) process.exit(1)"
+      - run: node -e "const r=require('./src/adversarial').run(); console.log(JSON.stringify(r)); if(!r.pass) process.exit(1)"
+
+  npm-cli:
+    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 24
-      - run: npm test
-      - run: node -e "const r=require('./src/harness_lint').lint(); console.log(JSON.stringify(r)); if(!r.ok) process.exit(1)"
-      - run: node -e "const r=require('./src/adversarial').run(); console.log(JSON.stringify(r)); if(!r.pass) process.exit(1)"
+      - name: Pack and globally install the CLI
+        run: |
+          npm pack
+          npm i -g ./aegisai-harness-*.tgz
+          test "$(aegisai-harness --version)" = "$(node -p "require('./package.json').version")"
+          aegisai-harness --help | head -n 3

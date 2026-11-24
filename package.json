@@ -1,18 +1,25 @@
 {
   "name": "aegisai-harness",
-  "version": "0.67.9",
+  "version": "0.68.0",
   "description": "AegisAi Harness — feature-rich, local-only AI agent harness",
   "type": "commonjs",
   "main": "src/index.js",
   "bin": { "aegisai-harness": "src/index.js", "aegisai": "src/index.js" },
-  "files": ["src/", "public/", "packaging/", "README.md", "LICENSE", "ROADMAP.md", "CHANGELOG.md", "HARNESS_DOCS.md", "CONTRIBUTING.md", "llms.txt"],
+  "files": ["src/", "public/", "packaging/", "scripts/", "README.md", "LICENSE", "ROADMAP.md", "CHANGELOG.md", "HARNESS_DOCS.md", "CONTRIBUTING.md", "llms.txt"],
   "scripts": {
+    "preinstall": "node scripts/check-node.js",
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test tests/**/*.test.js"
+    "test": "node --test tests/**/*.test.js",
+    "lint": "node scripts/run-lint.js",
+    "check:version": "node scripts/check-version-consistency.js"
+  },
+  "pkg": {
+    "assets": ["public/**/*", "README.md", "LICENSE", "CHANGELOG.md", "llms.txt"],
+    "targets": ["node24-win-x64", "node24-linux-x64", "node24-macos-x64"]
   },
   "engines": {
-    "node": ">=22.5"
+    "node": ">=22.13"
   },
   "dependencies": {},
   "optionalDependencies": {

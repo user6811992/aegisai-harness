@@ -10,7 +10,7 @@ A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 66 milestones, ~200 modules,
 257 tests, CI green.
 
-> Status: v0.66.0 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v0.68.0 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -47,7 +47,7 @@ npm install
 npm start
 ```
 
-Requires Node 22.5+ and a local backend (Ollama recommended).
+Requires **Node.js 22.13+** (`node -v` to check) and a local backend (Ollama recommended). The Windows installer does **not** bundle Node.js — install the LTS from [nodejs.org](https://nodejs.org) first and reopen your terminal so `node` is on PATH.
 
 ### Web UI
 
@@ -88,6 +88,13 @@ node src/index.js --json "your prompt here"
 bash packaging/build-binary.sh
 ```
 
+CI enforces `npm run check:version` so `package.json`, the installer filename, docs, and release tag always agree. Release assets include a `.sha256` checksum file — verify it before running an installer:
+
+```bash
+# PowerShell (in the download folder)
+Get-FileHash .\AegisAi-Harness-0.68.0-Setup.exe -Algorithm SHA256
+```
+
 ## Environment variables
 
 See [ROADMAP.md](./ROADMAP.md) for the full list. Key ones:
@@ -101,12 +108,22 @@ See [ROADMAP.md](./ROADMAP.md) for the full list. Key ones:
 | `BACKEND_URL` | Backend URL | auto-detect |
 | `AEGISAI_DATA_DIR` | Data directory | ./data |
 | `AEGISAI_PROJECT_ROOT_ALLOWLIST` | Allow-list for agent project roots | (none) |
+| `AEGISAI_WEB_AUTO_APPROVE` | Allow the web UI to auto-approve tool calls (off by default) | false |
+
+## Troubleshooting
+
+See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick fixes:
+
+- **`.js` files open in Notepad / `node` is not recognized** — Node.js isn't installed or isn't on PATH. Install Node 22.13+ LTS from https://nodejs.org, reopen the terminal, verify `node -v`, then reinstall/retry. Double-clicking a `.js` file is not how the harness starts.
+- **Stale version after uninstalling** — the old runtime `node_modules` survives an Inno uninstall in older builds. Delete `%LOCALAPPDATA%\Programs\AegisAiHarness` (or `%LOCALAPPDATA%\AegisAiHarness`) before reinstalling. For npm: `npm uninstall -g aegisai-harness && npm cache clean --force`.
+- **Web UI is blank offline** — v0.68.0 vendors Preact/Tailwind locally; clear the browser cache if an older service worker is still serving stale assets.
+- **Web chat sends empty prompts** — fixed in v0.68.0; the browser now posts `message`, matching the server API.
 
 ## Layout
 
 ```
 src/              150+ modules (agent, tools, backends, storage, integrations, ...)
-public/           web UI (Preact via CDN, no build step)
+public/           web UI (Preact + Tailwind vendored locally, no build step)
 tests/            257 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page (GitHub Pages)

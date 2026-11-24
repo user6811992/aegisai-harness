@@ -1,4 +1,7 @@
+#!/usr/bin/env node
 // src/index.js
+const { VERSION } = require('./version');
+const { resolvePublicPath, tokenMatches } = require('./http_utils');
 const { detectBackend, getType, getUrl } = require('./backends');
 const db = require('./storage/db');
 const { runAgent } = require('./agent/run');
@@ -28,7 +31,29 @@ function askApproval(name, args) {
 
 async function main() {
   if (process.argv.includes('--version') || process.argv.includes('-v')) {
-    console.log(require('../package.json').version);
+    console.log(VERSION);
+    process.exit(0);
+  }
+  if (process.argv.includes('--help') || process.argv.includes('-h')) {
+    console.log([
+      `AegisAi Harness v${VERSION}`,
+      '',
+      'Usage: node src/index.js [flags] [prompt]',
+      '',
+      '  --web                 Start the web UI (http://127.0.0.1:8080)',
+      '  --tui                 Terminal workbench',
+      '  --repl                Interactive REPL (default with no prompt)',
+      '  --mcp-server          MCP server on 127.0.0.1:3001',
+      '  --json "<prompt>"     Headless JSON output',
+      '  --proxy               OpenAI-compatible proxy',
+      '  --rpc / --acp / --jsonrpc',
+      '  --model <name>        Override model',
+      '  --root <path>         Project root',
+      '  --version             Print version and exit',
+      '  --help                Show this help',
+      '',
+      'Docs: https://github.com/user6811992/aegisai-harness',
+    ].join('\n'));
     process.exit(0);
   }
   await detectBackend();
@@ -85,7 +110,7 @@ async function main() {
     tui.on('command', async (cmd) => {
       if (!cmd) return;
       try {
-        const r = await runAgent({ model: process.env.AEGISAI_MODEL || 'llama3.2:3b', messages: [{ role: 'user', content: cmd }], projectRoot: root, autoApprove: true, onEvent: () => {} });
+        const r = await runAgent({ model: process.env.AEGISAI_MODEL || 'llama3.2:3b', messages: [{ role: 'user', content: cmd }], projectRoot: process.cwd(), autoApprove: true, onEvent: () => {} });
         tui.addMessage('assistant', (r.final && r.final.final) || '(no reply)');
       } catch (e) { tui.addMessage('assistant', 'Error: ' + (e.message || e)); }
     });
@@ -125,7 +150,8 @@ async function main() {
     const path = require('path');
     const port = parseInt(process.env.PORT || '8080', 10);
     const host = process.env.HOST || '127.0.0.1';
-    const token = process.env.AEGISAI_TOKEN || process.env.LOCALAI_TOKEN || '';
+    // Read the token per request: /api/config can update it at runtime.
+    const currentToken = () => process.env.AEGISAI_TOKEN || process.env.LOCALAI_TOKEN || '';
     const rateLimit = parseInt(process.env.AEGISAI_RATE_LIMIT || '0', 10);
     const rateWindow = parseInt(process.env.AEGISAI_RATE_WINDOW || '60', 10) * 1000;
     const rateHits = new Map();
@@ -145,10 +171,11 @@ async function main() {
     }
 
     const server = http.createServer(async (req, res) => {
-      // auth
-      if (token) {
-        const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || new URL(req.url, 'http://x').searchParams.get('token');
-        if (supplied !== token) { sendJson(res, 401, { error: 'unauthorized' }); return; }
+      // auth (fixed-length comparison; token may change via /api/config)
+      const expectedToken = currentToken();
+      if (expectedToken) {
+        const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || new URL(req.url, 'http://x').searchParams.get('token') || '';
+        if (!tokenMatches(supplied, expectedToken)) { sendJson(res, 401, { error: 'unauthorized' }); return; }
       }
       // rate limit
       if (rateLimit > 0) {
@@ -169,7 +196,9 @@ async function main() {
             messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
             projectRoot: process.cwd(),
             onEvent: () => {},
-            autoApprove: true,
+            // Tool execution from the browser is opt-in. Default: no writes.
+            autoApprove: process.env.AEGISAI_WEB_AUTO_APPROVE === 'true',
+            approvalHandler: async () => false,
           });
           const reply = (result.final && result.final.final) || '';
           const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
@@ -357,7 +386,7 @@ async function main() {
           if (parsed.projectRootAllowlist) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
           if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
           if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;
-          for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
+          for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'AEGISAI_TOKEN', 'AEGISAI_WEB_AUTO_APPROVE', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
             if (parsed[k] !== undefined) process.env[k] = parsed[k];
           }
           sendJson(res, 200, { ok: true });
@@ -379,12 +408,22 @@ async function main() {
         }
       } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
 
-      // serve static
+      // serve static — resolvePublicPath blocks ../ traversal and encoded variants
       let urlPath = req.url.split('?')[0];
-      let filePath = path.join(__dirname, '..', 'public', urlPath === '/' ? 'index.html' : urlPath);
-      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      let filePath;
+      try { filePath = resolvePublicPath(path.join(__dirname, '..', 'public'), urlPath); }
+      catch (e) { res.writeHead(400); res.end(); return; }
+      if (filePath && fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
         const ext = path.extname(filePath);
-        const ct = ext === '.html' ? 'text/html' : ext === '.js' ? 'text/javascript' : ext === '.css' ? 'text/css' : ext === '.json' ? 'application/json' : ext === '.webmanifest' ? 'application/manifest+json' : 'text/plain';
+        const ct = ext === '.html' ? 'text/html'
+          : (ext === '.js' || ext === '.mjs') ? 'text/javascript'
+          : ext === '.css' ? 'text/css'
+          : ext === '.json' ? 'application/json'
+          : ext === '.webmanifest' ? 'application/manifest+json'
+          : ext === '.svg' ? 'image/svg+xml'
+          : ext === '.png' ? 'image/png'
+          : ext === '.map' ? 'application/json'
+          : 'text/plain';
         res.writeHead(200, { 'Content-Type': ct });
         res.end(fs.readFileSync(filePath));
       } else { res.writeHead(404); res.end(); }
@@ -456,7 +495,7 @@ async function main() {
   }
 
   if (args.length === 0 || replFlag) {
-    console.log('AegisAi Harness v' + require('../package.json').version + ' REPL. Type /exit to quit, /help for commands.');
+    console.log('AegisAi Harness v' + VERSION + ' REPL. Type /exit to quit, /help for commands.');
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout, prompt: 'harness> ' });
     let model = process.env.AEGISAI_MODEL || 'llama3.2:3b';
     let root = process.cwd();
