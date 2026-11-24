@@ -119,10 +119,10 @@ function huggingFacePull(repo, filename) {
   return { ok: true, url, note: 'streaming download not implemented; open URL or use huggingface-cli' };
 }
 
-module.exports = { ROOTS, getDefaultRoots, scan, huggingFacePull };
+module.exports = { ROOTS: [], getDefaultRoots, scan, huggingFacePull };
 function huggingFacePull(repo, filename) {
   const url = 'https://huggingface.co/' + repo + '/resolve/main/' + (filename || '');
   return { ok: true, url, note: 'streaming download not implemented; open URL or use huggingface-cli' };
 }
 
-module.exports = { ROOTS, scan, huggingFacePull };
+// (duplicate removed)

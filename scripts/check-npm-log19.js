@@ -1,0 +1,10 @@
+const fs = require('fs');
+const { execSync } = require('child_process');
+const log = execSync('gh run view 45310974939 --log', { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });
+const lines = log.split(/\r?\n/);
+const errors = lines.filter((l) => /npm error|failing tests|AssertionError/i.test(l));
+console.log('error lines:', errors.length);
+errors.slice(0, 10).forEach((l) => console.log(l.slice(0, 200)));
+const steps = lines.filter((l) => /##\[group\]Run /i.test(l));
+console.log('\nSteps:', steps.length);
+steps.forEach((s) => console.log(s.slice(0, 100)));
