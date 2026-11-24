@@ -241,14 +241,19 @@ async function main() {
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/scan') {
           const roots = new URL(req.url, 'http://x').searchParams.get('roots');
           const rootList = roots ? roots.split(',') : undefined;
-          const found = require('./model_discovery').scan(rootList);
-          // Also list Ollama models
+          const backend = require('./backends').getType();
+          const found = require('./model_discovery').scan(rootList, 500, backend);
+          // Also list models from the active backend
           try {
             const r = await require('./backends').backendListModels();
-            const ollamaModels = (r.models || []).map((m) => ({ path: 'ollama://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: 'ollama' }));
-            found.push(...ollamaModels);
+            const backendModels = (r.models || []).map((m) => ({ path: backend + '://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: backend }));
+            // Only add if not already in found
+            const existingNames = new Set(found.map((f) => f.name));
+            for (const bm of backendModels) {
+              if (!existingNames.has(bm.name)) found.push(bm);
+            }
           } catch (e) {}
-          sendJson(res, 200, { models: found });
+          sendJson(res, 200, { models: found, backend });
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {
@@ -279,14 +284,19 @@ async function main() {
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/scan') {
           const roots = new URL(req.url, 'http://x').searchParams.get('roots');
           const rootList = roots ? roots.split(',') : undefined;
-          const found = require('./model_discovery').scan(rootList);
-          // Also list Ollama models
+          const backend = require('./backends').getType();
+          const found = require('./model_discovery').scan(rootList, 500, backend);
+          // Also list models from the active backend
           try {
             const r = await require('./backends').backendListModels();
-            const ollamaModels = (r.models || []).map((m) => ({ path: 'ollama://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: 'ollama' }));
-            found.push(...ollamaModels);
+            const backendModels = (r.models || []).map((m) => ({ path: backend + '://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: backend }));
+            // Only add if not already in found
+            const existingNames = new Set(found.map((f) => f.name));
+            for (const bm of backendModels) {
+              if (!existingNames.has(bm.name)) found.push(bm);
+            }
           } catch (e) {}
-          sendJson(res, 200, { models: found });
+          sendJson(res, 200, { models: found, backend });
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {

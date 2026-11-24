@@ -4,30 +4,65 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const ROOTS = [
-  path.join(os.homedir(), '.ollama'),
-  path.join(os.homedir(), '.cache', 'lm-studio'),
-  path.join(os.homedir(), 'LM Studio'),
-  path.join(os.homedir(), 'models'),
-];
+const ROOTS_BY_BACKEND = {
+  ollama: [
+    path.join(os.homedir(), '.ollama'),
+  ],
+  lmstudio: [
+    path.join(os.homedir(), '.cache', 'lm-studio'),
+    path.join(os.homedir(), 'LM Studio'),
+    path.join(os.homedir(), '.lmstudio'),
+  ],
+  llamacpp: [
+    path.join(os.homedir(), 'models'),
+    path.join(os.homedir(), 'llama.cpp', 'models'),
+  ],
+  vllm: [],
+  openai: [],
+  generic: [
+    path.join(os.homedir(), 'models'),
+    path.join(os.homedir(), 'Downloads'),
+  ],
+};
 
-// Also scan common drive roots on Windows
-function getDefaultRoots() {
-  const roots = [...ROOTS];
+function getDefaultRoots(backend) {
+  const roots = [...(ROOTS_BY_BACKEND[backend] || ROOTS_BY_BACKEND.generic)];
+  // Add common roots for all backends
+  if (!roots.includes(path.join(os.homedir(), 'models'))) {
+    roots.push(path.join(os.homedir(), 'models'));
+  }
   if (process.platform === 'win32') {
-    // Add common Windows locations
-    for (const drive of ['C:', 'D:', 'E:']) {
+    for (const drive of ['C:', 'D:', 'E:', 'F:']) {
       const modelsDir = drive + '\\models';
       try { if (fs.existsSync(modelsDir)) roots.push(modelsDir); } catch (e) {}
       const ollamaDir = drive + '\\.ollama';
       try { if (fs.existsSync(ollamaDir)) roots.push(ollamaDir); } catch (e) {}
+      // LM Studio on Windows
+      const lmStudioDir = drive + '\\LM Studio';
+      try { if (fs.existsSync(lmStudioDir)) roots.push(lmStudioDir); } catch (e) {}
     }
   }
-  return roots;
+  // Deduplicate
+  return [...new Set(roots)];
 }
 
-function scan(roots, maxFiles) {
-  roots = roots || getDefaultRoots();
+// Detect which backend is active
+function detectBackend() {
+  const envType = process.env.BACKEND_TYPE || '';
+  if (envType && ROOTS_BY_BACKEND[envType]) return envType;
+  // Check if Ollama is running
+  try {
+    const http = require('http');
+    // Synchronous check not possible; return 'generic' as default
+  } catch (e) {}
+  return 'generic';
+}
+
+function scan(roots, maxFiles, backend) {
+  // If no roots provided, use backend-specific defaults
+  if (!roots || (Array.isArray(roots) && roots.length === 0)) {
+    roots = getDefaultRoots(backend || detectBackend());
+  }
   const found = [];
   let count = 0;
   const extensions = /\.(gguf|bin|safetensors)$/i;

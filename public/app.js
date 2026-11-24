@@ -237,7 +237,7 @@ function ConfigModal({ cfg, setCfg, onClose }) {
         ${tab === 'discover' ? html`
           <div class="discover-section">
             <h3>Scan for Local Models</h3>
-            <p class="hint">Scan drives and directories for GGUF, BIN, and Safetensors model files, plus Ollama models.</p>
+            <p class="hint">Active backend: <strong>${cfg.BACKEND_TYPE || 'auto'}</strong>. Scan drives and directories for model files compatible with your backend.</p>
             <div class="search-bar">
               <input value=${scanRoot} onInput=${(e) => setScanRoot(e.target.value)} placeholder="Leave empty for default roots, or enter a path (e.g. D:\\models)" style="flex:1" />
               <button class="btn-primary" onClick=${scanDrives} disabled=${scanning}>${scanning ? 'Scanning...' : 'Scan'}</button>
@@ -248,11 +248,12 @@ function ConfigModal({ cfg, setCfg, onClose }) {
                 ${scanResults.slice(0, 30).map((m) => html`
                   <div class="scan-item">
                     <span class="model-name">${m.name}</span>
-                    <span class="hint">${m.sizeGB > 0 ? m.sizeGB + ' GB' : ''} ${m.type ? '(' + m.type + ')' : ''}</span>
+                    <span class="hint">${m.sizeGB > 0 ? m.sizeGB + ' GB' : ''} ${m.type ? '[' + m.type + ']' : ''}</span>
+                    ${m.type !== 'ollama' && m.path && !m.path.startsWith('ollama://') ? html`<button class="btn-sm" onClick=${() => { setLocal({ ...local, AEGISAI_MODEL: m.path }); toast('Selected ' + m.name, 'info'); }}>Use</button>` : null}
                   </div>
                 `)}
               </div>
-            ` : html`<p class="hint">No models found. Try scanning a specific directory.</p>`}
+            ` : html`<p class="hint">No models found. Try scanning a specific directory or changing the backend.</p>`}
             <h3 style="margin-top: 16px">Search HuggingFace</h3>
             <p class="hint">Search HuggingFace for GGUF models. Try terms like "llama", "mistral", "phi", "gemma".</p>
             <div class="search-bar">
