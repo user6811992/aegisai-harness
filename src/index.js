@@ -281,6 +281,23 @@ async function main() {
           sendJson(res, 200, { models: found, backend });
           return;
         }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/export') {
+          const parsed = await readJson(req);
+          const sid = parsed.sessionId || 'default';
+          const history = sessions.get(sid) || [];
+          const format = parsed.format || 'markdown';
+          const meta = { title: parsed.title, model: process.env.AEGISAI_MODEL || 'llama3.2:3b', date: new Date().toISOString() };
+          const result = require('./conversation_export').exportToFile(history.map((m) => ({ role: m.role, content: m.content })), meta, format, null);
+          sendJson(res, 200, result);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/compare') {
+          const parsed = await readJson(req);
+          const models = parsed.models || [process.env.AEGISAI_MODEL || 'llama3.2:3b'];
+          const result = await require('./model_compare').compare(parsed.prompt || '', models, { projectRoot: process.cwd() });
+          sendJson(res, 200, { comparison: result, formatted: require('./model_compare').formatComparison(result) });
+          return;
+        }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {
           const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
           let results = [];
@@ -698,6 +715,8 @@ async function main() {
       if (t.startsWith('/think ')) { console.log(JSON.stringify(require('./sequential_thinking').think(t.slice(7).trim()), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/fetch ')) { const r = await require('./fetch_url').fetch(t.slice(7).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/time') { console.log(JSON.stringify(require('./time_tool').now())); rl.prompt(); return; }
+      if (t.startsWith('/export ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const r = require('./conversation_export').exportToFile(lastToolLog.length ? [] : [], { title: p[1] || 'export', model: process.env.AEGISAI_MODEL || 'llama3.2:3b' }, p[0] || 'markdown', p[2]); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t.startsWith('/compare ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./model_compare').compare(p[0] || '', p.slice(1).filter(Boolean), { projectRoot: root }); console.log(require('./model_compare').formatComparison(r).slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/time ')) { console.log(JSON.stringify(require('./time_tool').now(t.slice(6).trim()))); rl.prompt(); return; }
       if (t.startsWith('/mcp-registry ')) { const r = await require('./mcp_registry_browser').browse(t.slice(14).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/everything-manifest') { console.log(JSON.stringify(require('./mcp_everything').manifest(), null, 2).slice(0, 1500)); rl.prompt(); return; }

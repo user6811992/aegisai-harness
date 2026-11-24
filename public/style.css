@@ -250,6 +250,11 @@ kbd { background: var(--panel); border: 1px solid var(--border); border-radius: 
 .scan-results, .hf-results { margin: 8px 0; max-height: 200px; overflow-y: auto; }
 .scan-item, .hf-item { display: flex; align-items: center; gap: 8px; padding: 6px; border-bottom: 1px solid var(--border); font-size: 12px; }
 .hf-item .model-name { flex: 1; }
+/* Compare */
+.compare-results { margin-top: 16px; max-height: 400px; overflow-y: auto; }
+.compare-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }
+.compare-card h3 { margin: 0 0 8px; font-size: 13px; }
+.compare-reply { font-size: 13px; line-height: 1.5; white-space: pre-wrap; max-height: 200px; overflow-y: auto; }
 /* Modal backdrop */
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 100; backdrop-filter: blur(2px); }
 

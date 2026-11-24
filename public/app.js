@@ -483,7 +483,37 @@ function App() {
     { icon: '🗑️', label: 'Clear Chat', keywords: 'clear reset', run: () => { setMessages([]); setToolLog([]); toast('Chat cleared', 'info'); } },
     { icon: '📊', label: 'Context Info', keywords: 'context tokens', run: () => toast('Context: ' + ctx.tokens + '/' + ctx.limit, 'info') },
     { icon: '🔧', label: 'Tools', keywords: 'tools list', run: () => toast('64+ tools available', 'info') },
+    { icon: '📤', label: 'Export Chat', keywords: 'export markdown json', run: () => exportChat('markdown') },
+    { icon: '⚖️', label: 'Compare Models', keywords: 'compare models', run: () => setShowCompare(true) },
   ];
+
+  const [showCompare, setShowCompare] = useState(false);
+  const [compareModels, setCompareModels] = useState('');
+  const [comparePrompt, setComparePrompt] = useState('');
+  const [compareResult, setCompareResult] = useState(null);
+  const [comparing, setComparing] = useState(false);
+
+  async function exportChat(format) {
+    try {
+      const r = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format, title: 'Chat Export' }) });
+      const d = await r.json();
+      if (d.ok) toast('Exported to ' + d.path, 'success');
+      else toast('Export failed: ' + (d.error || 'unknown'), 'error');
+    } catch (e) { toast('Export failed: ' + e.message, 'error'); }
+  }
+
+  async function runCompare() {
+    if (!comparePrompt.trim() || !compareModels.trim()) { toast('Enter a prompt and models', 'error'); return; }
+    setComparing(true);
+    try {
+      const models = compareModels.split(',').map((m) => m.trim()).filter(Boolean);
+      const r = await fetch('/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: comparePrompt, models }) });
+      const d = await r.json();
+      setCompareResult(d);
+      toast('Comparison complete', 'success');
+    } catch (e) { toast('Compare failed: ' + e.message, 'error'); }
+    setComparing(false);
+  }
 
   if (view === 'onboarding') {
     return html`<${OnboardingWizard} onComplete=${() => setView('chat')} />`;
@@ -495,6 +525,34 @@ function App() {
       <${CommandPalette} open=${showPalette} onClose=${() => setShowPalette(false)} commands=${commands} />
       ${showConfig ? html`<${ConfigModal} cfg=${cfg} setCfg=${setCfg} onClose=${() => setShowConfig(false)} />` : null}
       ${showHelp ? html`<${HelpPanel} onClose=${() => setShowHelp(false)} />` : null}
+      ${showCompare ? html`
+        <div class="modal-backdrop" onClick=${() => setShowCompare(false)}>
+          <div class="modal" style="max-width: 800px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Compare Models</h2>
+            <label>Prompt
+              <textarea value=${comparePrompt} onInput=${(e) => setComparePrompt(e.target.value)} placeholder="Enter a prompt to compare..." rows="3" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--fg)" />
+            </label>
+            <label>Models (comma-separated)
+              <input value=${compareModels} onInput=${(e) => setCompareModels(e.target.value)} placeholder="e.g. llama3.2:3b, mistral, phi3:mini" />
+            </label>
+            <div class="modal-actions">
+              <button class="btn-primary" onClick=${runCompare} disabled=${comparing}>${comparing ? 'Comparing...' : 'Compare'}</button>
+              <button onClick=${() => setShowCompare(false)}>Close</button>
+            </div>
+            ${compareResult ? html`
+              <div class="compare-results">
+                ${compareResult.comparison.results.map((r) => html`
+                  <div class="compare-card">
+                    <h3>${r.model} ${r.ok ? '✓' : '✗'} ${r.duration}ms</h3>
+                    <div class="compare-reply">${r.ok ? r.reply.slice(0, 500) : r.error}</div>
+                  </div>
+                `)}
+                <p class="hint">Fastest: ${compareResult.comparison.fastest} | Shortest: ${compareResult.comparison.shortest} | Longest: ${compareResult.comparison.longest}</p>
+              </div>
+            ` : null}
+          </div>
+        </div>
+      ` : null}
       <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${(s) => { toast('Loaded session: ' + (s.title || s.id), 'info'); }} />
       <header class="topbar">
         <h1>AegisAi Harness</h1>
@@ -503,6 +561,8 @@ function App() {
         <button onClick=${() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme">${theme === 'dark' ? '☀️' : '🌙'}</button>
         <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)">⚙️</button>
         <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)">⌘</button>
+        <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown">📤</button>
+        <button onClick=${() => setShowCompare(true)} title="Compare models">⚖️</button>
         <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)">?</button>
       </header>
       <div class="main-layout">
