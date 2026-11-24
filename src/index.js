@@ -242,6 +242,12 @@ async function main() {
           const roots = new URL(req.url, 'http://x').searchParams.get('roots');
           const rootList = roots ? roots.split(',') : undefined;
           const found = require('./model_discovery').scan(rootList);
+          // Also list Ollama models
+          try {
+            const r = await require('./backends').backendListModels();
+            const ollamaModels = (r.models || []).map((m) => ({ path: 'ollama://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: 'ollama' }));
+            found.push(...ollamaModels);
+          } catch (e) {}
           sendJson(res, 200, { models: found });
           return;
         }
@@ -249,24 +255,37 @@ async function main() {
           const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
           let results = [];
           try {
-            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&filter=gguf&sort=downloads&direction=-1&limit=20');
+            // Search without filter first, then filter for gguf client-side
+            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&sort=downloads&direction=-1&limit=30');
             if (r.ok) {
               const data = await r.json();
-              results = (Array.isArray(data) ? data : []).map((m) => ({
+              const all = Array.isArray(data) ? data : [];
+              // Filter for GGUF models (have gguf tag or name contains gguf)
+              const gguf = all.filter((m) => (m.tags || []).includes('gguf') || (m.id || '').toLowerCase().includes('gguf'));
+              // If no gguf results, return all results (user can still see what's available)
+              const toShow = gguf.length > 0 ? gguf : all;
+              results = toShow.slice(0, 20).map((m) => ({
                 id: m.id || m.modelId,
                 downloads: m.downloads || 0,
                 likes: m.likes || 0,
                 tags: m.tags || [],
+                isGguf: (m.tags || []).includes('gguf'),
               }));
             }
-          } catch (e) {}
-          sendJson(res, 200, { results });
+          } catch (e) { console.error('HF search error:', e.message); }
+          sendJson(res, 200, { results, query: q });
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/scan') {
           const roots = new URL(req.url, 'http://x').searchParams.get('roots');
           const rootList = roots ? roots.split(',') : undefined;
           const found = require('./model_discovery').scan(rootList);
+          // Also list Ollama models
+          try {
+            const r = await require('./backends').backendListModels();
+            const ollamaModels = (r.models || []).map((m) => ({ path: 'ollama://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: 'ollama' }));
+            found.push(...ollamaModels);
+          } catch (e) {}
           sendJson(res, 200, { models: found });
           return;
         }

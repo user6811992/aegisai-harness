@@ -163,6 +163,7 @@ function ConfigModal({ cfg, setCfg, onClose }) {
   const [hfResults, setHfResults] = useState([]);
   const [scanning, setScanning] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [scanRoot, setScanRoot] = useState('');
 
   useEffect(() => {
     if (tab === 'models') {
@@ -173,9 +174,10 @@ function ConfigModal({ cfg, setCfg, onClose }) {
   async function scanDrives() {
     setScanning(true);
     try {
-      const d = await API('/api/models/scan');
+      const url = scanRoot ? '/api/models/scan?roots=' + encodeURIComponent(scanRoot) : '/api/models/scan';
+      const d = await API(url);
       setScanResults(d.models || []);
-      toast('Found ' + (d.models || []).length + ' GGUF models', 'success');
+      toast('Found ' + (d.models || []).length + ' models', 'success');
     } catch (e) { toast('Scan failed: ' + e.message, 'error'); }
     setScanning(false);
   }
@@ -234,31 +236,42 @@ function ConfigModal({ cfg, setCfg, onClose }) {
         ` : null}
         ${tab === 'discover' ? html`
           <div class="discover-section">
-            <h3>Scan Drives for GGUF Models</h3>
-            <button class="btn-primary" onClick=${scanDrives} disabled=${scanning}>${scanning ? 'Scanning...' : 'Scan Drives'}</button>
+            <h3>Scan for Local Models</h3>
+            <p class="hint">Scan drives and directories for GGUF, BIN, and Safetensors model files, plus Ollama models.</p>
+            <div class="search-bar">
+              <input value=${scanRoot} onInput=${(e) => setScanRoot(e.target.value)} placeholder="Leave empty for default roots, or enter a path (e.g. D:\\models)" style="flex:1" />
+              <button class="btn-primary" onClick=${scanDrives} disabled=${scanning}>${scanning ? 'Scanning...' : 'Scan'}</button>
+            </div>
             ${scanResults.length > 0 ? html`
               <div class="scan-results">
-                ${scanResults.slice(0, 20).map((m) => html`
-                  <div class="scan-item">${m.name} (${m.sizeGB} GB) <span class="hint">${m.path}</span></div>
+                <p class="hint">Found ${scanResults.length} models</p>
+                ${scanResults.slice(0, 30).map((m) => html`
+                  <div class="scan-item">
+                    <span class="model-name">${m.name}</span>
+                    <span class="hint">${m.sizeGB > 0 ? m.sizeGB + ' GB' : ''} ${m.type ? '(' + m.type + ')' : ''}</span>
+                  </div>
                 `)}
               </div>
-            ` : null}
+            ` : html`<p class="hint">No models found. Try scanning a specific directory.</p>`}
             <h3 style="margin-top: 16px">Search HuggingFace</h3>
+            <p class="hint">Search HuggingFace for GGUF models. Try terms like "llama", "mistral", "phi", "gemma".</p>
             <div class="search-bar">
-              <input value=${hfQuery} onInput=${(e) => setHfQuery(e.target.value)} placeholder="e.g. llama, mistral, phi" style="flex:1" />
+              <input value=${hfQuery} onInput=${(e) => setHfQuery(e.target.value)} placeholder="e.g. llama, mistral, phi, gemma" style="flex:1" onKeyDown=${(e) => { if (e.key === 'Enter') searchHF(); }} />
               <button class="btn-primary" onClick=${searchHF} disabled=${searching}>${searching ? 'Searching...' : 'Search'}</button>
             </div>
             ${hfResults.length > 0 ? html`
               <div class="hf-results">
+                <p class="hint">Found ${hfResults.length} models</p>
                 ${hfResults.map((m) => html`
                   <div class="hf-item">
                     <span class="model-name">${m.id}</span>
-                    <span class="hint">${m.downloads} downloads</span>
+                    <span class="hint">${(m.downloads || 0).toLocaleString()} downloads ${m.isGguf ? '✓ GGUF' : ''}</span>
                     <button class="btn-sm" onClick=${() => pullModel(m.id)}>Pull</button>
                   </div>
                 `)}
               </div>
             ` : null}
+            ${hfResults.length === 0 && hfQuery && !searching ? html`<p class="hint">No results found. Try a broader search term like "llama", "mistral", or "phi".</p>` : null}
           </div>
         ` : null}
         <div class="modal-actions">
