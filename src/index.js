@@ -196,13 +196,38 @@ async function main() {
           const parsed = await readJson(req);
           const sid = parsed.sessionId || 'default';
           const history = Array.isArray(parsed.history) ? parsed.history : (sessions.get(sid) || []);
+          const stream = parsed.stream === true;
+          const autoApprove = process.env.AEGISAI_WEB_AUTO_APPROVE === 'true';
+          if (stream) {
+            res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Access-Control-Allow-Origin': '*' });
+            let fullReply = '';
+            const result = await runAgent({
+              model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
+              messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
+              projectRoot: process.cwd(),
+              onEvent: (e) => {
+                if (e.type === 'token') { fullReply += (e.content || ''); res.write('data: ' + JSON.stringify({ type: 'token', content: e.content || '' }) + '\\n\\n'); }
+                else if (e.type === 'tool_call') { res.write('data: ' + JSON.stringify({ type: 'tool_call', name: e.name, args: e.args }) + '\\n\\n'); }
+                else if (e.type === 'tool_result') { res.write('data: ' + JSON.stringify({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }) + '\\n\\n'); }
+                else if (e.type === 'status') { res.write('data: ' + JSON.stringify({ type: 'status', message: e.message }) + '\\n\\n'); }
+              },
+              autoApprove,
+              approvalHandler: async () => false,
+            });
+            const reply = (result.final && result.final.final) || fullReply;
+            const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
+            sessions.set(sid, updated);
+            res.write('data: ' + JSON.stringify({ type: 'done', reply, toolLog: result.toolLog || [] }) + '\\n\\n');
+            res.end();
+            return;
+          }
           const result = await runAgent({
             model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
             messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
             projectRoot: process.cwd(),
             onEvent: () => {},
             // Tool execution from the browser is opt-in. Default: no writes.
-            autoApprove: process.env.AEGISAI_WEB_AUTO_APPROVE === 'true',
+            autoApprove,
             approvalHandler: async () => false,
           });
           const reply = (result.final && result.final.final) || '';

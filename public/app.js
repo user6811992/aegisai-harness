@@ -424,15 +424,52 @@ function App() {
     setMessages((m) => [...m, { role: 'user', content: text }]);
     setLoading(true);
     setToolLog([]);
+    // Add empty assistant message for streaming
+    setMessages((m) => [...m, { role: 'assistant', content: '' }]);
     try {
-      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text }) });
-      const d = await r.json();
-      setMessages((m) => [...m, { role: 'assistant', content: d.reply || '(no reply)' }]);
-      if (d.toolLog) setToolLog(d.toolLog);
-      updateCtx();
-      toast('Response received', 'success');
+      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, stream: true }) });
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const reader = r.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullReply = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\\n\\n');
+        buffer = lines.pop() || '';
+        for (const line of lines) {
+          if (!line.startsWith('data: ')) continue;
+          try {
+            const data = JSON.parse(line.slice(6));
+            if (data.type === 'token') {
+              fullReply += data.content;
+              setMessages((m) => {
+                const updated = [...m];
+                updated[updated.length - 1] = { role: 'assistant', content: fullReply };
+                return updated;
+              });
+            } else if (data.type === 'tool_call') {
+              toast('Tool: ' + data.name, 'info');
+            } else if (data.type === 'done') {
+              if (data.toolLog) setToolLog(data.toolLog);
+              updateCtx();
+              toast('Response received', 'success');
+            }
+          } catch (e) {}
+        }
+      }
     } catch (e) {
-      setMessages((m) => [...m, { role: 'assistant', content: 'Error: ' + e.message }]);
+      setMessages((m) => {
+        const updated = [...m];
+        if (updated.length > 0 && updated[updated.length - 1].role === 'assistant' && !updated[updated.length - 1].content) {
+          updated[updated.length - 1] = { role: 'assistant', content: 'Error: ' + e.message };
+        } else {
+          updated.push({ role: 'assistant', content: 'Error: ' + e.message });
+        }
+        return updated;
+      });
       toast('Error: ' + e.message, 'error');
     } finally { setLoading(false); }
   }
