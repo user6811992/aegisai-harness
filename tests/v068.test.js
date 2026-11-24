@@ -16,7 +16,7 @@ test('v068: package.json is the single version source', () => {
 });
 
 test('v068: CLI entry point has a shebang and supports --version/--help', () => {
-  assert.equal(read('src/index.js').split('\n')[0], '#!/usr/bin/env node');
+  assert.equal(read('src/index.js').split(/\r?\n/)[0].trim(), '#!/usr/bin/env node');
   const entry = path.join(ROOT, 'src', 'index.js');
   const version = execFileSync(process.execPath, [entry, '--version'], { encoding: 'utf8' }).trim();
   assert.equal(version, require('../package.json').version);
