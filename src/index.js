@@ -501,6 +501,44 @@ async function main() {
           sendJson(res, 200, require('./channels_extra').status());
           return;
         }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/ab-test') {
+          const u = new URL(req.url, 'http://x');
+          const models = (u.searchParams.get('models') || '').split(',').map((s) => s.trim()).filter(Boolean);
+          const prompts = (u.searchParams.get('prompts') || u.searchParams.get('prompt') || '').split('||').map((s) => s.trim()).filter(Boolean);
+          const trials = parseInt(u.searchParams.get('trials') || '3', 10);
+          const r = await require('./ab_testing').run({ models, prompts: prompts.length ? prompts : [''], trials, projectRoot: process.cwd() });
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/ab-test') {
+          const parsed = await readJson(req);
+          const r = await require('./ab_testing').run({ models: parsed.models, prompts: parsed.prompts || [parsed.prompt || ''], trials: parsed.trials, projectRoot: process.cwd() });
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/malware-scan') {
+          const parsed = await readJson(req);
+          const targets = parsed.targets || (parsed.path ? [parsed.path] : []);
+          sendJson(res, 200, require('./malware_scan').scan(targets, { recursive: parsed.recursive }));
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/skills-catalog') {
+          const r = require('./skills_catalog').loadCatalog();
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/skills-catalog/fetch') {
+          const parsed = await readJson(req);
+          const r = await require('./skills_catalog').fetchCatalog(parsed.url);
+          sendJson(res, 200, { count: r.count, fetched: r.skills.length });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/i18n') {
+          const loc = new URL(req.url, 'http://x').searchParams.get('locale') || require('./i18n').getLocale();
+          require('./i18n').setLocale(loc);
+          sendJson(res, 200, { locale: require('./i18n').getLocale(), available: require('./i18n').available(), strings: {} });
+          return;
+        }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/diff') {
           const parsed = await readJson(req);
           const d = require('./text_diff');
@@ -1183,6 +1221,31 @@ async function main() {
       if (t === '/channels-extra') { console.log(JSON.stringify(require('./channels_extra').status(), null, 2)); rl.prompt(); return; }
       if (t === '/map') { const files = require('./code_map').build(root, 60) || []; console.log('Architecture map: open /map.html in the web UI (--web). Indexed ' + files.length + ' files.'); rl.prompt(); return; }
       if (t.startsWith('/rename ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const edit = await require('./lsp').rename(p[0], p[1], Number(p[2]), Number(p[3]), p[4]); const applied = require('./lsp').applyWorkspaceEdit(edit, { dryRun: p[5] !== 'apply' }); console.log(JSON.stringify(applied, null, 2).slice(0, 2000)); rl.prompt(); return; }
+      if (t.startsWith('/ab-test ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./ab_testing').run({ prompts: [p[0] || ''], models: p.slice(1).filter(Boolean), trials: Number(p[p.length-1]) || 3, projectRoot: root }); console.log(require('./ab_testing').format(r)); rl.prompt(); return; }
+      if (t.startsWith('/malware-scan ')) { const p = t.slice(14).trim().split('|').map((x) => x.trim()); const r = require('./malware_scan').scan(p[0].split(','), { recursive: p.includes('recursive') }); console.log(JSON.stringify(r, null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/ioc-match ')) { const p = t.slice(11).trim().split('|'); console.log(JSON.stringify(require('./ioc_import').match(p[1] || '', require('./ioc_import').parseFeed(p[0] || '', 'inline')))); rl.prompt(); return; }
+      if (t.startsWith('/skill-schema ')) { const p = t.slice(14).trim(); const r = require('fs').statSync(p).isDirectory() ? require('./skill_schema').validateDir(p) : [require('./skill_schema').validateFile(p)]; console.log(JSON.stringify({ summary: require('./skill_schema').summarize(r), results: r.map((x) => ({ file: x.file, ok: x.ok, errors: x.errors, warnings: x.warnings })) }, null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/guardrail ')) { const p = t.slice(11).trim().split('|'); const r = require('./guardrail_api').evaluate({ tool: p[0], args: p[1] ? JSON.parse(p[1]) : {}, context: { projectRoot: root, readOnly: process.env.AEGISAI_READ_ONLY === 'true' } }); console.log(JSON.stringify({ decision: r.decision, reasons: r.reasons }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/sec-logs')) { const p = t.slice(9).trim().split('|'); const doc = require('./security_logs').generate({ seed: Number(p[0] || 42), perScenario: Number(p[1] || 12) }); if (p[2]) { require('fs').writeFileSync(p[2], p[2].endsWith('.csv') ? require('./security_logs').toCsv(doc) : require('./security_logs').toJsonl(doc)); console.log('wrote', p[2], doc.events.length, 'events'); } else { console.log(JSON.stringify({ summary: doc.summary, expectations: require('./security_logs').expectations(doc) }, null, 2)); } rl.prompt(); return; }
+      if (t === '/agent-cli') { console.log(JSON.stringify(require('./agent_cli').detect(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/package-guard ')) { console.log(JSON.stringify(require('./package_guard').checkCommand(t.slice(15).trim()), null, 2)); rl.prompt(); return; }
+      if (t === '/channels-extra') { console.log(JSON.stringify(require('./channels_extra').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/map') { const files = require('./code_map').build(root, 60) || []; console.log('Architecture map: open /map.html in the web UI (--web). Indexed ' + files.length + ' files.'); rl.prompt(); return; }
+      if (t.startsWith('/skills-catalog')) { const r = await require('./skills_catalog').fetchCatalog(); console.log(JSON.stringify({ count: r.count }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/skills-import ')) { const u = t.slice(15).trim(); const name = u.split('/').pop().replace(/\.md$/i, '') || 'imported'; const r = await require('./skills_catalog').importSkill(u, name); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t.startsWith('/ab-test ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./ab_testing').run({ prompts: [p[0] || ''], models: p.slice(1, -1).filter(Boolean), trials: Number(p[p.length-1]) || 3, projectRoot: root }); console.log(require('./ab_testing').format(r)); rl.prompt(); return; }
+      if (t.startsWith('/malware-scan ')) { const p = t.slice(14).trim().split('|').map((x) => x.trim()); const r = require('./malware_scan').scan(p[0].split(','), { recursive: p.includes('recursive') }); console.log(JSON.stringify(r, null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/probe-http ')) { const u = t.slice(12).trim(); const r = await require('./http_probe').probe(u, { headers: true }); console.log(JSON.stringify(r.results[0], null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/pentest-eval')) { const r = await require('./pentest_eval').run({}); console.log(JSON.stringify(r.summary, null, 2)); console.log(JSON.stringify(r.fixtures.map((f) => ({ id: f.id, s: f.score })), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/decide ')) { const q = t.slice(8).trim(); const r = await require('./tiny_router').decide(q); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t.startsWith('/deck ')) { const p = t.slice(6).trim().split('|'); const outline = require('fs').existsSync(p[0]) ? require('fs').readFileSync(p[0], 'utf8') : p[0]; const out = p[1] || require('path').join(root, 'deck-' + Date.now() + '.pdf'); const r = require('./deck').generate(outline, out); console.log(JSON.stringify({ slides: r.slides, bytes: r.bytes, path: r.path })); rl.prompt(); return; }
+      if (t.startsWith('/skill-schema ')) { const p = t.slice(14).trim(); const r = require('fs').statSync(p).isDirectory() ? require('./skill_schema').validateDir(p) : [require('./skill_schema').validateFile(p)]; console.log(JSON.stringify({ summary: require('./skill_schema').summarize(r), results: r.map((x) => ({ file: x.file, ok: x.ok, errors: x.errors, warnings: x.warnings })) }, null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/guardrail ')) { const p = t.slice(11).trim().split('|'); const r = require('./guardrail_api').evaluate({ tool: p[0], args: p[1] ? JSON.parse(p[1]) : {}, context: { projectRoot: root, readOnly: process.env.AEGISAI_READ_ONLY === 'true' } }); console.log(JSON.stringify({ decision: r.decision, reasons: r.reasons }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/ioc ')) { const p = t.slice(5).trim().split('|'); const r = require('fs').existsSync(p[0]) ? require('./ioc_import').importFile(p[0], { persist: p[1] === 'persist' }) : { parsed: require('./ioc_import').parseFeed(p[0] || '', 'inline'), summary: require('./ioc_import').summarize(require('./ioc_import').parseFeed(p[0] || '', 'inline')) }; console.log(JSON.stringify(r.summary, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/sec-logs')) { const p = t.slice(9).trim().split('|'); const doc = require('./security_logs').generate({ seed: Number(p[0] || 42), perScenario: Number(p[1] || 12) }); if (p[2]) { require('fs').writeFileSync(p[2], p[2].endsWith('.csv') ? require('./security_logs').toCsv(doc) : require('./security_logs').toJsonl(doc)); console.log('wrote', p[2], doc.events.length, 'events'); } else { console.log(JSON.stringify({ summary: doc.summary, expectations: require('./security_logs').expectations(doc) }, null, 2)); } rl.prompt(); return; }
+      if (t === '/agent-cli') { console.log(JSON.stringify(require('./agent_cli').detect(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/package-guard ')) { console.log(JSON.stringify(require('./package_guard').checkCommand(t.slice(15).trim()), null, 2)); rl.prompt(); return; }
+      if (t === '/channels-extra') { console.log(JSON.stringify(require('./channels_extra').status(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/time ')) { console.log(JSON.stringify(require('./time_tool').now(t.slice(6).trim()))); rl.prompt(); return; }
       if (t.startsWith('/mcp-registry ')) { const r = await require('./mcp_registry_browser').browse(t.slice(14).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/everything-manifest') { console.log(JSON.stringify(require('./mcp_everything').manifest(), null, 2).slice(0, 1500)); rl.prompt(); return; }
