@@ -12,18 +12,19 @@ function dir() { return path.join(DATA_DIR, 'schedules'); }
 function ensureDir() { fs.mkdirSync(dir(), { recursive: true }); }
 
 function parseCron(expr) {
-  // Simple: "every 5m", "every 1h", "daily 09:00", or standard 5-field cron.
-  const parts = expr.trim().split(/\s+/);
-  if (parts.length === 1 && /^every\s+\d+[mh]$/i.test(parts[0])) {
-    const m = parts[0].match(/every\s+(\d+)([mh])/i);
+  const str = (expr || '').trim();
+  // "every 5m", "every 5 m", "every 1h", etc.
+  const m = str.match(/^every\s+(\d+)\s*([mh])$/i);
+  if (m) {
     const n = parseInt(m[1], 10);
     return { type: 'interval', ms: m[2].toLowerCase() === 'h' ? n * 3600000 : n * 60000 };
   }
+  const parts = str.split(/\s+/);
   if (parts.length === 2 && parts[0].toLowerCase() === 'daily') {
-    const [h, m] = parts[1].split(':').map(Number);
-    return { type: 'daily', hour: h || 0, minute: m || 0 };
+    const [h, m2] = parts[1].split(':').map(Number);
+    return { type: 'daily', hour: h || 0, minute: m2 || 0 };
   }
-  // Standard 5-field cron: minute hour day month weekday
+  // Standard 5-field cron
   if (parts.length === 5) {
     return { type: 'cron', fields: parts };
   }
@@ -39,7 +40,26 @@ function nextRun(schedule) {
     if (next <= now) next.setDate(next.getDate() + 1);
     return next.getTime();
   }
-  // For cron, just run in 1 minute (simplified).
+  if (schedule.type === 'cron') {
+    // Basic: parse minute and hour fields (support */n and specific values).
+    const minuteField = schedule.fields[0];
+    const hourField = schedule.fields[1];
+    const next = new Date(now);
+    next.setSeconds(0, 0);
+    // Try to set minute.
+    let minute = now.getMinutes() + 1;
+    if (minuteField !== '*') {
+      const m = parseInt(minuteField, 10);
+      if (!isNaN(m)) minute = m;
+    }
+    next.setMinutes(minute);
+    if (hourField !== '*') {
+      const h = parseInt(hourField, 10);
+      if (!isNaN(h)) next.setHours(h);
+    }
+    if (next <= now) next.setMinutes(next.getMinutes() + 1);
+    return next.getTime();
+  }
   return now.getTime() + 60000;
 }
 
@@ -100,7 +120,7 @@ async function runJob(id) {
       model: job.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
       messages: [{ role: 'user', content: job.prompt }],
       projectRoot: process.cwd(),
-      autoApprove: true,
+      autoApprove: false,
       onEvent: () => {},
     });
     job.lastResult = (r.final && r.final.final) || '';

@@ -12,59 +12,39 @@ function highlight(code) {
     .replace(str, (m) => '<span class="str">' + m + '</span>')
     .replace(kw, (m) => '<span class="kw">' + m + '</span>');
 }
-// Math rendering (KaTeX)
-function renderMath(text, display) {
-  if (window.katex) {
-    try { return window.katex.renderToString(text, { displayMode: !!display, throwOnError: false }); }
-    catch (e) { return escapeHtml(text); }
-  }
-  return escapeHtml(text);
-}
-// Mermaid rendering
-function renderMermaid(code) {
-  if (window.mermaid) {
-    try {
-      const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
-      window.mermaid.render(id, code).then((r) => {
-        const el = document.getElementById(id);
-        if (el) el.innerHTML = r.svg;
-      });
-      return '<div class="mermaid" id="' + id + '">' + escapeHtml(code) + '</div>';
-    } catch (e) { return '<pre class="code"><code>' + escapeHtml(code) + '</code></pre>'; }
-  }
-  return '<pre class="code"><code>' + escapeHtml(code) + '</code></pre>';
-}
+function inlineFormat(text) {
   let s = text;
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
   return s;
 }
 function render(text) {
   let s = escapeHtml(text);
+  const nonce = Math.random().toString(36).slice(2, 10);
   // Protect fenced code blocks with placeholders.
   const codeBlocks = [];
   s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
     if (lang === 'mermaid') {
       const idx = codeBlocks.length;
       codeBlocks.push(renderMermaid(code.trim()));
-      return '\n@@CODEBLOCK_' + idx + '@@\n';
+      return '\n@@CB_' + nonce + '_' + idx + '@@\n';
     }
     const idx = codeBlocks.length;
     codeBlocks.push('<pre class="code"><code data-lang="' + lang + '">' + highlight(code.replace(/\n$/, '')) + '</code></pre>');
-    return '\n@@CODEBLOCK_' + idx + '@@\n';
+    return '\n@@CB_' + nonce + '_' + idx + '@@\n';
   });
   // Protect inline code spans.
   const inlineCodes = [];
   s = s.replace(/`([^`]+)`/g, (_, code) => {
     const idx = inlineCodes.length;
-    inlineCodes.push('<code>' + escapeHtml(code) + '</code>');
-    return '@@INLINE_' + idx + '@@';
+    inlineCodes.push(code);
+    return '@@IC_' + nonce + '_' + idx + '@@';
   });
+  // thinking blocks
+  s = s.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/g, (_, t) => '<details class="think"><summary>Thinking</summary>' + t + '</details>');
   // Display math ($$...$$)
   s = s.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => renderMath(math.trim(), true));
   // Inline math ($...$)
   s = s.replace(/\$([^$\n]+)\$/g, (_, math) => renderMath(math.trim(), false));
-  // thinking blocks
-  s = s.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/g, (_, t) => '<details class="think"><summary>Thinking</summary>' + t + '</details>');
   // headings
   s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^# (.+)$/gm, '<h1>$1</h1>');
   // tables (parse on protected text)
@@ -97,27 +77,54 @@ function render(text) {
       if (cells.length > 0 && cells[cells.length - 1] === '') cells.pop();
       return cells;
     }
-    const header = splitCells(lines[0]).map(inlineFormat);
-    const rows = lines.slice(2).map((l) => splitCells(l).map(inlineFormat));
+    const header = splitCells(lines[0]).map((c) => inlineFormat(restoreInline(c, inlineCodes)));
+    const rows = lines.slice(2).map((l) => splitCells(l).map((c) => inlineFormat(restoreInline(c, inlineCodes))));
     let html = '<table class="md-table"><thead><tr>' + header.map((h) => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>';
     for (const row of rows) html += '<tr>' + row.map((c) => '<td>' + c + '</td>').join('') + '</tr>';
     html += '</tbody></table>';
     return '\n' + html + '\n';
   });
-  // Restore inline code.
-  s = s.replace(/@@INLINE_(\d+)@@/g, (_, idx) => inlineCodes[Number(idx)]);
-  // inline code (for any remaining)
-  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // Restore inline code after all inline formatting.
   // bold/italic
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
   // links
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
+  // Restore inline code AFTER all inline formatting.
+  s = s.replace(/@@IC_[a-z0-9]+_(\d+)@@/g, (_, idx) => '<code>' + escapeHtml(inlineCodes[Number(idx)]) + '</code>');
   // lists
   s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
-  // paragraphs
-  s = s.split(/\n{2,}/).map((b) => /^<(h\d|pre|ul|li|details|table)/.test(b.trim()) ? b : '<p>' + b.replace(/\n/g, '<br>') + '</p>').join('\n');
+  // paragraphs (treat code-block placeholders as block elements)
+  s = s.split(/\n{2,}/).map((b) => {
+    const t = b.trim();
+    if (/^@@CB_[a-z0-9]+_\d+@@$/.test(t)) return t;
+    if (/^<(h\d|pre|ul|li|details|table)/.test(t)) return b;
+    return '<p>' + b.replace(/\n/g, '<br>') + '</p>';
+  }).join('\n');
   // Restore code blocks.
-  s = s.replace(/@@CODEBLOCK_(\d+)@@/g, (_, idx) => codeBlocks[Number(idx)]);
+  s = s.replace(/@@CB_[a-z0-9]+_(\d+)@@/g, (_, idx) => codeBlocks[Number(idx)]);
   return s;
+}
+function restoreInline(text, inlineCodes) {
+  return text.replace(/@@IC_[a-z0-9]+_(\d+)@@/g, (_, idx) => '`' + inlineCodes[Number(idx)] + '`');
+}
+function renderMath(text, display) {
+  if (window.katex) {
+    try { return window.katex.renderToString(text, { displayMode: !!display, throwOnError: false }); }
+    catch (e) { return escapeHtml(text); }
+  }
+  return escapeHtml(text);
+}
+function renderMermaid(code) {
+  if (window.mermaid) {
+    try {
+      const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
+      window.mermaid.render(id, code).then((r) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = r.svg;
+      });
+      return '<div class="mermaid" id="' + id + '">' + escapeHtml(code) + '</div>';
+    } catch (e) { return '<pre class="code"><code>' + escapeHtml(code) + '</code></pre>'; }
+  }
+  return '<pre class="code"><code>' + escapeHtml(code) + '</code></pre>';
 }
 window.HarnessMarkdown = { render, escapeHtml, safeUrl };

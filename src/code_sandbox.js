@@ -29,10 +29,16 @@ function detectRuntime() {
 
 function run(code, lang, opts) {
   opts = opts || {};
-  const runtime = opts.runtime || detectRuntime();
+  // Do not accept runtime from caller; use server-configured mode.
+  const runtime = detectRuntime();
+  const allowLocal = process.env.AEGISAI_SANDBOX_ALLOW_LOCAL === 'true';
+  if (runtime === 'local' && !allowLocal) {
+    return Promise.resolve({ ok: false, error: 'no container runtime available; set AEGISAI_SANDBOX_ALLOW_LOCAL=true to enable unsafe local execution', runtime: 'none' });
+  }
   const langConfig = LANGUAGES[lang];
   if (!langConfig) return Promise.resolve({ ok: false, error: 'unsupported language: ' + lang, runtime });
-  const timeout = opts.timeout || 30000;
+  if (typeof code !== 'string') return Promise.resolve({ ok: false, error: 'code must be a string', runtime });
+  const timeout = Math.min(opts.timeout || 30000, 120000); // cap at 2 minutes
 
   return new Promise((resolve) => {
     const startTime = Date.now();

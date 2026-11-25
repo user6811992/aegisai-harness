@@ -813,12 +813,28 @@ async function main() {
         return;
       }
       if (req.method === 'POST' && req.url.split('?')[0] === '/api/webhook') {
+        const MAX_BODY = parseInt(process.env.AEGISAI_MAX_BODY_BYTES || '1048576', 10);
+        const rawBody = await new Promise((resolve, reject) => {
+          let body = '';
+          let bytes = 0;
+          let aborted = false;
+          req.on('data', (c) => {
+            if (aborted) return;
+            bytes += c.length;
+            if (bytes > MAX_BODY) { aborted = true; reject(Object.assign(new Error('request body too large'), { status: 413 })); req.resume(); return; }
+            body += c;
+          });
+          req.on('error', (e) => { if (!aborted) { aborted = true; reject(e); } });
+          req.on('end', () => { if (!aborted) resolve(body); });
+        });
+        let parsed;
+        try { parsed = JSON.parse(rawBody || '{}'); } catch (e) { sendJson(res, 400, { error: 'invalid JSON' }); return; }
         const event = req.headers['x-github-event'] || new URL(req.url, 'http://x').searchParams.get('event') || 'push';
-        const parsed = await readJson(req);
         const secret = process.env.AEGISAI_WEBHOOK_SECRET;
         const sig = req.headers['x-hub-signature-256'];
-        if (secret && sig) {
-          const ok = require('./webhooks').verifySignature(JSON.stringify(parsed), sig, secret);
+        if (secret) {
+          if (!sig) { sendJson(res, 401, { error: 'signature required' }); return; }
+          const ok = require('./webhooks').verifySignature(rawBody, sig, secret);
           if (!ok) { sendJson(res, 401, { error: 'invalid signature' }); return; }
         }
         const r = await require('./webhooks').handle(event, parsed, { projectRoot: process.cwd() });
@@ -847,7 +863,7 @@ async function main() {
         const parsed = await readJson(req);
         if (!parsed.code) { sendJson(res, 400, { error: 'code required' }); return; }
         const lang = parsed.language || 'python';
-        const r = await require('./code_sandbox').run(parsed.code, lang, { timeout: parsed.timeout, runtime: parsed.runtime });
+        const r = await require('./code_sandbox').run(parsed.code, lang, { timeout: parsed.timeout });
         sendJson(res, r.ok ? 200 : 400, r);
         return;
       }
