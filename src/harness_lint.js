@@ -12,9 +12,19 @@ function lint() {
     if (!fs.existsSync(path.join(ROOT, f))) findings.push({ level: 'error', msg: 'missing required file: ' + f });
   }
   // module load check
-  const mods = fs.existsSync(path.join(ROOT, 'src')) ? fs.readdirSync(path.join(ROOT, 'src')).filter((f) => f.endsWith('.js') && f !== 'index.js') : [];
+  const srcDir = path.join(ROOT, 'src');
+  const mods = [];
+  if (fs.existsSync(srcDir)) {
+    const walk = (dir) => {
+      for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
+        if (e.isDirectory()) walk(path.join(dir, e.name));
+        else if (e.name.endsWith('.js') && e.name !== 'index.js') mods.push(path.relative(srcDir, path.join(dir, e.name)));
+      }
+    };
+    walk(srcDir);
+  }
   for (const m of mods) {
-    try { require(path.join(ROOT, 'src', m)); }
+    try { require(path.join(srcDir, m)); }
     catch (e) { findings.push({ level: 'error', msg: 'module fails to load: ' + m + ' — ' + String(e.message || e) }); }
   }
   // stub scan

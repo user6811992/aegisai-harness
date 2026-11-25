@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml/badge.svg)](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-22.5%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-339933?logo=node.js&logoColor=white)](https://nodejs.org)
 [![GitHub release](https://img.shields.io/github/v/release/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/releases)
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
@@ -92,7 +92,7 @@ CI enforces `npm run check:version` so `package.json`, the installer filename, d
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-0.68.0-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-0.85.0-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables

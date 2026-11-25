@@ -22,7 +22,7 @@ What actually happened.
 
 ## Environment
 - OS: [e.g. Windows 11]
-- Node.js version: [e.g. 22.5.0]
+- Node.js version: [e.g. 22.13.0]
 - AegisAi Harness version: [e.g. 0.66.0]
 - Backend: [e.g. Ollama llama3.2:3b]
 

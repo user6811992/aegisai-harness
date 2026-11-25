@@ -10,7 +10,7 @@ npm test          # 250+ tests, all must pass
 npm start         # run the harness
 ```
 
-Requires Node.js 22.5+.
+Requires Node.js 22.13+.
 
 ## Development workflow
 
