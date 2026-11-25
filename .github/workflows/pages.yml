@@ -22,8 +22,11 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: actions/configure-pages@v5
+      - name: List docs directory
+        run: ls -la docs/
       - uses: actions/upload-pages-artifact@v3
         with:
           path: docs
+          if-no-files-found: warn
       - id: deployment
         uses: actions/deploy-pages@v4
