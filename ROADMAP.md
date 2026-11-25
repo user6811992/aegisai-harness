@@ -457,6 +457,88 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [x] Codex-style approval modes: suggest / auto-edit / full-auto — **H**
 - [ ] Codex-style MCP server configuration patterns — **H** (covered)
 
+## v0.78 — From nvidia, cloudflare, trufflesecurity, semgrep, cisco-talos, haydenschmitty, sandbox-quantum, plus re-scan of bytedance/openai/modelcontextprotocol
+Feasibility: **H** = fits current JS architecture, **M** = needs external service/tool, **L** = native/platform-scale.
+
+### LLM red-teaming (nvidia/garak)
+- [ ] Model behaviour probe suite — hallucination, jailbreak, prompt-injection, data-leakage, toxicity probes run against the configured backend with scored pass/fail and a JSON report. Sits beside the existing code-pattern scanner (`vuln_scan`) and harness `adversarial` suite. — **H**
+
+### Skill & plugin security (nvidia/SkillSpector)
+- [ ] Dedicated skill scanner — extend `skill_eval` with SkillSpector-style rule classes: malicious patterns, prompt injection, data exfiltration intent, credential access, unsafe tool grants, obfuscation. Emit SARIF. — **H**
+
+### Verified secret scanning (trufflesecurity/trufflehog)
+- [ ] Detect **and verify** credentials — current tooling does regex/PII only. Add provider-aware verifiers (GitHub, Slack, AWS, Stripe, SendGrid, npm, OpenAI-style keys) that confirm liveness, with an explicit offline mode that reports `unverified`. — **H**
+
+### Multi-phase security audit with independent verification (cloudflare/security-audit-skill)
+- [ ] Audit pipeline upgrade — recon → candidate findings → **independent re-verification pass that drops false positives** → machine-readable SARIF/JSON with evidence per finding. Replaces the current single-pass `pentest_pipeline`. — **H**
+
+### MCP testing & registry alignment (modelcontextprotocol/inspector, /registry)
+- [ ] `mcp-inspect` command — deterministic MCP server tests: tool schema validity, error-path behaviour, resource/prompt round-trips, timeouts; machine-readable results. — **H**
+- [ ] Align registry client with the official MCP registry API (`modelcontextprotocol/registry`) instead of the hand-rolled catalog. — **M**
+
+### Cross-agent delegation (openai/codex-plugin-cc, openai/skills)
+- [ ] External agent adapters — delegate a task to a locally installed `codex` / `claude` / `aider` CLI and capture the result as an evidence record. Complements `agents_as_tools` and `peer_review`. — **M**
+- [ ] Codex skills catalog import — map the public skills catalog onto `skill_pkg`/`default_skills`. — **M**
+
+### Visual grounding for computer use (bytedance/UI-TARS-desktop)
+- [ ] Screenshot → vision → coordinate click — extend the CDP browser tools with `browser_screenshot`, `browser_click_at(x,y)` and a vision-model locator ("click the Submit button") using the existing `vision.js`. — **H**
+
+### Plain-English architecture map (haydenschmitty/floorplan)
+- [ ] Interactive architecture map page — render `code_map` as a navigable module/edge diagram in the web UI with plain-English summaries per module. — **H**
+
+### Channels & trust (sandbox-quantum/switch, switch-trust-*)
+- [ ] Microsoft Teams + Mattermost channel adapters — completes the IM set alongside Slack/Telegram/Discord/DingTalk/Feishu. — **M**
+- [ ] Guardrail routing SDK surface — expose the guardrails/policy engine as a small documented JS API (`evaluate(tool, args)`) so external tools can reuse it. — **H**
+- [ ] Project-wide symbol rename — LSP `rename` + apply-edits across the workspace. — **M**
+
+### Malware & artifact hygiene (cisco-talos)
+- [ ] Attachment malware scan — if `clamscan` is present, scan dropped/ingested files before the agent reads them; quarantine and report. — **M**
+- [ ] Binary function similarity for RE — near-duplicate function detection across builds to support diffing patched binaries (feeds `re_index` / Ghidra workflow). — **M**
+- [ ] Synthetic security log corpus (talos/EvidenceForge) — generated hunt datasets for testing `security_kb` and detection rules. — **H**
+- [ ] IoC feed import (talos/IOCs) — load indicators into `security_kb` with hashes/domains/IPs for offline matching. — **H**
+
+## Batch plan (updated)
+
+### Batch 3 — next
+| Item | Source | Feasibility |
+|---|---|---|
+| Model behaviour probe suite | nvidia/garak | H |
+| Skill scanner rule classes + SARIF | nvidia/SkillSpector | H |
+| Verified secret scanning | trufflesecurity/trufflehog | H |
+| Multi-phase audit with independent verification | cloudflare/security-audit-skill | H |
+| `mcp-inspect` deterministic MCP tests | modelcontextprotocol/inspector | H |
+| Screenshot → vision → click | bytedance/UI-TARS-desktop | H |
+| Conversation templates | prior backlog | H |
+| Multi-model A/B testing across runs | prior backlog | H |
+
+### Batch 4 — after
+| Item | Source | Feasibility |
+|---|---|---|
+| Interactive architecture map page | haydenschmitty/floorplan | H |
+| Guardrail routing API surface | sandbox-quantum/switch-trust | H |
+| IoC feed import | cisco-talos/IOCs | H |
+| Synthetic security log corpus | cisco-talos/EvidenceForge | H |
+| Teams + Mattermost channels | sandbox-quantum/switch | M |
+| External agent CLI adapters | openai/codex-plugin-cc | M |
+| Official MCP registry alignment | modelcontextprotocol/registry | M |
+| Codex skills catalog import | openai/skills | M |
+| Attachment malware scan (`clamscan`) | cisco-talos/clamav | M |
+| Project-wide symbol rename (LSP) | sandbox-quantum/bartleby | M |
+| Binary function similarity | cisco-talos/binary_function_similarity | M |
+| RAGFlow-style private retrieval | bytedance/deer-flow | M |
+| Codex-style MCP config presets | openai/codex | H |
+| Plugin marketplace maturity | prior backlog | M |
+| Mobile PWA polish | prior backlog | H |
+
+### Batch 5 — polish / ecosystem
+| Item | Source | Feasibility |
+|---|---|---|
+| Community plugin ecosystem | prior backlog | ecosystem |
+| Docs & tutorials | prior backlog | H |
+| Performance optimization (large context) | prior backlog | H |
+| Accessibility (ARIA, screen readers) | prior backlog | H |
+| i18n | prior backlog | H |
+
 ## Non-goals
 - Cloud-hosted backends as a requirement (local-first always).
 - Telemetry or phone-home.
