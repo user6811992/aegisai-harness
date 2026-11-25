@@ -8,26 +8,23 @@ const DEFAULT_URL = process.env.IMAGE_GEN_URL || 'http://127.0.0.1:7860';
 
 async function generate(prompt, opts) {
   opts = opts || {};
-  const url = opts.url || DEFAULT_URL;
-  // SSRF protection: block private/loopback hosts.
-  try {
-    const u = new URL(url);
-    const host = u.hostname.toLowerCase();
-    if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0' ||
-        /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
-        /^169\.254\./.test(host) || /^127\./.test(host) || host.endsWith('.local')) {
-      return { ok: false, error: 'fetching private/loopback addresses is not allowed' };
-    }
-  } catch (e) { return { ok: false, error: 'invalid url' }; }
+  // Only use server-configured URL, not caller-supplied.
+  const url = DEFAULT_URL;
   const size = opts.size || '512x512';
   const [w, h] = size.split('x').map(Number);
   const body = { prompt, width: w || 512, height: h || 512, steps: opts.steps || 20, cfg_scale: opts.cfg || 7 };
 
-  // Validate output path.
   let outPath = opts.output;
   if (outPath) {
-    try { outPath = require('./index').assertAllowedPath ? require('./index').assertAllowedPath(outPath) : outPath; }
-    catch (e) { return { ok: false, error: String(e.message || e) }; }
+    // Validate output path stays within allowed roots.
+    const path = require('path');
+    const resolved = path.resolve(outPath);
+    // Simple check: must be in temp dir or cwd.
+    const tmpdir = require('os').tmpdir();
+    const cwd = process.cwd();
+    if (!resolved.startsWith(tmpdir) && !resolved.startsWith(cwd)) {
+      return { ok: false, error: 'output path outside allowed directories' };
+    }
   } else {
     outPath = path.join(require('os').tmpdir(), 'gen-' + Date.now() + '.png');
   }
@@ -43,7 +40,6 @@ async function generate(prompt, opts) {
       const data = await r.json();
       if (data.images && data.images.length > 0) {
         const buf = Buffer.from(data.images[0], 'base64');
-        // Cap at 10MB
         if (buf.length > 10 * 1024 * 1024) return { ok: false, error: 'image too large' };
         fs.writeFileSync(outPath, buf);
         return { ok: true, path: outPath, bytes: buf.length, backend: 'sd-webui' };

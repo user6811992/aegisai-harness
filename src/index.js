@@ -764,7 +764,7 @@ async function main() {
           try { outPath = assertAllowedPath(outPath); }
           catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
         }
-        const r = await require('./image_gen').generate(parsed.prompt, { size: parsed.size, output: outPath, url: parsed.url });
+        const r = await require('./image_gen').generate(parsed.prompt, { size: parsed.size, output: outPath });
         sendJson(res, r.ok ? 200 : 502, r);
         return;
       }
@@ -797,7 +797,15 @@ async function main() {
           if (typeof m.role !== 'string' || typeof m.content !== 'string') { sendJson(res, 400, { error: 'message must have string role and content' }); return; }
         }
         const existing = sessions.get(s.id);
-        if (existing) { sendJson(res, 409, { error: 'session already exists; pass overwrite:true to replace' }); return; }
+        let dbExists = false;
+        try {
+          const d2 = dbSafe();
+          if (d2 && typeof d2.getSession === 'function') {
+            const row = d2.getSession(s.id);
+            if (row) dbExists = true;
+          }
+        } catch (e) {}
+        if ((existing || dbExists) && !parsed.overwrite) { sendJson(res, 409, { error: 'session already exists; pass overwrite:true to replace' }); return; }
         const d = dbSafe();
         if (d) d.saveSession({ id: s.id, title: s.title || s.id, messages: s.messages, updated: s.updated || new Date().toISOString(), tags: s.tags || [] });
         sessions.set(s.id, s.messages);

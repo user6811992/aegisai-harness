@@ -6,21 +6,19 @@ const path = require('path');
 const os = require('os');
 
 const LANGUAGES = {
-  'python': { image: 'python:3.12-slim', cmd: ['python', '-c'], ext: '.py' },
-  'javascript': { image: 'node:22-slim', cmd: ['node', '-e'], ext: '.js' },
-  'bash': { image: 'bash:5', cmd: ['bash', '-c'], ext: '.sh' },
-  'go': { image: 'golang:1.22', cmd: ['go', 'run'], ext: '.go' },
-  'rust': { image: 'rust:1.77', cmd: ['rustc', '-'], ext: '.rs' },
+  'python': { image: 'python:3.12-slim', runCmd: (f) => ['python', f], ext: '.py', localCmd: 'python' },
+  'javascript': { image: 'node:22-slim', runCmd: (f) => ['node', f], ext: '.js', localCmd: 'node' },
+  'bash': { image: 'bash:5', runCmd: (f) => ['bash', f], ext: '.sh', localCmd: process.platform === 'win32' ? null : 'bash' },
+  'go': { image: 'golang:1.22', runCmd: (f) => ['go', 'run', f], ext: '.go', localCmd: 'go' },
+  'rust': { image: 'rust:1.77', runCmd: (f) => { const out = f.replace(/\.rs$/, ''); return ['sh', '-c', 'rustc ' + f + ' -o ' + out + ' && ' + out]; }, ext: '.rs', localCmd: 'rustc' },
 };
 
 function detectRuntime() {
-  // Check for Docker.
   try {
     const { execSync } = require('child_process');
     execSync('docker --version', { stdio: 'ignore', timeout: 5000 });
     return 'docker';
   } catch (e) {}
-  // Check for Podman.
   try {
     const { execSync } = require('child_process');
     execSync('podman --version', { stdio: 'ignore', timeout: 5000 });
@@ -32,25 +30,38 @@ function detectRuntime() {
 function run(code, lang, opts) {
   opts = opts || {};
   const runtime = opts.runtime || detectRuntime();
-  const langConfig = LANGUAGES[lang] || LANGUAGES['bash'];
+  const langConfig = LANGUAGES[lang];
+  if (!langConfig) return Promise.resolve({ ok: false, error: 'unsupported language: ' + lang, runtime });
   const timeout = opts.timeout || 30000;
 
   return new Promise((resolve) => {
-    let child;
     const startTime = Date.now();
+    const tmpFile = path.join(os.tmpdir(), 'sandbox-' + Date.now() + langConfig.ext);
+    fs.writeFileSync(tmpFile, code);
+    let child;
+    let cleanup = () => { try { fs.unlinkSync(tmpFile); } catch (e) {} };
 
     if (runtime === 'docker' || runtime === 'podman') {
       const bin = runtime;
-      const args = ['run', '--rm', '-i', '--network=none', '--memory=256m', '--cpus=0.5', langConfig.image].concat(langConfig.cmd).concat([code]);
+      const args = ['run', '--rm', '-i', '--network=none', '--memory=256m', '--cpus=0.5', '-v', tmpFile + ':/tmp/code' + langConfig.ext + ':ro', langConfig.image].concat(langConfig.runCmd('/tmp/code' + langConfig.ext));
       child = spawn(bin, args, { timeout });
     } else {
       // Local subprocess fallback.
-      const tmpFile = path.join(os.tmpdir(), 'sandbox-' + Date.now() + langConfig.ext);
-      fs.writeFileSync(tmpFile, code);
-      const cmd = lang === 'python' ? 'python' : lang === 'javascript' ? 'node' : 'bash';
-      child = spawn(cmd, [tmpFile], { timeout });
-      // Clean up temp file after.
-      child.on('close', () => { try { fs.unlinkSync(tmpFile); } catch (e) {} });
+      if (!langConfig.localCmd) {
+        cleanup();
+        resolve({ ok: false, error: 'language ' + lang + ' is not available on this platform', runtime: 'local', durationMs: 0 });
+        return;
+      }
+      if (lang === 'rust') {
+        const out = tmpFile.replace(/\.rs$/, '');
+        child = spawn('sh', ['-c', 'rustc ' + tmpFile + ' -o ' + out + ' && ' + out], { timeout, shell: true });
+      } else if (lang === 'go') {
+        child = spawn('go', ['run', tmpFile], { timeout });
+      } else if (lang === 'bash') {
+        child = spawn('bash', [tmpFile], { timeout });
+      } else {
+        child = spawn(langConfig.localCmd, [tmpFile], { timeout });
+      }
     }
 
     let stdout = '';
@@ -60,11 +71,13 @@ function run(code, lang, opts) {
 
     const timer = setTimeout(() => {
       try { child.kill('SIGKILL'); } catch (e) {}
+      cleanup();
       resolve({ ok: false, error: 'timeout after ' + timeout + 'ms', stdout: stdout.slice(0, 10000), stderr: stderr.slice(0, 10000), durationMs: Date.now() - startTime, runtime });
     }, timeout);
 
     child.on('close', (code) => {
       clearTimeout(timer);
+      cleanup();
       resolve({
         ok: code === 0,
         exitCode: code,
@@ -77,6 +90,7 @@ function run(code, lang, opts) {
 
     child.on('error', (e) => {
       clearTimeout(timer);
+      cleanup();
       resolve({ ok: false, error: String(e.message || e), stdout, stderr, durationMs: Date.now() - startTime, runtime });
     });
   });
@@ -84,7 +98,7 @@ function run(code, lang, opts) {
 
 function isAvailable() {
   const rt = detectRuntime();
-  return { runtime: rt, available: rt !== 'local' || true, languages: Object.keys(LANGUAGES) };
+  return { runtime: rt, available: true, languages: Object.keys(LANGUAGES) };
 }
 
 module.exports = { run, detectRuntime, isAvailable, LANGUAGES };

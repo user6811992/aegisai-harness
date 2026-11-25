@@ -1,4 +1,4 @@
-const CACHE = 'aegisai-harness-v4';
+const CACHE = 'aegisai-harness-v5';
 const PRECACHE = ['/', '/style.css', '/app.js', '/manifest.json', '/vendor/preact.mjs', '/vendor/hooks.mjs', '/vendor/htm.mjs', '/vendor/tailwind.js'];
 
 self.addEventListener('install', (e) => {

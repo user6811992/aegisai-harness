@@ -450,6 +450,7 @@ function ToolTimeline({ tools }) {
 
 function App() {
   const [messages, setMessages] = useState([]);
+  const [currentSession, setCurrentSession] = useState('default');
   const [promptHistory, setPromptHistory] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
   const [loading, setLoading] = useState(false);
@@ -546,6 +547,8 @@ function App() {
   }
 
   function newChat() {
+    const newId = 'sess_' + Date.now();
+    setCurrentSession(newId);
     setMessages([]);
     setToolLog([]);
     toast('New chat started', 'info');
@@ -569,7 +572,7 @@ function App() {
     // Add empty assistant message for streaming
     setMessages((m) => [...m, { role: 'assistant', content: '' }]);
     try {
-      const r = await apiFetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, stream: true }) });
+      const r = await apiFetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, stream: true, sessionId: currentSession }) });
       if (r.status === 401) { window.dispatchEvent(new CustomEvent('aegisai-unauthorized')); throw new Error('unauthorized'); }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const reader = r.body.getReader();
@@ -1097,6 +1100,7 @@ function App() {
       <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${async (s) => {
         try {
           const d = await API('/api/sessions?id=' + encodeURIComponent(s.id));
+          setCurrentSession(s.id);
           setMessages((d.messages || []).map((m) => ({ role: m.role, content: m.content })));
           toast('Loaded session: ' + (s.title || s.id), 'success');
         } catch (e) { toast('Load failed: ' + e.message, 'error'); }
@@ -1107,7 +1111,7 @@ function App() {
         <button onClick=${() => setShowSessions(true)} title="Sessions (Ctrl+B)">📂</button>
         <button onClick=${async () => {
           try {
-            const r = await API('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'default', format: 'markdown' }) });
+            const r = await API('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: currentSession, format: 'markdown' }) });
             toast('Exported to ' + (r.path || 'download'), 'success');
           } catch (e) { toast('Export failed: ' + e.message, 'error'); }
         }} title="Export session" aria-label="Export session">📥</button>
