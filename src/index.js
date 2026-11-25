@@ -156,13 +156,25 @@ async function main() {
     const rateWindow = parseInt(process.env.AEGISAI_RATE_WINDOW || '60', 10) * 1000;
     const rateHits = new Map();
     const sessions = new Map(); // session id -> messages array
+    const sessionToolLogs = new Map(); // session id -> last tool log (for /api/context)
+    const sessionUpdated = new Map(); // session id -> ISO timestamp
+    const warnMissing = (v) => String(v || 'default');
     const pendingActions = new Map();
 
     function readJson(req) {
+      const MAX_BODY = parseInt(process.env.AEGISAI_MAX_BODY_BYTES || '1048576', 10); // 1 MiB default
       return new Promise((resolve, reject) => {
         let body = '';
-        req.on('data', (c) => { body += c; });
-        req.on('end', () => { try { resolve(JSON.parse(body || '{}')); } catch (e) { reject(e); } });
+        let bytes = 0;
+        let aborted = false;
+        req.on('data', (c) => {
+          if (aborted) return;
+          bytes += c.length;
+          if (bytes > MAX_BODY) { aborted = true; reject(Object.assign(new Error('request body too large'), { status: 413 })); req.resume(); return; }
+          body += c;
+        });
+        req.on('error', (e) => { if (!aborted) { aborted = true; reject(e); } });
+        req.on('end', () => { if (aborted) return; try { resolve(JSON.parse(body || '{}')); } catch (e) { reject(Object.assign(e, { status: 400 })); } });
       });
     }
     function sendJson(res, status, obj) {
@@ -170,7 +182,7 @@ async function main() {
       res.end(JSON.stringify(obj));
     }
 
-    const server = http.createServer(async (req, res) => {
+    const handleRequest = async (req, res) => {
       // CORS headers (needed for browser fetch with application/json content type)
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -180,10 +192,19 @@ async function main() {
       const expectedToken = currentToken();
       if (expectedToken) {
         const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || new URL(req.url, 'http://x').searchParams.get('token') || '';
-        if (!tokenMatches(supplied, expectedToken)) { sendJson(res, 401, { error: 'unauthorized' }); return; }
+        if (!tokenMatches(supplied, expectedToken)) {
+          // A valid personal access token (PAT) may stand in for the global token.
+          let patOk = false;
+          try {
+            const pats = require('./access_tokens');
+            const v = pats.verify ? pats.verify(supplied) : null;
+            patOk = Boolean(v && (v.ok !== false));
+          } catch (e) { patOk = false; }
+          if (!patOk) { sendJson(res, 401, { error: 'unauthorized' }); return; }
+        }
       }
-      // rate limit
-      if (rateLimit > 0) {
+      // rate limit — API only; static assets must not consume the API budget
+      if (rateLimit > 0 && req.url.split('?')[0].startsWith('/api/')) {
         const ip = req.socket.remoteAddress || 'unknown';
         const now = Date.now();
         const arr = (rateHits.get(ip) || []).filter((t) => now - t < rateWindow);
@@ -206,10 +227,10 @@ async function main() {
               messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
               projectRoot: process.cwd(),
               onEvent: (e) => {
-                if (e.type === 'token') { fullReply += (e.content || ''); res.write('data: ' + JSON.stringify({ type: 'token', content: e.content || '' }) + '\\n\\n'); }
-                else if (e.type === 'tool_call') { res.write('data: ' + JSON.stringify({ type: 'tool_call', name: e.name, args: e.args }) + '\\n\\n'); }
-                else if (e.type === 'tool_result') { res.write('data: ' + JSON.stringify({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }) + '\\n\\n'); }
-                else if (e.type === 'status') { res.write('data: ' + JSON.stringify({ type: 'status', message: e.message }) + '\\n\\n'); }
+                if (e.type === 'token') { fullReply += (e.content || ''); res.write('data: ' + JSON.stringify({ type: 'token', content: e.content || '' }) + '\n\n'); }
+                else if (e.type === 'tool_call') { res.write('data: ' + JSON.stringify({ type: 'tool_call', name: e.name, args: e.args }) + '\n\n'); }
+                else if (e.type === 'tool_result') { res.write('data: ' + JSON.stringify({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }) + '\n\n'); }
+                else if (e.type === 'status') { res.write('data: ' + JSON.stringify({ type: 'status', message: e.message }) + '\n\n'); }
               },
               autoApprove,
               approvalHandler: async () => false,
@@ -217,7 +238,9 @@ async function main() {
             const reply = (result.final && result.final.final) || fullReply;
             const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
             sessions.set(sid, updated);
-            res.write('data: ' + JSON.stringify({ type: 'done', reply, toolLog: result.toolLog || [] }) + '\\n\\n');
+            sessionToolLogs.set(sid, result.toolLog || []);
+            sessionUpdated.set(sid, new Date().toISOString());
+            res.write('data: ' + JSON.stringify({ type: 'done', reply, toolLog: result.toolLog || [] }) + '\n\n');
             res.end();
             return;
           }
@@ -233,6 +256,8 @@ async function main() {
           const reply = (result.final && result.final.final) || '';
           const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
           sessions.set(sid, updated);
+          sessionToolLogs.set(sid, result.toolLog || []);
+          sessionUpdated.set(sid, new Date().toISOString());
           sendJson(res, 200, { reply, toolLog: result.toolLog || [], pendingActions: pendingActions.get(sid) || [] });
           return;
         }
@@ -303,7 +328,7 @@ async function main() {
           let results = [];
           try {
             // Search without filter first, then filter for gguf client-side
-            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&sort=downloads&direction=-1&limit=30');
+            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&sort=downloads&direction=-1&limit=30', { signal: AbortSignal.timeout(15000) });
             if (r.ok) {
               const data = await r.json();
               const all = Array.isArray(data) ? data : [];
@@ -321,43 +346,6 @@ async function main() {
             }
           } catch (e) { console.error('HF search error:', e.message); }
           sendJson(res, 200, { results, query: q });
-          return;
-        }
-        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/scan') {
-          const roots = new URL(req.url, 'http://x').searchParams.get('roots');
-          const rootList = roots ? roots.split(',') : undefined;
-          const backend = require('./backends').getType();
-          const found = require('./model_discovery').scan(rootList, 500, backend);
-          // Also list models from the active backend
-          try {
-            const r = await require('./backends').backendListModels();
-            const backendModels = (r.models || []).map((m) => ({ path: backend + '://' + (m.name || m), name: m.name || m, sizeGB: m.size ? +(m.size / 1024 ** 3).toFixed(2) : 0, type: backend }));
-            // Only add if not already in found
-            const existingNames = new Set(found.map((f) => f.name));
-            for (const bm of backendModels) {
-              if (!existingNames.has(bm.name)) found.push(bm);
-            }
-          } catch (e) {}
-          sendJson(res, 200, { models: found, backend });
-          return;
-        }
-        if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {
-          const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
-          // Simple HuggingFace search via their API
-          let results = [];
-          try {
-            const r = await fetch('https://huggingface.co/api/models?search=' + encodeURIComponent(q) + '&filter=gguf&sort=downloads&direction=-1&limit=20');
-            if (r.ok) {
-              const data = await r.json();
-              results = (Array.isArray(data) ? data : []).map((m) => ({
-                id: m.id || m.modelId,
-                downloads: m.downloads || 0,
-                likes: m.likes || 0,
-                tags: m.tags || [],
-              }));
-            }
-          } catch (e) {}
-          sendJson(res, 200, { results });
           return;
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/models/pull') {
@@ -378,7 +366,7 @@ async function main() {
           sendJson(res, 200, { ok: true });
           return;
         }
-      } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
+      } catch (e) { sendJson(res, (e && e.status) || 500, { error: String(e.message || e) }); return; }
 
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/stream') {
         const u = new URL(req.url, 'http://x');
@@ -389,7 +377,8 @@ async function main() {
         const tokenizer = require('./tokenizer');
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
         const tokens = tokenizer.countMessages(sessions.get(sid) || []);
-        sendJson(res, 200, { tokens, limit: 8192, ratio: +(tokens / 8192).toFixed(3), compacted: (lastToolLog || []).some((t) => t.name === '__compact__') });
+        const tl = sessionToolLogs.get(sid) || [];
+        sendJson(res, 200, { tokens, limit: 8192, ratio: +(tokens / 8192).toFixed(3), compacted: tl.some((t) => t.name === '__compact__') });
         return;
       }
       if (req.url.split('?')[0] === '/mcp') {
@@ -457,8 +446,31 @@ async function main() {
         sendJson(res, 200, { events: require('./event_bus').bus.events() });
         return;
       }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/sessions') {
+        const u = new URL(req.url, 'http://x');
+        const wantId = u.searchParams.get('id');
+        if (wantId) {
+          const sid = warnMissing(wantId);
+          const msgs = sessions.get(sid) || [];
+          sendJson(res, 200, { id: sid, messages: msgs });
+          return;
+        }
+        const list = [];
+        for (const [id, msgs] of sessions.entries()) {
+          const firstUser = (msgs || []).find((m) => m.role === 'user');
+          list.push({
+            id,
+            title: firstUser ? String(firstUser.content || '').slice(0, 60) : id,
+            messages: (msgs || []).length,
+            updated: sessionUpdated.get(id) || null,
+          });
+        }
+        list.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
+        sendJson(res, 200, { sessions: list });
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/events') {
-        require('./event_stream').subscribe(res);
+        require('./event_stream').subscribe(res, req);
         return;
       }
       try {
@@ -509,6 +521,8 @@ async function main() {
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/version') {
           const v = require('./updater');
           let info = v.checkLocal();
+          if (!info || typeof info !== 'object') info = {};
+          info.version = require('./version').VERSION;
           try { info.node = process.version; } catch (e) {}
           sendJson(res, 200, info);
           return;
@@ -565,10 +579,12 @@ async function main() {
           const url = process.env.STT_URL;
           if (!url) { sendJson(res, 400, { error: 'STT_URL not configured' }); return; }
           try {
+            const MAX_AUDIO = parseInt(process.env.AEGISAI_MAX_AUDIO_BYTES || '26214400', 10); // 25 MiB
             const chunks = [];
-            for await (const c of req) chunks.push(c);
+            let total = 0;
+            for await (const c of req) { total += c.length; if (total > MAX_AUDIO) { sendJson(res, 413, { error: 'audio too large' }); return; } chunks.push(c); }
             const body = Buffer.concat(chunks);
-            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': req.headers['content-type'] || 'audio/webm' }, body });
+            const r = await fetch(url, { method: 'POST', headers: { 'Content-Type': req.headers['content-type'] || 'audio/webm' }, body, signal: AbortSignal.timeout(60000) });
             const data = await r.json();
             sendJson(res, 200, { text: data.text || '' });
           } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
@@ -595,7 +611,17 @@ async function main() {
         res.writeHead(200, { 'Content-Type': ct });
         res.end(fs.readFileSync(filePath));
       } else { res.writeHead(404); res.end(); }
+    };
+    const server = http.createServer((req, res) => {
+      handleRequest(req, res).catch((e) => {
+        try {
+          if (!res.headersSent) sendJson(res, (e && e.status) || 500, { error: String((e && e.message) || e) });
+          else res.end();
+        } catch (_) { try { res.end(); } catch (__) {} }
+      });
     });
+    // Never let a stray rejection kill the web server.
+    process.on('unhandledRejection', (e) => { try { console.error('[unhandledRejection]', (e && e.stack) || e); } catch (_) {} });
     server.listen(port, host, () => console.log('Web UI at http://' + host + ':' + port));
     return;
   }
@@ -692,10 +718,36 @@ async function main() {
     };
     rl.prompt();
     rl.on('line', async (line) => {
+      try {
       const t = line.trim();
       if (!t) { rl.prompt(); return; }
       if (t === '/exit' || t === '/quit') { rl.close(); return; }
-      if (t === '/help') { console.log('Commands: /exit, /model <name>, /root <path>, /sandbox on|off, /autoapprove on|off, /offline on|off, /agent <name>, /index, /replay <sessionId>, /health, /backup <file>, /restore <file>, /vault set|get|list|delete ..., /eval add|run|list, /traces'); rl.prompt(); return; }
+      if (t === '/help') {
+        const groups = [
+          ['Session', ['/exit', '/model <name>', '/root <path>', '/sandbox on|off', '/autoapprove on|off', '/offline on|off', '/agent <name>', '/plan <goal>']],
+          ['Index & replay', ['/index', '/replay <sessionId>', '/traces', '/search-sessions <q>', '/session-export <id>|<format>']],
+          ['Health & data', ['/health', '/backup <file>', '/restore <file>', '/vault set|get|list|delete ...', '/metrics', '/score', '/reliability']],
+          ['Eval & bench', ['/eval add|run|list', '/pass-at-k', '/bench <models...>', '/failure-clusters', '/lint', '/stress']],
+          ['Models', ['/providers', '/provider-list', '/model-scan', '/models', '/cheapest <prompt>', '/cost-route', '/routing-eval']],
+          ['Memory', ['/remember <text>', '/recall <q>', '/reflect', '/sremember', '/srecall', '/tremember', '/tasof', '/memory-graph', '/habits', '/geo-wake', '/mem-reindex']],
+          ['Memory (graph)', ['/graph-observe', '/graph-recall', '/graph-prompt', '/mem-md-search', '/memory-hierarchy']],
+          ['Governance', ['/charter', '/governance', '/constitution', '/constitution-propose', '/constitution-decide', '/policy', '/auto-rules', '/ahp-check', '/security-layers', '/identity-list']],
+          ['Audit & evidence', ['/ledger-verify', '/ledger-replay', '/ledger-rewind', '/merkle-root', '/evidence-bundle', '/contract-save', '/contract-check', '/contracts', '/honesty', '/waste', '/diagnose', '/evolve']],
+          ['Orchestration', ['/dag <json|file>', '/dag-runs', '/critique <text>', '/board', '/board-add', '/task-create', '/task-update', '/tasks', '/team-create', '/team-run', '/teams', '/swarm <plan>', '/schedule', '/sched-tick']],
+          ['Tools', ['/tools', '/tool-contract', '/tool-eval', '/tool-state', '/equipment', '/equipment-add', '/semantic-tools <q>', '/mcp-pins', '/mcp-registry', '/mcp-market']],
+          ['Security & RE', ['/vuln-scan <path>', '/security-kb', '/sarif <path>', '/pentest <target>', '/rea-status', '/ghidra-status', '/craft-status', '/re-search <q>', '/re-categories', '/re-online <q>']],
+          ['Browser & web', ['/browser-targets', '/browser-nav <url>', '/browser-snapshot', '/browser-eval <js>', '/extract <url>', '/search <q>', '/multi-search <q>', '/fetch <url>', '/squeeze <url>|<q>']],
+          ['Workspace', ['/git-status', '/git-diff', '/git-branch', '/git-log', '/git-stash', '/git-show', '/diff-review', '/review-start', '/project-create', '/projects', '/project-add-doc', '/ctxfs', '/files']],
+          ['Misc', ['/time', '/export <format>|<title>', '/compare <prompt>|<model1>|<model2>', '/ui-record', '/ui-replay', '/plugins-ui', '/dag-ui', '/trajectory-ui', '/backup', '/help']],
+        ];
+        console.log('\nAegisAi Harness — command reference\n');
+        for (const [g, cmds] of groups) {
+          console.log(g + ':');
+          console.log('  ' + cmds.join(', '));
+        }
+        console.log('\nType /<command> to run. Many commands accept "|" separated arguments.');
+        rl.prompt(); return;
+      }
       if (t.startsWith('/model ')) { model = t.slice(7).trim(); console.log('model =', model); rl.prompt(); return; }
       if (t.startsWith('/root ')) { root = t.slice(6).trim(); console.log('root =', root); rl.prompt(); return; }
       if (t.startsWith('/sandbox ')) { sandbox = t.slice(9).trim() === 'on'; console.log('sandbox =', sandbox); rl.prompt(); return; }
@@ -1083,6 +1135,10 @@ async function main() {
       }
       try { await runOne(t); } catch (e) { console.error('error:', e.message || e); }
       rl.prompt();
+      } catch (err) {
+        console.error('[command error]', (err && err.message) || err);
+        try { rl.prompt(); } catch (_) {}
+      }
     });
     rl.on('close', () => { db.close(); process.exit(0); });
     return;

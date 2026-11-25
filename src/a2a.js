@@ -8,7 +8,7 @@ function agentCard() {
   return {
     name: 'aegisai-harness',
     description: 'Local-only AI agent harness',
-    version: '0.31.0',
+    version: require('./version').VERSION,
     capabilities: { streaming: false, pushNotifications: false, stateTransitionHistory: true },
     defaultInputModes: ['text'],
     defaultOutputModes: ['text'],

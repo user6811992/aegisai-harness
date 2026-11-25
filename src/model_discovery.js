@@ -80,7 +80,11 @@ function scan(roots, maxFiles, backend) {
       } else if (extensions.test(e.name)) {
         let size = 0;
         try { size = fs.statSync(p).size; } catch (err) {}
-        found.push({ path: p, name: e.name, sizeGB: +(size / 1024 ** 3).toFixed(2), type: path.extname(e.name).slice(1).toLowerCase() });
+        const ext = path.extname(e.name).slice(1).toLowerCase();
+        // `.bin` is used by many non-model artefacts; require a model-sized file.
+        const MIN_BIN_BYTES = 50 * 1024 * 1024;
+        if (ext === 'bin' && size < MIN_BIN_BYTES) continue;
+        found.push({ path: p, name: e.name, sizeGB: +(size / 1024 ** 3).toFixed(2), type: ext });
         count += 1;
       }
     }
@@ -120,9 +124,3 @@ function huggingFacePull(repo, filename) {
 }
 
 module.exports = { ROOTS: [], getDefaultRoots, scan, huggingFacePull };
-function huggingFacePull(repo, filename) {
-  const url = 'https://huggingface.co/' + repo + '/resolve/main/' + (filename || '');
-  return { ok: true, url, note: 'streaming download not implemented; open URL or use huggingface-cli' };
-}
-
-// (duplicate removed)

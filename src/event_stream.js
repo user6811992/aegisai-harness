@@ -4,11 +4,17 @@ const { bus } = require('./event_bus');
 
 const clients = new Set();
 
-function subscribe(res) {
+// Subscribe an SSE response. Pass the request so disconnects are cleaned up
+// automatically (otherwise every closed tab leaks a listener + socket).
+function subscribe(res, req) {
   res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' });
   res.write(': connected\n\n');
   clients.add(res);
-  return () => clients.delete(res);
+  const cleanup = () => { clients.delete(res); try { res.end(); } catch (e) {} };
+  res.on('close', cleanup);
+  res.on('error', cleanup);
+  if (req) { req.on('close', cleanup); req.on('aborted', cleanup); }
+  return cleanup;
 }
 function broadcast(event, data) {
   const payload = 'event: ' + event + '\ndata: ' + JSON.stringify(data || {}) + '\n\n';

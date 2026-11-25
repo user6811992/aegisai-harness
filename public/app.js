@@ -4,7 +4,37 @@ import { useState, useEffect, useRef, useCallback } from '/vendor/hooks.mjs';
 import htm from '/vendor/htm.mjs';
 const html = htm.bind(h);
 
-const API = (p) => fetch(p).then((r) => r.json());
+// Auth token support: stored in sessionStorage, sent as Bearer on every API call.
+function authToken() { try { return sessionStorage.getItem('aegisai_token') || localStorage.getItem('aegisai_token') || ''; } catch (e) { return ''; } }
+function setAuthToken(t) { try { if (t) sessionStorage.setItem('aegisai_token', t); else sessionStorage.removeItem('aegisai_token'); } catch (e) {} }
+function authHeaders(extra) {
+  const h = Object.assign({}, extra || {});
+  const t = authToken();
+  if (t) h.Authorization = 'Bearer ' + t;
+  return h;
+}
+
+// Central API helper: throws on non-2xx so callers cannot report false success.
+async function API(p, opts) {
+  const o = Object.assign({}, opts || {});
+  o.headers = authHeaders(o.headers);
+  const r = await fetch(p, o);
+  let body = null;
+  try { body = await r.json(); } catch (e) { body = null; }
+  if (!r.ok) {
+    if (r.status === 401) window.dispatchEvent(new CustomEvent('aegisai-unauthorized'));
+    const msg = (body && body.error) || ('HTTP ' + r.status);
+    throw Object.assign(new Error(msg), { status: r.status, body });
+  }
+  return body;
+}
+
+// Fetch wrapper for streaming + non-JSON callers.
+function apiFetch(p, opts) {
+  const o = Object.assign({}, opts || {});
+  o.headers = authHeaders(o.headers);
+  return fetch(p, o);
+}
 
 let toastFn = null;
 function toast(msg, type = 'info') { if (toastFn) toastFn(msg, type); }
@@ -68,7 +98,9 @@ function OnboardingWizard({ onComplete }) {
       const body = { BACKEND_TYPE: backend };
       if (model) body.AEGISAI_MODEL = model;
       if (token) body.AEGISAI_TOKEN = token;
-      await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      // Keep the UI authenticated after enabling a token.
+      if (token) setAuthToken(token.trim());
     } catch (e) {
       console.error('config save failed:', e);
     }
@@ -149,11 +181,17 @@ function ConfigModal({ cfg, setCfg, onClose }) {
   useEffect(() => { API('/api/config').then(setLocal); }, []);
   async function save() {
     setSaving(true);
-    await fetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(local) });
-    setCfg(local);
+    try {
+      await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(local) }).then(async (r) => {
+        if (!r.ok) { let e = 'HTTP ' + r.status; try { const b = await r.json(); if (b && b.error) e = b.error; } catch (_) {} throw new Error(e); }
+      });
+      setCfg(local);
+      toast('Configuration saved', 'success');
+      onClose();
+    } catch (e) {
+      toast('Save failed: ' + e.message, 'error');
+    }
     setSaving(false);
-    toast('Configuration saved', 'success');
-    onClose();
   }
   const keys = ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN', 'sttUrl', 'ttsUrl'];
   const [tab, setTab] = useState('config');
@@ -196,7 +234,7 @@ function ConfigModal({ cfg, setCfg, onClose }) {
   async function pullModel(name) {
     toast('Pulling ' + name + '...', 'info');
     try {
-      const r = await fetch('/api/models/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: name }) });
+      const r = await apiFetch('/api/models/pull', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model: name }) });
       const d = await r.json();
       if (d.ok) toast('Pulled ' + name + ' successfully', 'success');
       else toast('Pull failed: ' + (d.error || 'unknown'), 'error');
@@ -345,6 +383,8 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const [toolLog, setToolLog] = useState([]);
   const [dragOver, setDragOver] = useState(false);
+  const [needAuth, setNeedAuth] = useState(false);
+  const [tokenInput, setTokenInput] = useState('');
   const inputRef = useRef(null);
   const chatRef = useRef(null);
 
@@ -363,9 +403,15 @@ function App() {
 
   useEffect(() => { updateCtx(); }, []);
   useEffect(() => {
+    // Server rejected our request: prompt for a token instead of failing silently.
+    const onUnauth = () => setNeedAuth(true);
+    window.addEventListener('aegisai-unauthorized', onUnauth);
+    return () => window.removeEventListener('aegisai-unauthorized', onUnauth);
+  }, []);
+  useEffect(() => {
     API('/api/version').then((v) => {
-      if (v.version && v.version !== '0.73.0') toast('Update available: v' + v.version, 'info');
-    }).catch(() => {});
+      if (v && v.updateAvailable) toast('Update available: v' + (v.latest || '') + ' (current ' + (v.current || '') + ')', 'info');
+    }).catch((e) => { if (e && e.status === 401) setNeedAuth(true); });
   }, []);
 
   useEffect(() => {
@@ -433,7 +479,7 @@ function App() {
     // Add empty assistant message for streaming
     setMessages((m) => [...m, { role: 'assistant', content: '' }]);
     try {
-      const r = await fetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, stream: true }) });
+      const r = await apiFetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, stream: true }) });
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const reader = r.body.getReader();
       const decoder = new TextDecoder();
@@ -510,7 +556,7 @@ function App() {
 
   async function exportChat(format) {
     try {
-      const r = await fetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format, title: 'Chat Export' }) });
+      const r = await apiFetch('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ format, title: 'Chat Export' }) });
       const d = await r.json();
       if (d.ok) toast('Exported to ' + d.path, 'success');
       else toast('Export failed: ' + (d.error || 'unknown'), 'error');
@@ -546,7 +592,7 @@ function App() {
     setComparing(true);
     try {
       const models = compareModels.split(',').map((m) => m.trim()).filter(Boolean);
-      const r = await fetch('/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: comparePrompt, models }) });
+      const r = await apiFetch('/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt: comparePrompt, models }) });
       const d = await r.json();
       setCompareResult(d);
       toast('Comparison complete', 'success');
@@ -564,8 +610,19 @@ function App() {
       <${CommandPalette} open=${showPalette} onClose=${() => setShowPalette(false)} commands=${commands} />
       ${showConfig ? html`<${ConfigModal} cfg=${cfg} setCfg=${setCfg} onClose=${() => setShowConfig(false)} />` : null}
       ${showHelp ? html`<${HelpPanel} onClose=${() => setShowHelp(false)} />` : null}
-      ${showShortcuts ? html`
-        <div class="modal-backdrop" onClick=${() => setShowShortcuts(false)}>
+      ${needAuth ? html`
+        <div class="modal-backdrop">
+          <div class="modal" onClick=${(e) => e.stopPropagation()}>
+            <h2>Authentication Required</h2>
+            <p>The server requires an access token. Enter it below (stored in this browser session only).</p>
+            <input type="password" value=${tokenInput} onInput=${(e) => setTokenInput(e.target.value)} placeholder="Access token" style="width:100%" />
+            <div class="modal-actions">
+              <button class="btn-primary" onClick=${() => { setAuthToken(tokenInput.trim()); setNeedAuth(false); setTokenInput(''); toast('Token set', 'success'); updateCtx(); }}>Use Token</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
+      ${showShortcuts ? html`        <div class="modal-backdrop" onClick=${() => setShowShortcuts(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
             <h2>Keyboard Shortcuts</h2>
             <div class="shortcuts-list">
@@ -668,7 +725,13 @@ function App() {
           </div>
         </div>
       ` : null}
-      <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${(s) => { toast('Loaded session: ' + (s.title || s.id), 'info'); }} />
+      <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${async (s) => {
+        try {
+          const d = await API('/api/sessions?id=' + encodeURIComponent(s.id));
+          setMessages((d.messages || []).map((m) => ({ role: m.role, content: m.content })));
+          toast('Loaded session: ' + (s.title || s.id), 'success');
+        } catch (e) { toast('Load failed: ' + e.message, 'error'); }
+      }} />
       <header class="topbar">
         <h1>AegisAi Harness</h1>
         <span class="ctx-meter">ctx ${ctx.tokens}/${ctx.limit}${ctx.compacted ? ' · compacted' : ''}</span>

@@ -45,7 +45,9 @@ class Tui extends EventEmitter {
   }
   handleKey(d) {
     const s = d.toString();
+    if (!s) return;
     if (s === '\u0003') { this.stop(); return; } // Ctrl+C
+    // Split pasted/multi-byte chunks into lines and printable runs.
     if (s === '\r' || s === '\n') {
       const cmd = this.input.trim();
       this.input = '';
@@ -59,9 +61,26 @@ class Tui extends EventEmitter {
       this.render();
       return;
     }
-    if (s.startsWith('\x1b[')) return; // ignore arrow keys for now
-    if (s.length === 1 && s.charCodeAt(0) >= 32) {
-      this.input += s;
+    if (s.startsWith('\x1b[') || s.startsWith('\x1bO')) return; // ignore escape sequences
+    // Handle pasted text containing newlines: submit each complete line.
+    if (s.includes('\n') || s.includes('\r')) {
+      const parts = s.split(/\r\n|\r|\n/);
+      for (let i = 0; i < parts.length; i++) {
+        if (parts[i]) this.input += parts[i].replace(/[^\x20-\x7e\t]/g, '');
+        if (i < parts.length - 1) {
+          const cmd = this.input.trim();
+          this.input = '';
+          this.emit('command', cmd);
+          if (cmd) this.addMessage('user', cmd);
+        }
+      }
+      this.render();
+      return;
+    }
+    // Accept the whole printable run (paste support), dropping control chars.
+    const printable = s.replace(/[^\x20-\x7e\t]/g, '');
+    if (printable) {
+      this.input += printable;
       this.render();
     }
   }

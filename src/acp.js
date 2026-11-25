@@ -6,7 +6,7 @@ function createServer(opts) {
   opts = opts || {};
   const sessions = new Map();
   const methods = {
-    initialize: async (params) => ({ protocolVersion: 1, capabilities: { prompt: true, cancel: true }, agentInfo: { name: 'aegisai-harness', version: '0.30.0' } }),
+    initialize: async (params) => ({ protocolVersion: 1, capabilities: { prompt: true, cancel: true }, agentInfo: { name: 'aegisai-harness', version: require('./version').VERSION } }),
     'session/new': async (params) => {
       const id = 'acp_' + Date.now();
       sessions.set(id, { cwd: (params && params.cwd) || process.cwd(), messages: [] });
