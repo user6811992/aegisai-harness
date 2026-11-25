@@ -399,6 +399,62 @@ async function main() {
           sendJson(res, 200, { diff: d.diffWords(parsed.a || '', parsed.b || ''), similarity: +d.similarity(parsed.a || '', parsed.b || '').toFixed(3) });
           return;
         }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/probe') {
+          const parsed = await readJson(req);
+          const r = await require('./model_probes').runAgainstBackend(parsed.model, { ids: parsed.ids });
+          sendJson(res, 200, parsed.sarif ? { sarif: require('./model_probes').toSarif(r), summary: r.summary } : r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/skill-scan') {
+          const parsed = await readJson(req);
+          const target = parsed.text ? null : assertAllowedPath(parsed.path || process.cwd());
+          const findings = parsed.text ? require('./skill_scan').scanText(parsed.text, parsed.source || '<inline>') : require('./skill_scan').scanDir(target);
+          sendJson(res, 200, { summary: require('./skill_scan').summarize(findings), findings, sarif: parsed.sarif ? require('./skill_scan').toSarif(findings) : undefined });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/secret-scan') {
+          const parsed = await readJson(req);
+          const text = parsed.text != null ? String(parsed.text) : require('fs').readFileSync(assertAllowedPath(parsed.path), 'utf8');
+          const findings = await require('./secret_verify').scan(text, { source: parsed.path || '<inline>', verify: Boolean(parsed.verify), offline: Boolean(parsed.offline) });
+          sendJson(res, 200, { summary: require('./secret_verify').summarize(findings), findings: findings.map(({ raw, ...x }) => x) });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/audit') {
+          const parsed = await readJson(req);
+          const r = await require('./audit_pipeline').run(assertAllowedPath(parsed.path || process.cwd()), {});
+          sendJson(res, 200, parsed.sarif ? { summary: r.summary, sarif: require('./audit_pipeline').toSarif(r) } : r);
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/mcp-inspect') {
+          const m = require('./mcp_server');
+          const r = await require('./mcp_inspect').inspect(m);
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/doc-convert') {
+          const parsed = await readJson(req);
+          const r = require('./doc_convert').toMarkdown(assertAllowedPath(parsed.path));
+          sendJson(res, 200, { format: r.format, markdown: r.markdown.slice(0, 200000), bytes: r.markdown.length });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/ab') {
+          const parsed = await readJson(req);
+          const r = await require('./model_compare').abTest(parsed.prompt || '', parsed.models || [], { runs: parsed.runs, projectRoot: process.cwd(), check: parsed.contains ? (t) => String(t).toLowerCase().includes(String(parsed.contains).toLowerCase()) : null });
+          sendJson(res, 200, { best: r.best, arms: r.arms.map((a) => ({ model: a.model, passRate: a.passRate, meanDuration: a.meanDuration, meanChars: a.meanChars })), comparisons: r.comparisons });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/templates') {
+          sendJson(res, 200, { templates: require('./conversation_templates').list() });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/handoff') {
+          const parsed = await readJson(req);
+          const h = require('./handoff');
+          if (parsed.register) { sendJson(res, 200, h.register(parsed.register)); return; }
+          const r = await h.handoff(parsed.to, parsed.history || [{ role: 'user', content: parsed.message || '' }], { note: parsed.note, projectRoot: process.cwd() });
+          sendJson(res, 200, r);
+          return;
+        }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/file') {
           const parsed = await readJson(req);
           if (!parsed.path) { sendJson(res, 400, { error: 'path required' }); return; }
@@ -987,6 +1043,22 @@ async function main() {
       if (t.startsWith('/think ')) { console.log(JSON.stringify(require('./sequential_thinking').think(t.slice(7).trim()), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/fetch ')) { const r = await require('./fetch_url').fetch(t.slice(7).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/time') { console.log(JSON.stringify(require('./time_tool').now())); rl.prompt(); return; }
+      if (t.startsWith('/probe')) { const m = t.slice(6).trim(); const r = await require('./model_probes').runAgainstBackend(m || undefined); console.log(JSON.stringify({ summary: r.summary, flagged: r.results.filter((x) => x.flagged).map((x) => x.id) }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/probe-sarif ')) { const m = t.slice(13).trim(); const r = await require('./model_probes').runAgainstBackend(m || undefined); console.log(JSON.stringify(require('./model_probes').toSarif(r), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/skill-scan ')) { const p = t.slice(12).trim(); const f = require('./skill_scan').scanDir(p); console.log(JSON.stringify({ summary: require('./skill_scan').summarize(f), findings: f.slice(0, 20) }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/secret-scan ')) { const raw = t.slice(13).trim(); const verify = /--verify\b/.test(raw); const target = raw.replace(/--verify/g, '').trim() || root; let text = ''; try { text = require('fs').readFileSync(target, 'utf8'); } catch (e) { text = ''; }
+        const f = await require('./secret_verify').scan(text, { source: target, verify }); console.log(JSON.stringify({ summary: require('./secret_verify').summarize(f), findings: f.map(({ raw: _r, ...x }) => x).slice(0, 20) }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/audit ')) { const p = t.slice(7).trim() || root; const r = await require('./audit_pipeline').run(p); console.log(JSON.stringify({ summary: r.summary, confirmed: r.confirmed.slice(0, 20) }, null, 2)); rl.prompt(); return; }
+      if (t === '/mcp-inspect') { const m = require('./mcp_server'); const r = await require('./mcp_inspect').inspect(m); console.log(JSON.stringify(r.summary, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/vuln-template ')) { const p = t.slice(15).trim().split('|').map((x) => x.trim()); const tpls = require('./vuln_templates').loadTemplates(p[0] || root); const r = await require('./vuln_templates').run(tpls, p[1] || 'http://127.0.0.1:8080'); console.log(JSON.stringify({ summary: r.summary, matches: r.matches.slice(0, 20) }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/crawl ')) { const url = t.slice(7).trim(); const r = await require('./crawler').crawl(url, { maxPages: 10 }); console.log(JSON.stringify({ summary: r.summary, endpoints: r.endpoints.slice(0, 40) }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/doc ')) { const p = t.slice(5).trim(); const r = require('./doc_convert').toMarkdown(p); console.log(r.markdown.slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/handoff-add ')) { const p = t.slice(13).trim().split('|').map((x) => x.trim()); console.log(JSON.stringify(require('./handoff').register({ name: p[0], model: p[1] || undefined, systemPrompt: p[2] || '' }))); rl.prompt(); return; }
+      if (t === '/handoff-list') { console.log(JSON.stringify(require('./handoff').list(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/handoff ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./handoff').handoff(p[0], [{ role: 'user', content: p[1] || '' }], { projectRoot: root }); console.log(r.reply); rl.prompt(); return; }
+      if (t === '/templates') { console.log(JSON.stringify(require('./conversation_templates').list().map((x) => x.id + ' — ' + x.name), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/tpl-use ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const vars = {}; for (const kv of (p[1] || '').split(',')) { const i = kv.indexOf('='); if (i > 0) vars[kv.slice(0, i).trim()] = kv.slice(i + 1).trim(); } const r = require('./conversation_templates').render(p[0], vars); console.log(r ? r.rendered : 'template not found'); rl.prompt(); return; }
+      if (t.startsWith('/ab ')) { const p = t.slice(4).trim().split('|').map((x) => x.trim()); const models2 = (p[0] || '').split(',').map((s) => s.trim()).filter(Boolean); const r = await require('./model_compare').abTest(p[2] || '', models2, { runs: parseInt(p[1] || '3', 10), projectRoot: root }); console.log(JSON.stringify({ best: r.best && r.best.model, arms: r.arms.map((a) => ({ model: a.model, passRate: a.passRate, meanDuration: a.meanDuration })), comparisons: r.comparisons }, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/export ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const r = require('./conversation_export').exportToFile(lastToolLog.length ? [] : [], { title: p[1] || 'export', model: process.env.AEGISAI_MODEL || 'llama3.2:3b' }, p[0] || 'markdown', p[2]); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t.startsWith('/compare ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./model_compare').compare(p[0] || '', p.slice(1).filter(Boolean), { projectRoot: root }); console.log(require('./model_compare').formatComparison(r).slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/time ')) { console.log(JSON.stringify(require('./time_tool').now(t.slice(6).trim()))); rl.prompt(); return; }

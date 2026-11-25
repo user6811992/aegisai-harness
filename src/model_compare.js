@@ -85,4 +85,65 @@ function analyze(comparison) {
   };
 }
 
-module.exports = { compare, formatComparison, analyze };
+// Multi-run A/B test: N repetitions per model, pass rate, latency stats, and
+// a pairwise comparison with a normal-approximation z score.
+async function abTest(prompt, models, opts) {
+  opts = opts || {};
+  const runs = Math.max(1, opts.runs || 3);
+  const check = opts.check || null; // (reply) => boolean
+  const { runAgent } = require('./agent/run');
+  const arms = [];
+  for (const model of models) {
+    const samples = [];
+    for (let i = 0; i < runs; i++) {
+      const started = Date.now();
+      let reply = '';
+      let ok = true;
+      let error = null;
+      try {
+        const r = await runAgent({
+          model,
+          messages: [{ role: 'user', content: prompt }],
+          projectRoot: opts.projectRoot || process.cwd(),
+          onEvent: () => {},
+          autoApprove: Boolean(opts.autoApprove),
+        });
+        reply = (r.final && r.final.final) || '';
+      } catch (e) { ok = false; error = String((e && e.message) || e); }
+      const duration = Date.now() - started;
+      const passed = ok && (check ? Boolean(check(reply)) : true);
+      samples.push({ ok: passed, duration, chars: reply.length, error });
+    }
+    const durations = samples.map((s) => s.duration).sort((a, b) => a - b);
+    const passes = samples.filter((s) => s.ok).length;
+    arms.push({
+      model,
+      runs,
+      passes,
+      passRate: +(passes / runs).toFixed(3),
+      meanDuration: Math.round(samples.reduce((a, s) => a + s.duration, 0) / runs),
+      medianDuration: durations[Math.floor(durations.length / 2)] || 0,
+      meanChars: Math.round(samples.reduce((a, s) => a + s.chars, 0) / runs),
+      samples,
+    });
+  }
+  // Pairwise: z-test on pass proportions (normal approximation).
+  const comparisons = [];
+  for (let i = 0; i < arms.length; i++) {
+    for (let j = i + 1; j < arms.length; j++) {
+      const a = arms[i]; const b = arms[j];
+      const p1 = a.passRate; const p2 = b.passRate;
+      const pooled = (a.passes + b.passes) / (a.runs + b.runs);
+      const se = Math.sqrt(pooled * (1 - pooled) * (1 / a.runs + 1 / b.runs)) || 0;
+      const z = se ? +(((p1 - p2) / se).toFixed(2)) : 0;
+      comparisons.push({
+        a: a.model, b: b.model, deltaPassRate: +(p1 - p2).toFixed(3), z,
+        significant: Math.abs(z) >= 1.96,
+        faster: a.meanDuration <= b.meanDuration ? a.model : b.model,
+      });
+    }
+  }
+  return { prompt, runs, arms, comparisons, best: arms.slice().sort((x, y) => (y.passRate - x.passRate) || (x.meanDuration - y.meanDuration))[0] };
+}
+
+module.exports = { compare, formatComparison, analyze, abTest };

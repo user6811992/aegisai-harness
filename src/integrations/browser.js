@@ -69,6 +69,9 @@ const TOOLS = [
   { type: 'function', function: { name: 'browser_ax', description: 'Accessibility-first snapshot with stable refs and optional diff.', parameters: { type: 'object', properties: { diff: { type: 'boolean' }, limit: { type: 'number' } } } } },
   { type: 'function', function: { name: 'browser_click_ref', description: 'Click an element by stable AX ref.', parameters: { type: 'object', properties: { ref: { type: 'string' } }, required: ['ref'] } } },
   { type: 'function', function: { name: 'browser_type_ref', description: 'Type into an element by stable AX ref.', parameters: { type: 'object', properties: { ref: { type: 'string' }, text: { type: 'string' } }, required: ['ref', 'text'] } } },
+  { type: 'function', function: { name: 'browser_screenshot', description: 'Capture a PNG screenshot of the viewport (base64).', parameters: { type: 'object', properties: { fullPage: { type: 'boolean' } } } } },
+  { type: 'function', function: { name: 'browser_click_at', description: 'Click at viewport coordinates (CSS pixels).', parameters: { type: 'object', properties: { x: { type: 'number' }, y: { type: 'number' } }, required: ['x', 'y'] } } },
+  { type: 'function', function: { name: 'browser_find', description: 'Locate an element by natural-language description using the vision model, returning coordinates.', parameters: { type: 'object', properties: { description: { type: 'string' } }, required: ['description'] } } },
 ];
 
 async function handle(name, args, cdp) {
@@ -91,6 +94,33 @@ async function handle(name, args, cdp) {
     if (name === 'browser_type') {
       const out = await evaluate(c, `(()=>{const e=document.querySelector(${JSON.stringify(args.selector)});if(!e)return 'no element';e.value=${JSON.stringify(args.text)};e.dispatchEvent(new Event('input',{bubbles:true}));return 'typed'})()`);
       return { ok: true, output: String(out) };
+    }
+    if (name === 'browser_screenshot') {
+      const metrics = await c.call('Page.getLayoutMetrics');
+      const size = args.fullPage && metrics.cssContentSize ? metrics.cssContentSize : (metrics.cssVisualViewport || metrics.cssLayoutViewport || { clientWidth: 1280, clientHeight: 800 });
+      const shot = await c.call('Page.captureScreenshot', {
+        format: 'png',
+        captureBeyondViewport: Boolean(args.fullPage),
+        clip: args.fullPage && metrics.cssContentSize ? { x: 0, y: 0, width: Math.ceil(metrics.cssContentSize.width), height: Math.ceil(metrics.cssContentSize.height), scale: 1 } : undefined,
+      });
+      const data = shot && shot.data ? shot.data : '';
+      return { ok: Boolean(data), output: data ? 'data:image/png;base64,' + data : 'screenshot failed', data, width: Math.round(size.clientWidth || size.width || 0), height: Math.round(size.clientHeight || size.height || 0) };
+    }
+    if (name === 'browser_click_at') {
+      const x = Number(args.x) || 0;
+      const y = Number(args.y) || 0;
+      await c.call('Input.dispatchMouseEvent', { type: 'mousePressed', x, y, button: 'left', clickCount: 1 });
+      await c.call('Input.dispatchMouseEvent', { type: 'mouseReleased', x, y, button: 'left', clickCount: 1 });
+      return { ok: true, output: 'clicked at ' + x + ',' + y };
+    }
+    if (name === 'browser_find') {
+      // Screenshot → vision model → element box via page-side hit testing.
+      const shot = await handle('browser_screenshot', {}, c);
+      if (!shot.ok) return { ok: false, output: shot.output };
+      const vision = require('../vision');
+      const described = await vision.locate(shot.output, args.description).catch((e) => ({ ok: false, error: String(e.message || e) }));
+      if (!described || !described.ok) return { ok: false, output: 'vision locate failed: ' + ((described && described.error) || 'unknown') };
+      return { ok: true, output: JSON.stringify(described.point || described), point: described.point, description: args.description };
     }
     if (name === 'browser_ax') {
       const r = await c.call('Accessibility.getFullAXTree');
