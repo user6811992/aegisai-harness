@@ -108,6 +108,8 @@ function OnboardingWizard({ onComplete }) {
       if (token) setAuthToken(token.trim());
     } catch (e) {
       console.error('config save failed:', e);
+      toast('Setup failed: ' + (e && e.message ? e.message : e), 'error');
+      return;
     }
     try { localStorage.setItem('onboarded', '1'); } catch (e) {}
     onComplete();
@@ -454,7 +456,6 @@ function App() {
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const THEMES = ['dark', 'light', 'high-contrast', 'solarized'];
   const [view, setView] = useState(localStorage.getItem('onboarded') ? 'chat' : 'onboarding');
-  const [toasts, setToasts] = useState([]);
   const [toolLog, setToolLog] = useState([]);
   const [dragOver, setDragOver] = useState(false);
   const [attachments, setAttachments] = useState([]);
@@ -464,14 +465,6 @@ function App() {
   const [tokenInput, setTokenInput] = useState('');
   const inputRef = useRef(null);
   const chatRef = useRef(null);
-
-  useEffect(() => {
-    toastFn = (msg, type) => {
-      const id = Date.now() + Math.random();
-      setToasts((t) => [...t, { id, msg, type }]);
-      setTimeout(() => setToasts((t) => t.filter((x) => x.id !== id)), 4000);
-    };
-  }, []);
 
   useEffect(() => {
     document.body.dataset.theme = theme;
