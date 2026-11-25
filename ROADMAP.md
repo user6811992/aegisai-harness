@@ -550,28 +550,29 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 | Conversation templates | prior backlog | H |
 | Multi-model A/B across runs | prior backlog | H |
 
-### Batch 4 — after
-| Item | Source | Feasibility |
-|---|---|---|
-| HTTP probe tool (httpx-style) | projectdiscovery/httpx | H |
-| Pentest eval harness | usestrix/benchmarks | H |
-| Tiny-model boolean router | qybaihe/mu | H |
-| Slide/deck skill (PDF) | qybaihe/codex-ppt | H |
-| Canonical Agent Skills schema | anthropics/skills | H |
-| Interactive architecture map page | haydenschmitty/floorplan | H |
-| Guardrail routing API surface | sandbox-quantum/switch-trust | H |
-| IoC feed import | cisco-talos/IOCs | H |
-| Synthetic security log corpus | cisco-talos/EvidenceForge | H |
-| Teams + Mattermost channels | sandbox-quantum/switch | M |
-| External agent CLI adapters | openai/codex-plugin-cc | M |
-| Official MCP registry alignment | modelcontextprotocol/registry | M |
-| Codex skills catalog import | openai/skills | M |
-| Attachment malware scan (`clamscan`) | cisco-talos/clamav | M |
-| Project-wide symbol rename (LSP) | sandbox-quantum/bartleby | M |
-| Binary function similarity | cisco-talos/binary_function_similarity | M |
-| RAGFlow-style private retrieval | bytedance/deer-flow | M |
-| Codex-style MCP config presets | openai/codex | H |
-| Package-install guard | usestrix/firewall | M |
+### Batch 4 — shipped in v0.81.0
+| Item | Source | Feasibility | Status |
+|---|---|---|---|
+| HTTP probe tool (httpx-style) | projectdiscovery/httpx | H | ✅ `src/http_probe.js` |
+| Pentest eval harness | usestrix/benchmarks | H | ✅ `src/pentest_eval.js` |
+| Tiny-model boolean router | qybaihe/mu | H | ✅ `src/tiny_router.js` |
+| Slide/deck skill (PDF) | qybaihe/codex-ppt | H | ✅ `src/deck.js` |
+| Canonical Agent Skills schema | anthropics/skills | H | ✅ `src/skill_schema.js` |
+| Interactive architecture map page | haydenschmitty/floorplan | H | ✅ `public/map.html` + `/api/code-map` |
+| Guardrail routing API surface | sandbox-quantum/switch-trust | H | ✅ `src/guardrail_api.js` |
+| IoC feed import | cisco-talos/IOCs | H | ✅ `src/ioc_import.js` + KB store |
+| Synthetic security log corpus | cisco-talos/EvidenceForge | H | ✅ `src/security_logs.js` |
+| Teams + Mattermost channels | sandbox-quantum/switch | M | ✅ `src/channels_extra.js` |
+| External agent CLI adapters | openai/codex-plugin-cc | M | ✅ `src/agent_cli.js` |
+| Project-wide symbol rename (LSP) | sandbox-quantum/bartleby | M | ✅ `lsp.rename` + `applyWorkspaceEdit` |
+| Package-install guard | usestrix/firewall | M | ✅ `src/package_guard.js` |
+| Official MCP registry alignment | modelcontextprotocol/registry | M | ⬜ deferred |
+| Codex skills catalog import | openai/skills | M | ⬜ deferred |
+| Attachment malware scan (`clamscan`) | cisco-talos/clamav | M | ⬜ deferred (needs binary) |
+| Binary function similarity | cisco-talos/binary_function_similarity | M | ⬜ deferred (needs RE pipeline work) |
+| RAGFlow-style private retrieval | bytedance/deer-flow | M | ⬜ deferred (needs external service) |
+| Codex-style MCP config presets | openai/codex | H | ⬜ deferred (existing `mcp_presets` covers most) |
+
 | OOB interaction channel | projectdiscovery/interactsh | M |
 | DNS/port enumeration | projectdiscovery/subfinder+dnsx+naabu | M |
 | Playwright browser driver | microsoft/playwright | M |

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" />
+<title>Architecture Map — AegisAi Harness</title>
+<link rel="stylesheet" href="/style.css" />
+<style>
+  body { margin: 0; padding: 16px; }
+  .map-wrap { display: grid; grid-template-columns: 1fr 320px; gap: 12px; }
+  #graph { position: relative; border: 1px solid var(--border); border-radius: 8px; background: var(--panel); height: 72vh; overflow: hidden; }
+  .node { position: absolute; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg); color: var(--fg); font-size: 11px; font-family: ui-monospace, monospace; cursor: pointer; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .node.hub { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+  .node.sel { background: var(--accent); color: #fff; }
+  svg { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+  line { stroke: var(--border); stroke-width: 1; }
+  aside { border: 1px solid var(--border); border-radius: 8px; padding: 10px; overflow: auto; height: 72vh; }
+  aside h3 { margin: 0 0 8px; font-size: 13px; }
+  aside pre { font-size: 11px; white-space: pre-wrap; word-break: break-word; }
+  .stat { display: flex; justify-content: space-between; font-size: 12px; padding: 2px 0; border-bottom: 1px solid var(--border); }
+  .legend { font-size: 11px; color: var(--muted, #8b949e); margin-top: 8px; }
+</style></head>
+<body>
+<header style="display:flex;gap:8px;align-items:center;margin-bottom:12px">
+  <h2 style="margin:0">Architecture Map</h2>
+  <button onclick="location.href='/'">Back</button>
+  <button onclick="load(true)">Refresh</button>
+  <label style="font-size:12px;margin-left:auto">max files <input id="limit" type="number" value="60" min="5" max="400" style="width:64px" /></label>
+</header>
+<div class="map-wrap">
+  <div id="graph"><svg id="edges"></svg></div>
+  <aside>
+    <h3>Summary</h3>
+    <div id="stats"></div>
+    <h3 style="margin-top:12px">Module</h3>
+    <pre id="detail">Click a module.</pre>
+    <div class="legend">Nodes are files, edges are `require`/`import` relationships inside the project root. Hover a node to highlight its edges.</div>
+    <div class="legend" id="error" style="color:var(--danger)"></div>
+  </aside>
+</div>
+<script src="/authtoken.js"></script>
+<script>
+let data = null;
+let selected = null;
+
+function shortName(p) {
+  return String(p).split(/[\\/]/).pop();
+}
+
+function layout(nodes) {
+  const cols = Math.max(3, Math.ceil(Math.sqrt(nodes.length * 1.6)));
+  const graph = document.getElementById('graph');
+  const W = graph.clientWidth || 800;
+  const H = graph.clientHeight || 500;
+  const padX = 90, padY = 50;
+  const colW = (W - padX * 2) / Math.max(1, cols - 1 || 1);
+  const rows = Math.max(1, Math.ceil(nodes.length / cols));
+  const rowH = (H - padY * 2) / Math.max(1, rows - 1 || 1);
+  return nodes.map((n, i) => {
+    const c = i % cols;
+    const r = Math.floor(i / cols);
+    return { ...n, x: padX + c * colW, y: padY + r * rowH };
+  });
+}
+
+function render() {
+  const graph = document.getElementById('graph');
+  graph.querySelectorAll('.node').forEach((el) => el.remove());
+  const svg = document.getElementById('edges');
+  svg.innerHTML = '';
+  const nodes = layout(data.nodes || []);
+  const byPath = new Map(nodes.map((n) => [n.path, n]));
+  const degree = new Map();
+  for (const e of data.edges || []) {
+    degree.set(e.from, (degree.get(e.from) || 0) + 1);
+    degree.set(e.to, (degree.get(e.to) || 0) + 1);
+  }
+  for (const e of data.edges || []) {
+    const a = byPath.get(e.from); const b = byPath.get(e.to);
+    if (!a || !b) continue;
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', a.x); line.setAttribute('y1', a.y);
+    line.setAttribute('x2', b.x); line.setAttribute('y2', b.y);
+    line.dataset.from = e.from; line.dataset.to = e.to;
+    svg.appendChild(line);
+  }
+  for (const n of nodes) {
+    const d = document.createElement('div');
+    d.className = 'node' + ((degree.get(n.path) || 0) >= 4 ? ' hub' : '') + (selected === n.path ? ' sel' : '');
+    d.style.left = n.x + 'px'; d.style.top = n.y + 'px';
+    d.style.transform = 'translate(-50%,-50%)';
+    d.textContent = shortName(n.path);
+    d.title = n.path;
+    d.onmouseenter = () => highlight(n.path);
+    d.onmouseleave = () => highlight(null);
+    d.onclick = () => { selected = n.path; render(); showDetail(n); };
+    graph.appendChild(d);
+  }
+  const stat = document.getElementById('stats');
+  stat.innerHTML = '';
+  for (const [k, v] of [['files', (data.nodes || []).length], ['edges', (data.edges || []).length], ['languages', (data.languages || []).join(', ') || '-']]) {
+    const row = document.createElement('div'); row.className = 'stat';
+    row.innerHTML = '<span>' + k + '</span><span>' + v + '</span>';
+    stat.appendChild(row);
+  }
+}
+
+function highlight(path) {
+  const svg = document.getElementById('edges');
+  for (const line of svg.querySelectorAll('line')) {
+    const on = !path || line.dataset.from === path || line.dataset.to === path;
+    line.style.opacity = on ? '1' : '0.08';
+    line.style.stroke = on && path ? 'var(--accent)' : 'var(--border)';
+  }
+}
+
+function showDetail(n) {
+  const out = (data.edges || []).filter((e) => e.from === n.path).map((e) => '→ ' + e.to);
+  const inc = (data.edges || []).filter((e) => e.to === n.path).map((e) => '← ' + e.from);
+  document.getElementById('detail').textContent = n.path + '\n\n' + (out.concat(inc).join('\n') || '(no internal edges)');
+}
+
+async function load(refresh) {
+  document.getElementById('error').textContent = '';
+  try {
+    const limit = document.getElementById('limit').value || 60;
+    const r = await fetch('/api/code-map?limit=' + encodeURIComponent(limit) + (refresh ? '&refresh=1' : ''));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    data = await r.json();
+    if (!data.nodes) throw new Error(data.error || 'no data');
+    render();
+  } catch (e) {
+    document.getElementById('error').textContent = 'Failed to load: ' + e.message;
+  }
+}
+load();
+window.addEventListener('resize', () => { if (data) render(); });
+</script>
+</body></html>

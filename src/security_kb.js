@@ -33,4 +33,31 @@ function match(text) {
   return CLASSES.map((c) => ({ id: c.id, name: c.name, hits: c.patterns.filter((p) => t.includes(p.toLowerCase())) })).filter((c) => c.hits.length);
 }
 
-module.exports = { CLASSES, list, match };
+// ---- persisted indicator store (IoC feeds) ----
+const fs = require('fs');
+const path = require('path');
+const { DATA_DIR } = require('./core/config');
+function storePath() { return path.join(DATA_DIR, 'security-indicators.json'); }
+function loadIndicators() {
+  try { return JSON.parse(fs.readFileSync(storePath(), 'utf8')); } catch (e) { return []; }
+}
+function saveIndicators(list) {
+  try { fs.mkdirSync(DATA_DIR, { recursive: true }); fs.writeFileSync(storePath(), JSON.stringify(list, null, 2)); return true; } catch (e) { return false; }
+}
+function addIndicator(entry) {
+  const list = loadIndicators();
+  const id = entry.id || ('ioc-' + (entry.kind || 'x') + '-' + String(entry.value || '').slice(0, 40));
+  if (list.some((x) => x.id === id)) return { ok: true, id, duplicate: true };
+  list.push({ id, kind: entry.kind || 'unknown', value: String(entry.value || ''), source: entry.source || 'manual', tags: entry.tags || [], added: new Date().toISOString() });
+  return { ok: saveIndicators(list), id };
+}
+function matchIndicators(text) {
+  const hay = String(text || '').toLowerCase();
+  const hits = [];
+  for (const e of loadIndicators()) {
+    if (e.value && hay.includes(String(e.value).toLowerCase())) hits.push({ id: e.id, kind: e.kind, value: e.value, source: e.source });
+  }
+  return hits;
+}
+
+module.exports = { CLASSES, list, match, addIndicator, loadIndicators, matchIndicators, storePath };

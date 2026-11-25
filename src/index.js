@@ -395,6 +395,112 @@ async function main() {
           sendJson(res, 200, { comparison: result, formatted: require('./model_compare').formatComparison(result), analysis });
           return;
         }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/code-map') {
+          const u = new URL(req.url, 'http://x');
+          const limit = Math.max(5, Math.min(400, parseInt(u.searchParams.get('limit') || '60', 10) || 60));
+          const cacheKey = 'code-map:' + process.cwd() + ':' + limit;
+          const fresh = u.searchParams.get('refresh') === '1';
+          if (!fresh && global.__codeMapCache && global.__codeMapCache.key === cacheKey && Date.now() - global.__codeMapCache.at < 60000) {
+            sendJson(res, 200, global.__codeMapCache.data);
+            return;
+          }
+          try {
+            const cm = require('./code_map');
+            const files = cm.build(process.cwd(), limit) || [];
+            const nodes = [];
+            const edges = [];
+            const langs = new Set();
+            for (const f of files) {
+              const rel = require('path').relative(process.cwd(), f.path).split(require('path').sep).join('/');
+              nodes.push({ path: rel });
+              const ext = require('path').extname(f.path).replace('.', '').toLowerCase();
+              if (ext) langs.add(ext);
+              for (const call of f.calls || []) {
+                const target = require('path').relative(process.cwd(), call.path || call.file || '').split(require('path').sep).join('/');
+                if (target && target !== rel) edges.push({ from: rel, to: target, kind: 'call' });
+              }
+            }
+            const data = { nodes, edges: edges.slice(0, 4000), languages: Array.from(langs).sort(), root: process.cwd() };
+            global.__codeMapCache = { key: cacheKey, at: Date.now(), data };
+            sendJson(res, 200, data);
+          } catch (e) { sendJson(res, 500, { error: String(e.message || e), nodes: [], edges: [] }); }
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/probe') {
+          const u = new URL(req.url, 'http://x');
+          const r = await require('./http_probe').probe(String(u.searchParams.get('url') || ''), { includeHeaders: u.searchParams.get('headers') === '1' });
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/pentest-eval') {
+          const parsed = await readJson(req);
+          const r = await require('./pentest_eval').run({ ids: parsed.ids });
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/decide') {
+          const parsed = await readJson(req);
+          const r = await require('./tiny_router').decide(parsed.question, { model: parsed.model, allowModel: parsed.allowModel });
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/deck') {
+          const parsed = await readJson(req);
+          const out = parsed.path || require('path').join(require('os').tmpdir(), 'deck-' + Date.now() + '.pdf');
+          const r = require('./deck').generate(parsed.outline || parsed.slides || [], out, parsed.meta);
+          sendJson(res, 200, { ok: true, slides: r.slides, bytes: r.bytes, path: r.path });
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/skill-schema') {
+          const u = new URL(req.url, 'http://x');
+          const target = u.searchParams.get('path');
+          if (!target) { sendJson(res, 400, { error: 'path required' }); return; }
+          try {
+            const r = require('./skill_schema').validateFile(target);
+            sendJson(res, 200, r);
+          } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/guardrail') {
+          const parsed = await readJson(req);
+          const r = require('./guardrail_api').evaluate(parsed);
+          sendJson(res, 200, r);
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/ioc') {
+          const parsed = await readJson(req);
+          const ioc = require('./ioc_import');
+          if (parsed.content) {
+            const p = ioc.parseFeed(parsed.content, parsed.source);
+            const r = parsed.persist ? ioc.importToKb(p) : null;
+            sendJson(res, 200, { summary: ioc.summarize(p), parsed: p, kb: r });
+            return;
+          }
+          if (parsed.text) { sendJson(res, 200, { hits: require('./security_kb').matchIndicators(parsed.text) }); return; }
+          sendJson(res, 400, { error: 'content or text required' });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/security-logs') {
+          const parsed = await readJson(req);
+          const doc = require('./security_logs').generate({ seed: parsed.seed, perScenario: parsed.perScenario, ids: parsed.ids });
+          if (parsed.format === 'jsonl') { res.writeHead(200, { 'Content-Type': 'text/plain' }); res.end(require('./security_logs').toJsonl(doc)); return; }
+          if (parsed.format === 'csv') { res.writeHead(200, { 'Content-Type': 'text/csv' }); res.end(require('./security_logs').toCsv(doc)); return; }
+          sendJson(res, 200, Object.assign({}, doc, { expectations: require('./security_logs').expectations(doc) }));
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/agent-cli') {
+          sendJson(res, 200, { adapters: require('./agent_cli').detect() });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/package-guard') {
+          const parsed = await readJson(req);
+          sendJson(res, 200, require('./package_guard').checkCommand(parsed.command || '', { strict: parsed.strict }));
+          return;
+        }
+        if (req.method === 'GET' && req.url.split('?')[0] === '/api/channels-extra') {
+          sendJson(res, 200, require('./channels_extra').status());
+          return;
+        }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/diff') {
           const parsed = await readJson(req);
           const d = require('./text_diff');
@@ -975,6 +1081,7 @@ async function main() {
           ['Security & RE', ['/vuln-scan <path>', '/security-kb', '/sarif <path>', '/pentest <target>', '/rea-status', '/ghidra-status', '/craft-status', '/re-search <q>', '/re-categories', '/re-online <q>']],
           ['Browser & web', ['/browser-targets', '/browser-nav <url>', '/browser-snapshot', '/browser-eval <js>', '/extract <url>', '/search <q>', '/multi-search <q>', '/fetch <url>', '/squeeze <url>|<q>']],
           ['Workspace', ['/git-status', '/git-diff', '/git-branch', '/git-log', '/git-stash', '/git-show', '/diff-review', '/review-start', '/project-create', '/projects', '/project-add-doc', '/ctxfs', '/files']],
+          ['Batch 4', ['/probe-http <url>', '/pentest-eval', '/decide <question>', '/deck <outline|file>|<out>', '/skill-schema <path>', '/guardrail <tool>|<json args>', '/ioc <file>|persist', '/sec-logs [seed]|[n]|[out]', '/agent-cli', '/package-guard <command>', '/channels-extra', '/rename <lang>|<file>|<line>|<col>|<newName>|apply', '/map']],
           ['Misc', ['/time', '/export <format>|<title>', '/compare <prompt>|<model1>|<model2>', '/ui-record', '/ui-replay', '/plugins-ui', '/dag-ui', '/trajectory-ui', '/backup', '/help']],
         ];
         console.log('\nAegisAi Harness — command reference\n');
@@ -1063,6 +1170,19 @@ async function main() {
       if (t.startsWith('/ab ')) { const p = t.slice(4).trim().split('|').map((x) => x.trim()); const models2 = (p[0] || '').split(',').map((s) => s.trim()).filter(Boolean); const r = await require('./model_compare').abTest(p[2] || '', models2, { runs: parseInt(p[1] || '3', 10), projectRoot: root }); console.log(JSON.stringify({ best: r.best && r.best.model, arms: r.arms.map((a) => ({ model: a.model, passRate: a.passRate, meanDuration: a.meanDuration })), comparisons: r.comparisons }, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/export ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const r = require('./conversation_export').exportToFile(lastToolLog.length ? [] : [], { title: p[1] || 'export', model: process.env.AEGISAI_MODEL || 'llama3.2:3b' }, p[0] || 'markdown', p[2]); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t.startsWith('/compare ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./model_compare').compare(p[0] || '', p.slice(1).filter(Boolean), { projectRoot: root }); console.log(require('./model_compare').formatComparison(r).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/probe-http ')) { const u = t.slice(12).trim(); const r = await require('./http_probe').probe(u, { headers: true }); console.log(JSON.stringify(r.results[0], null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/pentest-eval')) { const r = await require('./pentest_eval').run({}); console.log(JSON.stringify(r.summary, null, 2)); console.log(JSON.stringify(r.fixtures.map((f) => ({ id: f.id, s: f.score })), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/decide ')) { const q = t.slice(8).trim(); const r = await require('./tiny_router').decide(q); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t.startsWith('/deck ')) { const p = t.slice(6).trim().split('|'); const outline = require('fs').existsSync(p[0]) ? require('fs').readFileSync(p[0], 'utf8') : p[0]; const out = p[1] || require('path').join(root, 'deck-' + Date.now() + '.pdf'); const r = require('./deck').generate(outline, out); console.log(JSON.stringify({ slides: r.slides, bytes: r.bytes, path: r.path })); rl.prompt(); return; }
+      if (t.startsWith('/skill-schema ')) { const p = t.slice(14).trim(); const r = require('fs').statSync(p).isDirectory() ? require('./skill_schema').validateDir(p) : [require('./skill_schema').validateFile(p)]; console.log(JSON.stringify({ summary: require('./skill_schema').summarize(r), results: r.map((x) => ({ file: x.file, ok: x.ok, errors: x.errors, warnings: x.warnings })) }, null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/guardrail ')) { const p = t.slice(11).trim().split('|'); const r = require('./guardrail_api').evaluate({ tool: p[0], args: p[1] ? JSON.parse(p[1]) : {}, context: { projectRoot: root, readOnly: process.env.AEGISAI_READ_ONLY === 'true' } }); console.log(JSON.stringify({ decision: r.decision, reasons: r.reasons }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/ioc ')) { const p = t.slice(5).trim().split('|'); const r = require('fs').existsSync(p[0]) ? require('./ioc_import').importFile(p[0], { persist: p[1] === 'persist' }) : { parsed: require('./ioc_import').parseFeed(p[0], 'inline'), summary: require('./ioc_import').summarize(require('./ioc_import').parseFeed(p[0], 'inline')) }; console.log(JSON.stringify(r.summary, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/sec-logs')) { const p = t.slice(9).trim().split('|'); const doc = require('./security_logs').generate({ seed: Number(p[0] || 42), perScenario: Number(p[1] || 12) }); if (p[2]) { require('fs').writeFileSync(p[2], p[2].endsWith('.csv') ? require('./security_logs').toCsv(doc) : require('./security_logs').toJsonl(doc)); console.log('wrote', p[2], doc.events.length, 'events'); } else { console.log(JSON.stringify({ summary: doc.summary, expectations: require('./security_logs').expectations(doc) }, null, 2)); } rl.prompt(); return; }
+      if (t === '/agent-cli') { console.log(JSON.stringify(require('./agent_cli').detect(), null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/package-guard ')) { console.log(JSON.stringify(require('./package_guard').checkCommand(t.slice(15).trim()), null, 2)); rl.prompt(); return; }
+      if (t === '/channels-extra') { console.log(JSON.stringify(require('./channels_extra').status(), null, 2)); rl.prompt(); return; }
+      if (t === '/map') { const files = require('./code_map').build(root, 60) || []; console.log('Architecture map: open /map.html in the web UI (--web). Indexed ' + files.length + ' files.'); rl.prompt(); return; }
+      if (t.startsWith('/rename ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const edit = await require('./lsp').rename(p[0], p[1], Number(p[2]), Number(p[3]), p[4]); const applied = require('./lsp').applyWorkspaceEdit(edit, { dryRun: p[5] !== 'apply' }); console.log(JSON.stringify(applied, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/time ')) { console.log(JSON.stringify(require('./time_tool').now(t.slice(6).trim()))); rl.prompt(); return; }
       if (t.startsWith('/mcp-registry ')) { const r = await require('./mcp_registry_browser').browse(t.slice(14).trim()); console.log(JSON.stringify(r, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t === '/everything-manifest') { console.log(JSON.stringify(require('./mcp_everything').manifest(), null, 2).slice(0, 1500)); rl.prompt(); return; }

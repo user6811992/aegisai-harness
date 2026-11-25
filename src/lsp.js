@@ -121,4 +121,57 @@ function openDocument(language, file) {
   return { ok: true, uri };
 }
 
-module.exports = { start, stop, stopAll, list, request, hover, definition, completions, openDocument, diagnostics, allDiagnostics, LANGUAGE_SERVERS };
+// Request a workspace rename; returns the WorkspaceEdit without applying it.
+async function rename(language, file, line, character, newName) {
+  const uri = 'file://' + path.resolve(file).replace(/\\/g, '/');
+  return request(language, 'textDocument/rename', {
+    textDocument: { uri },
+    position: { line: line - 1, character: character - 1 },
+    newName: String(newName || ''),
+  });
+}
+
+function uriToPath(uri) {
+  try {
+    let p = decodeURIComponent(String(uri).replace(/^file:\/\//, ''));
+    if (/^\/[A-Za-z]:/.test(p)) p = p.slice(1);
+    return p;
+  } catch (e) { return uri; }
+}
+
+/**
+ * Apply a WorkspaceEdit ({ changes: { uri: [TextEdit] } }) to disk.
+ * Edits within a file are applied bottom-up so offsets stay valid.
+ * `dryRun: true` returns the would-be contents without writing.
+ */
+function applyWorkspaceEdit(edit, opts) {
+  opts = opts || {};
+  const fs = require('fs');
+  const changes = (edit && edit.changes) || {};
+  const touched = [];
+  for (const [uri, edits] of Object.entries(changes)) {
+    const file = uriToPath(uri);
+    let text;
+    try { text = fs.readFileSync(file, 'utf8'); } catch (e) { touched.push({ file, error: String(e.message || e) }); continue; }
+    const lines = text.split(/\r?\n/);
+    const sorted = edits.slice().sort((a, b) => (b.range.start.line - a.range.start.line) || (b.range.start.character - a.range.start.character));
+    for (const e of sorted) {
+      const s = e.range.start; const en = e.range.end;
+      if (s.line === en.line) {
+        const line = lines[s.line] || '';
+        lines[s.line] = line.slice(0, s.character) + e.newText + line.slice(en.character);
+      } else {
+        // Multi-line edit: replace the span.
+        const first = (lines[s.line] || '').slice(0, s.character);
+        const last = (lines[en.line] || '').slice(en.character);
+        lines.splice(s.line, en.line - s.line + 1, first + e.newText + last);
+      }
+    }
+    const next = lines.join('\n');
+    if (!opts.dryRun) fs.writeFileSync(file, next, 'utf8');
+    touched.push({ file, edits: edits.length, bytes: next.length });
+  }
+  return { ok: true, dryRun: Boolean(opts.dryRun), files: touched };
+}
+
+module.exports = { start, stop, stopAll, list, request, hover, definition, completions, openDocument, diagnostics, allDiagnostics, LANGUAGE_SERVERS, rename, applyWorkspaceEdit, uriToPath };
