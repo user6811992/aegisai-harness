@@ -1,6 +1,6 @@
 {
   "name": "aegisai-harness",
-  "version": "0.86.0",
+  "version": "0.86.2",
   "description": "AegisAi Harness — feature-rich, local-only AI agent harness",
   "type": "commonjs",
   "main": "src/index.js",
@@ -10,7 +10,7 @@
     "preinstall": "node scripts/check-node.js",
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test tests/**/*.test.js",
+    "test": "node --test --test-force-exit tests/**/*.test.js",
     "lint": "node scripts/run-lint.js",
     "check:version": "node scripts/check-version-consistency.js"
   },
