@@ -98,7 +98,12 @@ function OnboardingWizard({ onComplete }) {
       const body = { BACKEND_TYPE: backend };
       if (model) body.AEGISAI_MODEL = model;
       if (token) body.AEGISAI_TOKEN = token;
-      await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const r = await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      if (!r.ok) {
+        let msg = 'HTTP ' + r.status;
+        try { const j = await r.json(); if (j && j.error) msg = j.error; } catch (e) {}
+        throw new Error(msg);
+      }
       // Keep the UI authenticated after enabling a token.
       if (token) setAuthToken(token.trim());
     } catch (e) {
@@ -270,7 +275,12 @@ function ConfigModal({ cfg, setCfg, onClose }) {
                   const selected = m.name || m;
                   setLocal({ ...local, AEGISAI_MODEL: selected });
                   try {
-                    await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ AEGISAI_MODEL: selected }) });
+                    const r = await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ AEGISAI_MODEL: selected }) });
+                    if (!r.ok) {
+                      let msg = 'HTTP ' + r.status;
+                      try { const j = await r.json(); if (j && j.error) msg = j.error; } catch (e) {}
+                      throw new Error(msg);
+                    }
                     setCfg({ ...cfg, AEGISAI_MODEL: selected });
                     toast('Selected ' + selected, 'success');
                   } catch (e) { toast('Failed to set model: ' + e.message, 'error'); }

@@ -225,8 +225,14 @@ async function main() {
       const resolved = path.resolve(String(target || ''));
       const roots = allowedRoots();
       // Resolve symlinks/junctions so a link can't escape the allowed root.
+      // When the target does not exist yet (e.g. a new file being created),
+      // resolve the parent directory instead so junctions are still caught.
       let real = resolved;
-      try { real = fs.realpathSync(resolved); } catch (e) { /* file may not exist yet */ }
+      try { real = fs.realpathSync(resolved); }
+      catch (e) {
+        try { real = path.join(fs.realpathSync(path.dirname(resolved)), path.basename(resolved)); }
+        catch (e2) { real = resolved; }
+      }
       for (const root of roots) {
         let rootReal = root;
         try { rootReal = fs.realpathSync(root); } catch (e) {}
