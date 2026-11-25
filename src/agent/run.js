@@ -462,14 +462,13 @@ async function runAgent(opts) {
           // tool result cache: return cached result for identical read/search calls
           const cached = require('../tool_cache').get(name, args, projectRoot);
           if (cached !== null) {
-            toolLog.push({ name, args, result: cached, cached: true });
             // run afterTool hooks and tracer for cache hits too
             await hooks.run('afterTool', { name, args, result: cached });
             if (toolSpan) {
               if (cached && cached.ok === false) tracer.failSpan(toolSpan, cached.output);
               else tracer.endSpan(toolSpan);
             }
-            return { name, args, result: cached };
+            return { name, args, result: cached, cached: true };
           }
           const toolStart = Date.now();
           // auto-retry with backoff for transient failures
@@ -570,7 +569,7 @@ async function runAgent(opts) {
       const preview = (r.result && (r.result.output || r.result.out)) || '';
       let previewStr = String(preview).slice(0, 500);
       if (toolOutputCompression > 0) previewStr = require('../output_compress').compress(String(preview), toolOutputCompression);
-      toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr });
+      toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr, cached: !!r.cached });
       onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
       msgs.push({ role: 'tool', content: previewStr, name: r.name });
     }

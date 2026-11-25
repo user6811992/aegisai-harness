@@ -35,10 +35,16 @@ function render(text) {
       const cells = [];
       let current = '';
       let inCode = false;
+      let inLink = 0; // depth of parentheses in link destinations
+      let escaped = false;
       for (let i = 0; i < line.length; i++) {
         const ch = line[i];
+        if (escaped) { current += ch; escaped = false; continue; }
+        if (ch === '\\') { escaped = true; current += ch; continue; }
         if (ch === '`') { inCode = !inCode; current += ch; }
-        else if (ch === '|' && !inCode) { cells.push(current.trim()); current = ''; }
+        else if (ch === '(' && !inCode) { inLink++; current += ch; }
+        else if (ch === ')' && !inCode && inLink > 0) { inLink--; current += ch; }
+        else if (ch === '|' && !inCode && inLink === 0) { cells.push(current.trim()); current = ''; }
         else { current += ch; }
       }
       if (current.trim() || cells.length > 0) cells.push(current.trim());

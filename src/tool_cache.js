@@ -14,8 +14,15 @@ const MUTATING = new Set(['write_file', 'delete_file', 'edit_file', 'run_command
 const cache = new Map(); // key -> { result, ts, hits }
 const TTL_MS = 60000; // 1 minute
 
+function stableStringify(obj) {
+  if (obj === null || typeof obj !== 'object') return JSON.stringify(obj);
+  if (Array.isArray(obj)) return '[' + obj.map(stableStringify).join(',') + ']';
+  const keys = Object.keys(obj).sort();
+  return '{' + keys.map((k) => JSON.stringify(k) + ':' + stableStringify(obj[k])).join(',') + '}';
+}
+
 function keyFor(name, args, projectRoot) {
-  const normalized = JSON.stringify({ n: name, a: args || {}, p: projectRoot || '' }, Object.keys(args || {}).sort());
+  const normalized = stableStringify({ n: name, a: args || {}, p: projectRoot || '' });
   return crypto.createHash('sha1').update(normalized).digest('hex');
 }
 
@@ -39,13 +46,14 @@ function get(name, args, projectRoot) {
 
 function set(name, args, result, projectRoot) {
   if (!isCacheable(name)) return;
+  // Do not cache failures.
+  if (result && result.ok === false) return;
   const k = keyFor(name, args, projectRoot);
   cache.set(k, { result, ts: Date.now(), hits: 0 });
 }
 
 function invalidate(name, projectRoot) {
   if (isMutating(name)) {
-    // Clear entire cache on any mutating tool call.
     cache.clear();
   }
 }

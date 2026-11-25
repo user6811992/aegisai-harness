@@ -284,6 +284,10 @@ async function main() {
             const allowed = patScopes.includes('*') || patScopes.includes(required) || (required === 'read' && patScopes.includes('execute'));
             if (!allowed) { sendJson(res, 403, { error: 'insufficient_scope', required, granted: patScopes }); return; }
           }
+          // Admin-only routes: PATs cannot change auth/backend config.
+          if (req.method === 'POST' && (urlPathOnly === '/api/config' || urlPathOnly === '/api/backend')) {
+            sendJson(res, 403, { error: 'admin token required' }); return;
+          }
         }
       }
       // rate limit — API only; static assets must not consume the API budget
@@ -351,12 +355,16 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/branch') {
           const parsed = await readJson(req);
-          const sid = parsed.sessionId || 'default';
-          const hist = sessions.get(sid) || [];
+          const sid = parsed.sessionId;
+          if (!sid) { sendJson(res, 400, { error: 'sessionId required' }); return; }
+          const hist = sessions.get(sid);
+          if (!hist) { sendJson(res, 404, { error: 'session not found' }); return; }
           const idx = Math.max(0, Math.min(parsed.index || 0, hist.length));
           const branched = hist.slice(0, idx);
-          sessions.set(sid + '_' + Date.now(), branched);
-          sendJson(res, 200, { messages: branched });
+          const newId = sid + '_' + Date.now();
+          sessions.set(newId, branched);
+          try { require('./storage/db').saveSession({ id: newId, messages: branched, updated: new Date().toISOString() }); } catch (e) {}
+          sendJson(res, 200, { id: newId, messages: branched });
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/backends') {
@@ -398,9 +406,18 @@ async function main() {
           const parsed = await readJson(req);
           const sid = parsed.sessionId || 'default';
           const history = getSessionMessages(sid);
+          if (!history || history.length === 0) { sendJson(res, 404, { error: 'session not found or empty' }); return; }
           const format = parsed.format || 'markdown';
           const meta = { title: parsed.title, model: process.env.AEGISAI_MODEL || 'llama3.2:3b', date: new Date().toISOString() };
-          const result = require('./conversation_export').exportToFile(history.map((m) => ({ role: m.role, content: m.content })), meta, format, null);
+          let outPath = parsed.outputPath;
+          if (outPath) {
+            try { outPath = assertAllowedPath(outPath); }
+            catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
+          } else {
+            const ext = format === 'json' ? '.json' : format === 'pdf' ? '.pdf' : '.md';
+            outPath = require('path').join(require('os').tmpdir(), 'conversation-export-' + Date.now() + ext);
+          }
+          const result = require('./conversation_export').exportToFile(history.map((m) => ({ role: m.role, content: m.content })), meta, format, outPath);
           sendJson(res, 200, result);
           return;
         }
@@ -559,6 +576,16 @@ async function main() {
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/skills-catalog/fetch') {
           const parsed = await readJson(req);
           if (!parsed.url) { sendJson(res, 400, { error: 'url required' }); return; }
+          // SSRF protection: block private/loopback/link-local hosts.
+          try {
+            const u = new URL(parsed.url);
+            const host = u.hostname.toLowerCase();
+            if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0' ||
+                /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
+                /^169\.254\./.test(host) || /^127\./.test(host) || host.endsWith('.local')) {
+              sendJson(res, 403, { error: 'fetching private/loopback addresses is not allowed' }); return;
+            }
+          } catch (e) { sendJson(res, 400, { error: 'invalid url' }); return; }
           try {
             const r = await require('./skills_catalog').fetchCatalog(parsed.url);
             sendJson(res, 200, { count: r.count, fetched: r.skills.length });
@@ -585,7 +612,8 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/skill-scan') {
           const parsed = await readJson(req);
-          const target = parsed.text ? null : assertAllowedPath(parsed.path || process.cwd());
+          if (!parsed.text && !parsed.path) { sendJson(res, 400, { error: 'text or path required' }); return; }
+          const target = parsed.text ? null : assertAllowedPath(parsed.path);
           const findings = parsed.text ? require('./skill_scan').scanText(parsed.text, parsed.source || '<inline>') : require('./skill_scan').scanDir(target);
           sendJson(res, 200, { summary: require('./skill_scan').summarize(findings), findings, sarif: parsed.sarif ? require('./skill_scan').toSarif(findings) : undefined });
           return;
@@ -684,10 +712,14 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/approve') {
           const parsed = await readJson(req);
-          const sid = parsed.sessionId || 'default';
-          const acts = pendingActions.get(sid) || [];
-          if (acts[parsed.index]) acts[parsed.index].decision = parsed.approve ? 'allow' : 'deny';
-          sendJson(res, 200, { ok: true });
+          const sid = parsed.sessionId;
+          if (!sid) { sendJson(res, 400, { error: 'sessionId required' }); return; }
+          const acts = pendingActions.get(sid);
+          if (!acts) { sendJson(res, 404, { error: 'session not found' }); return; }
+          const idx = parsed.index;
+          if (idx == null || !acts[idx]) { sendJson(res, 404, { error: 'pending action not found' }); return; }
+          acts[idx].decision = parsed.approve ? 'allow' : 'deny';
+          sendJson(res, 200, { ok: true, id: acts[idx].id, decision: acts[idx].decision });
           return;
         }
       } catch (e) { sendJson(res, (e && e.status) || 500, { error: String(e.message || e) }); return; }
