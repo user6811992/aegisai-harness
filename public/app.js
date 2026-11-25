@@ -480,6 +480,7 @@ function App() {
     setMessages((m) => [...m, { role: 'assistant', content: '' }]);
     try {
       const r = await apiFetch('/api/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, stream: true }) });
+      if (r.status === 401) { window.dispatchEvent(new CustomEvent('aegisai-unauthorized')); throw new Error('unauthorized'); }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       const reader = r.body.getReader();
       const decoder = new TextDecoder();
@@ -504,12 +505,23 @@ function App() {
               });
             } else if (data.type === 'tool_call') {
               toast('Tool: ' + data.name, 'info');
+            } else if (data.type === 'error') {
+              throw new Error(data.message || 'stream error');
             } else if (data.type === 'done') {
               if (data.toolLog) setToolLog(data.toolLog);
+              // Fall back to the authoritative reply if no token frames arrived.
+              if (!fullReply && data.reply) {
+                fullReply = data.reply;
+                setMessages((m) => {
+                  const updated = [...m];
+                  updated[updated.length - 1] = { role: 'assistant', content: fullReply };
+                  return updated;
+                });
+              }
               updateCtx();
               toast('Response received', 'success');
             }
-          } catch (e) {}
+          } catch (e) { if (e && e.message && e.message !== 'Unexpected end of JSON input') throw e; }
         }
       }
     } catch (e) {
@@ -601,7 +613,24 @@ function App() {
   }
 
   if (view === 'onboarding') {
-    return html`<${OnboardingWizard} onComplete=${() => setView('chat')} />`;
+    return html`
+      <div class="app" data-theme=${theme}>
+        <${ToastContainer} />
+        ${needAuth ? html`
+          <div class="modal-backdrop">
+            <div class="modal" onClick=${(e) => e.stopPropagation()}>
+              <h2>Authentication Required</h2>
+              <p>The server requires an access token. Enter it below.</p>
+              <input type="password" value=${tokenInput} onInput=${(e) => setTokenInput(e.target.value)} placeholder="Access token" style="width:100%" />
+              <div class="modal-actions">
+                <button class="btn-primary" onClick=${() => { setAuthToken(tokenInput.trim()); setNeedAuth(false); setTokenInput(''); toast('Token set', 'success'); updateCtx(); }}>Use Token</button>
+              </div>
+            </div>
+          </div>
+        ` : null}
+        <${OnboardingWizard} onComplete=${() => { setNeedAuth(false); setView('chat'); updateCtx(); }} />
+      </div>
+    `;
   }
 
   return html`

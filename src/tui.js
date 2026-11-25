@@ -28,19 +28,30 @@ class Tui extends EventEmitter {
   }
   start() {
     this.running = true;
+    this._stopped = false;
     process.stdout.write(ANSI.hideCursor + ANSI.clear);
     this.render();
     this.rl = readline.createInterface({ input: process.stdin, output: process.stdout, terminal: true, prompt: '' });
     process.stdin.setRawMode && process.stdin.setRawMode(true);
-    process.stdin.on('data', (d) => this.handleKey(d));
-    process.on('SIGWINCH', () => this.render());
-    process.on('SIGINT', () => this.stop());
+    this._onData = (d) => this.handleKey(d);
+    this._onResize = () => this.render();
+    this._onSigint = () => this.stop();
+    process.stdin.on('data', this._onData);
+    process.on('SIGWINCH', this._onResize);
+    process.on('SIGINT', this._onSigint);
   }
   stop() {
+    if (this._stopped) return;
+    this._stopped = true;
     this.running = false;
+    // Detach listeners so the process can exit after Ctrl+C.
+    try { if (this._onData) process.stdin.off('data', this._onData); } catch (e) {}
+    try { if (this._onResize) process.off('SIGWINCH', this._onResize); } catch (e) {}
+    try { if (this._onSigint) process.off('SIGINT', this._onSigint); } catch (e) {}
+    try { process.stdin.pause(); } catch (e) {}
     process.stdin.setRawMode && process.stdin.setRawMode(false);
     process.stdout.write(ANSI.showCursor + ANSI.clear + ANSI.reset);
-    if (this.rl) this.rl.close();
+    if (this.rl) { try { this.rl.close(); } catch (e) {} this.rl = null; }
     this.emit('exit');
   }
   handleKey(d) {

@@ -167,7 +167,7 @@ function rowToSession(r) {
   try { messages = JSON.parse(r.messages || '[]'); } catch (e) { messages = []; }
   return { id: r.id, title: r.title, updated: r.updated, parent_id: r.parent_id, branch_from: r.branch_from, messages };
 }
-function listSessions() { return all('SELECT id, title, updated, parent_id, branch_from FROM sessions ORDER BY updated DESC').map(rowToSession); }
+function listSessions() { return all('SELECT * FROM sessions ORDER BY updated DESC').map(rowToSession); }
 function getSession(id) { const row = one('SELECT * FROM sessions WHERE id = ?', [id]); return row ? rowToSession(row) : null; }
 function saveSession(s) {
   const id = s.id || ('sess_' + Date.now());

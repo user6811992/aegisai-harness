@@ -114,6 +114,7 @@ async function main() {
         tui.addMessage('assistant', (r.final && r.final.final) || '(no reply)');
       } catch (e) { tui.addMessage('assistant', 'Error: ' + (e.message || e)); }
     });
+    tui.on('exit', () => { try { process.exit(0); } catch (e) {} });
     return;
   }
 
@@ -159,6 +160,24 @@ async function main() {
     const sessionToolLogs = new Map(); // session id -> last tool log (for /api/context)
     const sessionUpdated = new Map(); // session id -> ISO timestamp
     const warnMissing = (v) => String(v || 'default');
+
+    // Session persistence: in-memory cache + SQLite fallback so history survives restarts.
+    let dbMod = null;
+    function dbSafe() { if (!dbMod) { try { dbMod = require('./storage/db'); dbMod.get(); } catch (e) { dbMod = null; } } return dbMod; }
+    function rememberSession(sid, msgs) {
+      sessions.set(sid, msgs);
+      sessionUpdated.set(sid, new Date().toISOString());
+      try {
+        const firstUser = (msgs || []).find((m) => m.role === 'user');
+        const d = dbSafe();
+        if (d) d.saveSession({ id: sid, title: firstUser ? String(firstUser.content || '').slice(0, 60) : sid, messages: msgs });
+      } catch (e) {}
+    }
+    function getSessionMessages(sid) {
+      if (sessions.has(sid)) return sessions.get(sid);
+      try { const d = dbSafe(); const s = d && d.getSession(sid); if (s) { sessions.set(sid, s.messages || []); return s.messages || []; } } catch (e) {}
+      return [];
+    }
     const pendingActions = new Map();
 
     function readJson(req) {
@@ -183,8 +202,16 @@ async function main() {
     }
 
     const handleRequest = async (req, res) => {
-      // CORS headers (needed for browser fetch with application/json content type)
-      res.setHeader('Access-Control-Allow-Origin', '*');
+      // CORS: never wildcard. Reflect only same-host origins; reject cross-site.
+      const origin = req.headers.origin;
+      const hostHdr = req.headers.host || '';
+      if (origin) {
+        let originHost = '';
+        try { originHost = new URL(origin).host; } catch (e) { originHost = ''; }
+        if (originHost && originHost !== hostHdr) { sendJson(res, 403, { error: 'cross-origin request blocked' }); return; }
+        res.setHeader('Access-Control-Allow-Origin', origin);
+        res.setHeader('Vary', 'Origin');
+      }
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
@@ -216,32 +243,37 @@ async function main() {
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/chat') {
           const parsed = await readJson(req);
           const sid = parsed.sessionId || 'default';
-          const history = Array.isArray(parsed.history) ? parsed.history : (sessions.get(sid) || []);
+          const history = Array.isArray(parsed.history) ? parsed.history : getSessionMessages(sid);
           const stream = parsed.stream === true;
           const autoApprove = process.env.AEGISAI_WEB_AUTO_APPROVE === 'true';
           if (stream) {
-            res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive', 'Access-Control-Allow-Origin': '*' });
+            res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
             let fullReply = '';
-            const result = await runAgent({
-              model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
-              messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
-              projectRoot: process.cwd(),
-              onEvent: (e) => {
-                if (e.type === 'token') { fullReply += (e.content || ''); res.write('data: ' + JSON.stringify({ type: 'token', content: e.content || '' }) + '\n\n'); }
-                else if (e.type === 'tool_call') { res.write('data: ' + JSON.stringify({ type: 'tool_call', name: e.name, args: e.args }) + '\n\n'); }
-                else if (e.type === 'tool_result') { res.write('data: ' + JSON.stringify({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }) + '\n\n'); }
-                else if (e.type === 'status') { res.write('data: ' + JSON.stringify({ type: 'status', message: e.message }) + '\n\n'); }
-              },
-              autoApprove,
-              approvalHandler: async () => false,
-            });
-            const reply = (result.final && result.final.final) || fullReply;
-            const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
-            sessions.set(sid, updated);
-            sessionToolLogs.set(sid, result.toolLog || []);
-            sessionUpdated.set(sid, new Date().toISOString());
-            res.write('data: ' + JSON.stringify({ type: 'done', reply, toolLog: result.toolLog || [] }) + '\n\n');
-            res.end();
+            const writeEvent = (obj) => { try { if (!res.writableEnded && !res.destroyed) res.write('data: ' + JSON.stringify(obj) + '\n\n'); } catch (e) {} };
+            try {
+              const result = await runAgent({
+                model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
+                messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
+                projectRoot: process.cwd(),
+                onEvent: (e) => {
+                  if (e.type === 'token') { fullReply += (e.content || ''); writeEvent({ type: 'token', content: e.content || '' }); }
+                  else if (e.type === 'tool_call') { writeEvent({ type: 'tool_call', name: e.name, args: e.args }); }
+                  else if (e.type === 'tool_result') { writeEvent({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }); }
+                  else if (e.type === 'status') { writeEvent({ type: 'status', message: e.message }); }
+                },
+                autoApprove,
+                approvalHandler: async () => false,
+              });
+              const reply = (result.final && result.final.final) || fullReply;
+              const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
+              rememberSession(sid, updated);
+              sessionToolLogs.set(sid, result.toolLog || []);
+              writeEvent({ type: 'done', reply, toolLog: result.toolLog || [] });
+            } catch (err) {
+              // Headers already sent: emit an SSE error frame instead of a JSON 500.
+              writeEvent({ type: 'error', message: String((err && err.message) || err) });
+            }
+            try { if (!res.writableEnded) res.end(); } catch (e) {}
             return;
           }
           const result = await runAgent({
@@ -255,7 +287,7 @@ async function main() {
           });
           const reply = (result.final && result.final.final) || '';
           const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
-          sessions.set(sid, updated);
+          rememberSession(sid, updated);
           sessionToolLogs.set(sid, result.toolLog || []);
           sessionUpdated.set(sid, new Date().toISOString());
           sendJson(res, 200, { reply, toolLog: result.toolLog || [], pendingActions: pendingActions.get(sid) || [] });
@@ -309,7 +341,7 @@ async function main() {
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/export') {
           const parsed = await readJson(req);
           const sid = parsed.sessionId || 'default';
-          const history = sessions.get(sid) || [];
+          const history = getSessionMessages(sid);
           const format = parsed.format || 'markdown';
           const meta = { title: parsed.title, model: process.env.AEGISAI_MODEL || 'llama3.2:3b', date: new Date().toISOString() };
           const result = require('./conversation_export').exportToFile(history.map((m) => ({ role: m.role, content: m.content })), meta, format, null);
@@ -451,21 +483,29 @@ async function main() {
         const wantId = u.searchParams.get('id');
         if (wantId) {
           const sid = warnMissing(wantId);
-          const msgs = sessions.get(sid) || [];
+          const msgs = getSessionMessages(sid);
           sendJson(res, 200, { id: sid, messages: msgs });
           return;
         }
-        const list = [];
+        const byId = new Map();
+        // Persisted sessions first (survive restarts).
+        try {
+          const d = dbSafe();
+          for (const s of (d ? d.listSessions() : [])) {
+            byId.set(s.id, { id: s.id, title: s.title || s.id, messages: (s.messages || []).length, updated: s.updated || null });
+          }
+        } catch (e) {}
+        // Merge live in-memory sessions (fresher).
         for (const [id, msgs] of sessions.entries()) {
           const firstUser = (msgs || []).find((m) => m.role === 'user');
-          list.push({
+          byId.set(id, {
             id,
             title: firstUser ? String(firstUser.content || '').slice(0, 60) : id,
             messages: (msgs || []).length,
-            updated: sessionUpdated.get(id) || null,
+            updated: sessionUpdated.get(id) || (byId.get(id) || {}).updated || null,
           });
         }
-        list.sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
+        const list = Array.from(byId.values()).sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
         sendJson(res, 200, { sessions: list });
         return;
       }
@@ -565,7 +605,7 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/config') {
           const parsed = await readJson(req);
-          if (parsed.projectRootAllowlist) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
+          if (parsed.projectRootAllowlist !== undefined) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
           if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
           if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;
           for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'AEGISAI_TOKEN', 'AEGISAI_WEB_AUTO_APPROVE', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
@@ -654,37 +694,91 @@ async function main() {
   if (proxyFlag) {
     const http = require('http');
     const port = parseInt(process.env.AEGISAI_PROXY_PORT || '4000', 10);
+    const host = process.env.HOST || '127.0.0.1';
+    const MAX_BODY = parseInt(process.env.AEGISAI_PROXY_MAX_BODY || String(10 * 1024 * 1024), 10);
+    const proxyToken = () => process.env.AEGISAI_TOKEN || process.env.LOCALAI_TOKEN || '';
+    const sendErr = (res, status, message, type) => {
+      try { res.writeHead(status, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ error: { message, type: type || 'invalid_request_error' } })); } catch (e) {}
+    };
     const server = http.createServer(async (req, res) => {
-      if (req.method === 'POST' && req.url.includes('/chat/completions')) {
+      const urlPath = req.url.split('?')[0];
+      // Auth when a token is configured.
+      const expected = proxyToken();
+      if (expected) {
+        const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || new URL(req.url, 'http://x').searchParams.get('token') || '';
+        if (!tokenMatches(supplied, expected)) { sendErr(res, 401, 'unauthorized', 'authentication_error'); return; }
+      }
+      if (req.method === 'GET' && (urlPath === '/v1/models' || urlPath === '/models')) {
+        let ids = [];
+        try { const r = await require('./backends').backendListModels(); ids = (r.models || []).map((m) => m.name || m); } catch (e) {}
+        if (!ids.length) ids = [process.env.AEGISAI_MODEL || 'llama3.2:3b'];
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        res.end(JSON.stringify({ object: 'list', data: ids.map((id) => ({ id, object: 'model', owned_by: 'aegisai' })) }));
+        return;
+      }
+      if (req.method === 'POST' && (urlPath === '/v1/chat/completions' || urlPath === '/chat/completions')) {
         let body = '';
-        let aborted = false;
-        req.on('aborted', () => { aborted = true; });
-        req.on('close', () => { if (!req.complete) aborted = true; });
-        req.on('data', (c) => { body += c; });
+        let bytes = 0;
+        let tooBig = false;
+        req.on('data', (c) => {
+          if (tooBig) return;
+          bytes += c.length;
+          if (bytes > MAX_BODY) { tooBig = true; sendErr(res, 413, 'request body too large'); return; }
+          body += c;
+        });
         req.on('end', async () => {
+          if (tooBig) return;
+          let parsed;
+          try { parsed = JSON.parse(body); } catch (e) { sendErr(res, 400, 'invalid JSON body'); return; }
+          const model = parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b';
+          if (parsed.stream) {
+            let headersSent = false;
+            const send = (obj) => {
+              try {
+                if (!headersSent) { res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', Connection: 'keep-alive' }); headersSent = true; }
+                if (!res.writableEnded) res.write('data: ' + JSON.stringify(obj) + '\n\n');
+              } catch (e) {}
+            };
+            try {
+              let text = '';
+              await runAgent({
+                model,
+                messages: parsed.messages || [],
+                projectRoot: process.cwd(),
+                onEvent: (e) => {
+                  if (e.type === 'token' && e.content) {
+                    text += e.content;
+                    send({ id: 'chatcmpl-x', object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model, choices: [{ index: 0, delta: { content: e.content }, finish_reason: null }] });
+                  }
+                },
+                autoApprove: true,
+              });
+              send({ id: 'chatcmpl-x', object: 'chat.completion.chunk', created: Math.floor(Date.now() / 1000), model, choices: [{ index: 0, delta: {}, finish_reason: 'stop' }] });
+              try { if (!res.writableEnded) { res.write('data: [DONE]\n\n'); res.end(); } } catch (e) {}
+            } catch (e) {
+              if (!headersSent) sendErr(res, 500, String(e.message || e), 'server_error');
+              else { try { res.write('data: [DONE]\n\n'); res.end(); } catch (_) {} }
+            }
+            return;
+          }
           try {
-            const parsed = JSON.parse(body);
-            if (aborted) return;
             const result = await runAgent({
-              model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
+              model,
               messages: parsed.messages || [],
               projectRoot: process.cwd(),
               onEvent: () => {},
               autoApprove: true,
             });
-            const resp = { id: 'chatcmpl-' + Date.now(), object: 'chat.completion', created: Math.floor(Date.now() / 1000), model: parsed.model, choices: [{ index: 0, message: { role: 'assistant', content: (result.final && result.final.final) || '' }, finish_reason: 'stop' }] };
+            const resp = { id: 'chatcmpl-' + Date.now(), object: 'chat.completion', created: Math.floor(Date.now() / 1000), model, choices: [{ index: 0, message: { role: 'assistant', content: (result.final && result.final.final) || '' }, finish_reason: 'stop' }] };
             res.writeHead(200, { 'Content-Type': 'application/json' });
             res.end(JSON.stringify(resp));
-          } catch (e) {
-            res.writeHead(500, { 'Content-Type': 'application/json' });
-            res.end(JSON.stringify({ error: String(e.message || e) }));
-          }
+          } catch (e) { sendErr(res, 500, String(e.message || e), 'server_error'); }
         });
-      } else {
-        res.writeHead(404); res.end();
+        return;
       }
+      sendErr(res, 404, 'not found', 'invalid_request_error');
     });
-    server.listen(port, () => console.log('Proxy listening on :' + port));
+    server.listen(port, host, () => console.log('Proxy listening on http://' + host + ':' + port));
     return;
   }
 
