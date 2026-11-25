@@ -663,6 +663,7 @@ function App() {
   const [selectedFile, setSelectedFile] = useState('');
   const [showSnippets, setShowSnippets] = useState(false);
   const [snippets, setSnippets] = useState([]);
+  const [snippetSearch, setSnippetSearch] = useState('');
   const [snippetForm, setSnippetForm] = useState({ name: '', language: 'javascript', code: '', description: '' });
   const [showSandbox, setShowSandbox] = useState(false);
   const [sandboxCode, setSandboxCode] = useState('');
@@ -939,6 +940,7 @@ function App() {
               </div>
             </div>
             <div class="snippet-list">
+              <input value=${snippetSearch} onInput=${async (e) => { setSnippetSearch(e.target.value); try { const r = await API('/api/snippets?q=' + encodeURIComponent(e.target.value)); setSnippets(r.snippets || []); } catch (err) {} }} placeholder="Search snippets..." style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)" />
               ${snippets.map((s) => html`
                 <div class="snippet-item">
                   <div class="snippet-head">
@@ -992,6 +994,12 @@ function App() {
         <h1>AegisAi Harness</h1>
         <span class="ctx-meter">ctx ${ctx.tokens}/${ctx.limit}${ctx.compacted ? ' · compacted' : ''}</span>
         <button onClick=${() => setShowSessions(true)} title="Sessions (Ctrl+B)">📂</button>
+        <button onClick=${async () => {
+          try {
+            const r = await API('/api/export', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ sessionId: 'default', format: 'markdown' }) });
+            toast('Exported to ' + (r.path || 'download'), 'success');
+          } catch (e) { toast('Export failed: ' + e.message, 'error'); }
+        }} title="Export session" aria-label="Export session">📥</button>
         <button onClick=${() => { const idx = THEMES.indexOf(theme); const next = THEMES[(idx + 1) % THEMES.length]; setTheme(next); localStorage.setItem('theme', next); toast('Theme: ' + next, 'info'); }} title="Cycle theme (${theme})">${theme === 'dark' ? '☀️' : theme === 'light' ? '🌙' : theme === 'high-contrast' ? '🔲' : '🌅'}</button>
         <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)" aria-label="Open settings">⚙️</button>
         <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)" aria-label="Open command palette">⌘</button>
