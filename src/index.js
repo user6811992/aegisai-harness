@@ -396,6 +396,47 @@ async function main() {
         require('./mcp_server').createHandler()(req, res);
         return;
       }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/search-sessions') {
+        const q = (new URL(req.url, 'http://x').searchParams.get('q') || '').toLowerCase();
+        const results = [];
+        for (const [sid, msgs] of sessions.entries()) {
+          for (const m of msgs) {
+            if ((m.content || '').toLowerCase().includes(q)) {
+              results.push({ sessionId: sid, role: m.role, snippet: (m.content || '').slice(0, 100), match: true });
+              break;
+            }
+          }
+        }
+        sendJson(res, 200, { results, query: q });
+        return;
+      }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/files') {
+        const dir = new URL(req.url, 'http://x').searchParams.get('dir') || process.cwd();
+        let entries = [];
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const items = fs.readdirSync(dir, { withFileTypes: true });
+          entries = items.map((e) => ({
+            name: e.name,
+            type: e.isDirectory() ? 'dir' : 'file',
+            size: e.isFile() ? (fs.statSync(path.join(dir, e.name)).size) : 0,
+            path: path.join(dir, e.name),
+          })).sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : (a.type === 'dir' ? -1 : 1)));
+        } catch (e) {}
+        sendJson(res, 200, { dir, entries });
+        return;
+      }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/file') {
+        const filePath = new URL(req.url, 'http://x').searchParams.get('path');
+        if (!filePath) { sendJson(res, 400, { error: 'path required' }); return; }
+        try {
+          const fs = require('fs');
+          const content = fs.readFileSync(filePath, 'utf8');
+          sendJson(res, 200, { content, path: filePath });
+        } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/projects') {
         const list = require('./projects').list();
         const details = list.map((n) => require('./projects').get(n));

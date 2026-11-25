@@ -340,6 +340,7 @@ function App() {
   const [showSessions, setShowSessions] = useState(false);
   const [cfg, setCfg] = useState({});
   const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
+  const THEMES = ['dark', 'light', 'high-contrast', 'solarized'];
   const [view, setView] = useState(localStorage.getItem('onboarded') ? 'chat' : 'onboarding');
   const [toasts, setToasts] = useState([]);
   const [toolLog, setToolLog] = useState([]);
@@ -361,6 +362,11 @@ function App() {
   }, [theme]);
 
   useEffect(() => { updateCtx(); }, []);
+  useEffect(() => {
+    API('/api/version').then((v) => {
+      if (v.version && v.version !== '0.73.0') toast('Update available: v' + v.version, 'info');
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     const handler = (e) => {
@@ -487,6 +493,15 @@ function App() {
     { icon: '⚖️', label: 'Compare Models', keywords: 'compare models', run: () => setShowCompare(true) },
   ];
 
+  const [showFiles, setShowFiles] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [fileDir, setFileDir] = useState('');
+  const [fileEntries, setFileEntries] = useState([]);
+  const [fileContent, setFileContent] = useState('');
+  const [selectedFile, setSelectedFile] = useState('');
   const [showCompare, setShowCompare] = useState(false);
   const [compareModels, setCompareModels] = useState('');
   const [comparePrompt, setComparePrompt] = useState('');
@@ -500,6 +515,30 @@ function App() {
       if (d.ok) toast('Exported to ' + d.path, 'success');
       else toast('Export failed: ' + (d.error || 'unknown'), 'error');
     } catch (e) { toast('Export failed: ' + e.message, 'error'); }
+  }
+
+  async function loadFiles(dir) {
+    try {
+      const d = await API('/api/files?dir=' + encodeURIComponent(dir || ''));
+      setFileDir(d.dir || dir);
+      setFileEntries(d.entries || []);
+    } catch (e) { toast('Failed to load files: ' + e.message, 'error'); }
+  }
+
+  async function searchConversations() {
+    if (!searchQuery.trim()) return;
+    try {
+      const d = await API('/api/search-sessions?q=' + encodeURIComponent(searchQuery));
+      setSearchResults(d.results || []);
+    } catch (e) { toast('Search failed: ' + e.message, 'error'); }
+  }
+
+  async function openFile(filePath) {
+    try {
+      const d = await API('/api/file?path=' + encodeURIComponent(filePath));
+      setSelectedFile(filePath);
+      setFileContent(d.content || '');
+    } catch (e) { toast('Failed to read file: ' + e.message, 'error'); }
   }
 
   async function runCompare() {
@@ -525,6 +564,82 @@ function App() {
       <${CommandPalette} open=${showPalette} onClose=${() => setShowPalette(false)} commands=${commands} />
       ${showConfig ? html`<${ConfigModal} cfg=${cfg} setCfg=${setCfg} onClose=${() => setShowConfig(false)} />` : null}
       ${showHelp ? html`<${HelpPanel} onClose=${() => setShowHelp(false)} />` : null}
+      ${showShortcuts ? html`
+        <div class="modal-backdrop" onClick=${() => setShowShortcuts(false)}>
+          <div class="modal" onClick=${(e) => e.stopPropagation()}>
+            <h2>Keyboard Shortcuts</h2>
+            <div class="shortcuts-list">
+              <div class="shortcut-item"><kbd>Ctrl+K</kbd> <span>Command palette</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+N</kbd> <span>New chat</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+B</kbd> <span>Toggle sessions</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+,</kbd> <span>Settings</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+/</kbd> <span>Help</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+Shift+F</kbd> <span>Search conversations</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+Shift+E</kbd> <span>Export chat</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+Shift+C</kbd> <span>Compare models</span></div>
+              <div class="shortcut-item"><kbd>Ctrl+Shift+T</kbd> <span>Cycle theme</span></div>
+              <div class="shortcut-item"><kbd>Esc</kbd> <span>Close modals</span></div>
+              <div class="shortcut-item"><kbd>Enter</kbd> <span>Send message</span></div>
+              <div class="shortcut-item"><kbd>Shift+Enter</kbd> <span>New line in input</span></div>
+            </div>
+            <div class="modal-actions">
+              <button onClick=${() => setShowShortcuts(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
+      ${showSearch ? html`
+        <div class="modal-backdrop" onClick=${() => setShowSearch(false)}>
+          <div class="modal" style="max-width: 600px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Search Conversations</h2>
+            <div class="search-bar">
+              <input value=${searchQuery} onInput=${(e) => setSearchQuery(e.target.value)} placeholder="Search messages..." style="flex:1" onKeyDown=${(e) => { if (e.key === 'Enter') searchConversations(); }} />
+              <button class="btn-primary" onClick=${searchConversations}>Search</button>
+            </div>
+            ${searchResults.length > 0 ? html`
+              <div class="search-results">
+                ${searchResults.map((r) => html`
+                  <div class="search-result-item">
+                    <span class="search-role">${r.role}</span>
+                    <span class="search-snippet">${r.snippet}</span>
+                  </div>
+                `)}
+              </div>
+            ` : searchQuery ? html`<p class="hint">No results found.</p>` : null}
+            <div class="modal-actions">
+              <button onClick=${() => setShowSearch(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
+      ${showFiles ? html`
+        <div class="modal-backdrop" onClick=${() => setShowFiles(false)}>
+          <div class="modal" style="max-width: 800px; max-height: 80vh" onClick=${(e) => e.stopPropagation()}>
+            <h2>File Browser</h2>
+            <p class="hint">${fileDir}</p>
+            <div class="file-browser">
+              <div class="file-list">
+                ${fileEntries.map((e) => html`
+                  <div class=${'file-item' + (e.type === 'dir' ? ' dir' : '')} onClick=${() => e.type === 'dir' ? loadFiles(e.path) : openFile(e.path)}>
+                    <span class="file-icon">${e.type === 'dir' ? '📁' : '📄'}</span>
+                    <span class="file-name">${e.name}</span>
+                    ${e.type === 'file' ? html`<span class="file-size">${e.size > 1024 ? (e.size / 1024).toFixed(1) + ' KB' : e.size + ' B'}</span>` : null}
+                  </div>
+                `)}
+              </div>
+              ${selectedFile ? html`
+                <div class="file-preview">
+                  <h3>${selectedFile.split(/[\\/]/).pop()}</h3>
+                  <pre class="file-content">${fileContent.slice(0, 5000)}</pre>
+                </div>
+              ` : null}
+            </div>
+            <div class="modal-actions">
+              <button onClick=${() => setShowFiles(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
       ${showCompare ? html`
         <div class="modal-backdrop" onClick=${() => setShowCompare(false)}>
           <div class="modal" style="max-width: 800px" onClick=${(e) => e.stopPropagation()}>
@@ -558,9 +673,11 @@ function App() {
         <h1>AegisAi Harness</h1>
         <span class="ctx-meter">ctx ${ctx.tokens}/${ctx.limit}${ctx.compacted ? ' · compacted' : ''}</span>
         <button onClick=${() => setShowSessions(true)} title="Sessions (Ctrl+B)">📂</button>
-        <button onClick=${() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle theme">${theme === 'dark' ? '☀️' : '🌙'}</button>
+        <button onClick=${() => { const idx = THEMES.indexOf(theme); const next = THEMES[(idx + 1) % THEMES.length]; setTheme(next); localStorage.setItem('theme', next); toast('Theme: ' + next, 'info'); }} title="Cycle theme (${theme})">${theme === 'dark' ? '☀️' : theme === 'light' ? '🌙' : theme === 'high-contrast' ? '🔲' : '🌅'}</button>
         <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)">⚙️</button>
         <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)">⌘</button>
+        <button onClick=${() => setShowFiles(true) || loadFiles('')} title="File browser">📁</button>
+        <button onClick=${() => setShowSearch(true)} title="Search conversations">🔍</button>
         <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown">📤</button>
         <button onClick=${() => setShowCompare(true)} title="Compare models">⚖️</button>
         <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)">?</button>
