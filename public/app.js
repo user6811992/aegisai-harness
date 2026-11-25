@@ -266,7 +266,15 @@ function ConfigModal({ cfg, setCfg, onClose }) {
             ${models.map((m) => html`
               <div class="model-item">
                 <span class="model-name">${m.name || m}</span>
-                <button class="btn-sm" onClick=${() => { setLocal({ ...local, AEGISAI_MODEL: m.name || m }); toast('Selected ' + (m.name || m), 'info'); }}>Use</button>
+                <button class="btn-sm" onClick=${async () => {
+                  const selected = m.name || m;
+                  setLocal({ ...local, AEGISAI_MODEL: selected });
+                  try {
+                    await apiFetch('/api/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ AEGISAI_MODEL: selected }) });
+                    setCfg({ ...cfg, AEGISAI_MODEL: selected });
+                    toast('Selected ' + selected, 'success');
+                  } catch (e) { toast('Failed to set model: ' + e.message, 'error'); }
+                }}>Use</button>
               </div>
             `)}
             <button class="btn-secondary" onClick=${() => API('/api/models').then((d) => setModels(d.models || []))}>Refresh</button>
@@ -584,8 +592,19 @@ function App() {
                   return updated;
                 });
               }
-              updateCtx();
-              toast('Response received', 'success');
+              // Surface an empty response as an error instead of a blank bubble.
+              if (!fullReply) {
+                const msg = 'No response received. The model may be unavailable — check `ollama list` and the configured model name.';
+                setMessages((m) => {
+                  const updated = [...m];
+                  updated[updated.length - 1] = { role: 'assistant', content: '⚠️ ' + msg };
+                  return updated;
+                });
+                toast(msg, 'error');
+              } else {
+                updateCtx();
+                toast('Response received', 'success');
+              }
             }
           } catch (e) { if (e && e.message && e.message !== 'Unexpected end of JSON input') throw e; }
         }

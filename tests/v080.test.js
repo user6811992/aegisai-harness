@@ -85,7 +85,7 @@ test('v080: service worker is network-first for navigations', () => {
   assert.match(sw, /isNavigation/);
   assert.match(sw, /req\.mode === 'navigate'/);
   assert.match(sw, /fetch\(req\)\.then\(\(res\) => \{/);
-  assert.ok(/aegisai-harness-v3/.test(sw), 'cache version not bumped');
+  assert.ok(/aegisai-harness-v4/.test(sw), 'cache version not bumped');
 });
 
 test('v080: authtoken.js is served publicly with a token set', async () => {
