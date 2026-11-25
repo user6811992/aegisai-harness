@@ -467,7 +467,10 @@ function App() {
   const inputRef = useRef(null);
   const chatRef = useRef(null);
 
+  const THEMES = ['dark', 'light', 'high-contrast', 'solarized'];
+  // Apply theme to document for CSS variable switching
   useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
     document.body.dataset.theme = theme;
     localStorage.setItem('theme', theme);
   }, [theme]);
@@ -744,7 +747,7 @@ function App() {
   }
 
   return html`
-    <div class="app" data-theme=${theme}>
+    <div class="app" data-theme=${theme} role="application" aria-label="AegisAi Harness">
       <${ToastContainer} />
       <${CommandPalette} open=${showPalette} onClose=${() => setShowPalette(false)} commands=${commands} />
       ${showConfig ? html`<${ConfigModal} cfg=${cfg} setCfg=${setCfg} onClose=${() => setShowConfig(false)} />` : null}
@@ -894,16 +897,16 @@ function App() {
         <span class="ctx-meter">ctx ${ctx.tokens}/${ctx.limit}${ctx.compacted ? ' · compacted' : ''}</span>
         <button onClick=${() => setShowSessions(true)} title="Sessions (Ctrl+B)">📂</button>
         <button onClick=${() => { const idx = THEMES.indexOf(theme); const next = THEMES[(idx + 1) % THEMES.length]; setTheme(next); localStorage.setItem('theme', next); toast('Theme: ' + next, 'info'); }} title="Cycle theme (${theme})">${theme === 'dark' ? '☀️' : theme === 'light' ? '🌙' : theme === 'high-contrast' ? '🔲' : '🌅'}</button>
-        <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)">⚙️</button>
-        <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)">⌘</button>
-        <button onClick=${() => setShowFiles(true) || loadFiles('')} title="File browser">📁</button>
-        <button onClick=${() => setShowSearch(true)} title="Search conversations">🔍</button>
-        <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown">📤</button>
-        <button onClick=${() => setShowCompare(true)} title="Compare models">⚖️</button>
-        <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)">?</button>
+        <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)" aria-label="Open settings">⚙️</button>
+        <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)" aria-label="Open command palette">⌘</button>
+        <button onClick=${() => setShowFiles(true) || loadFiles('')} title="File browser" aria-label="Open file browser">📁</button>
+        <button onClick=${() => setShowSearch(true)} title="Search conversations" aria-label="Search conversations">🔍</button>
+        <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown" aria-label="Export chat as Markdown">📤</button>
+        <button onClick=${() => setShowCompare(true)} title="Compare models" aria-label="Compare models">⚖️</button>
+        <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)" aria-label="Open help">?</button>
       </header>
       <div class=${'main-layout' + (fileEditor ? ' split' : '')}>
-        <main class="chat ${dragOver ? 'drag-over' : ''}">
+        <main class="chat ${dragOver ? 'drag-over' : ''}" role="main" aria-label="Chat messages">
           ${dragOver ? html`<div class="drag-overlay">Drop files here to attach</div>` : null}
           ${messages.length === 0 ? html`
             <div class="empty-state">

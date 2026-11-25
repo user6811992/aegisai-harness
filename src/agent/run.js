@@ -86,6 +86,8 @@ async function runAgent(opts) {
   };
   const toolLog = [];
   let msgs = [...(messages || [])];
+  // profiler: start tracking
+  try { require('../profiler').startRun('agent-' + (model || 'default')); } catch (e) {}
   if (capsuleSession) {
     const cap = require('../capsule').latest(capsuleSession);
     if (cap && Array.isArray(cap.messages)) msgs = cap.messages.filter((m) => m.role === 'system').concat(msgs);
@@ -463,6 +465,7 @@ async function runAgent(opts) {
             toolLog.push({ name, args, result: cached, cached: true });
             return { name, args, result: cached };
           }
+          const toolStart = Date.now();
           // auto-retry with backoff for transient failures
           let retries = 0;
           const MAX_RETRIES = 2;
@@ -477,6 +480,7 @@ async function runAgent(opts) {
               await new Promise((res) => setTimeout(res, 200 * retries));
             }
           }
+          try { require('../profiler').recordTool(name, Date.now() - toolStart, result && result.ok !== false); } catch (e) {}
         }
       } catch (e) {
         result = { ok: false, output: String(e.message || e) };
