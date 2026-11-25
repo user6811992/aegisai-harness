@@ -12,7 +12,28 @@ function highlight(code) {
     .replace(str, (m) => '<span class="str">' + m + '</span>')
     .replace(kw, (m) => '<span class="kw">' + m + '</span>');
 }
-function inlineFormat(text) {
+// Math rendering (KaTeX)
+function renderMath(text, display) {
+  if (window.katex) {
+    try { return window.katex.renderToString(text, { displayMode: !!display, throwOnError: false }); }
+    catch (e) { return escapeHtml(text); }
+  }
+  return escapeHtml(text);
+}
+// Mermaid rendering
+function renderMermaid(code) {
+  if (window.mermaid) {
+    try {
+      const id = 'mermaid-' + Math.random().toString(36).slice(2, 8);
+      window.mermaid.render(id, code).then((r) => {
+        const el = document.getElementById(id);
+        if (el) el.innerHTML = r.svg;
+      });
+      return '<div class="mermaid" id="' + id + '">' + escapeHtml(code) + '</div>';
+    } catch (e) { return '<pre class="code"><code>' + escapeHtml(code) + '</code></pre>'; }
+  }
+  return '<pre class="code"><code>' + escapeHtml(code) + '</code></pre>';
+}
   let s = text;
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
   return s;
@@ -22,6 +43,11 @@ function render(text) {
   // Protect fenced code blocks with placeholders.
   const codeBlocks = [];
   s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    if (lang === 'mermaid') {
+      const idx = codeBlocks.length;
+      codeBlocks.push(renderMermaid(code.trim()));
+      return '\n@@CODEBLOCK_' + idx + '@@\n';
+    }
     const idx = codeBlocks.length;
     codeBlocks.push('<pre class="code"><code data-lang="' + lang + '">' + highlight(code.replace(/\n$/, '')) + '</code></pre>');
     return '\n@@CODEBLOCK_' + idx + '@@\n';
@@ -33,6 +59,10 @@ function render(text) {
     inlineCodes.push('<code>' + escapeHtml(code) + '</code>');
     return '@@INLINE_' + idx + '@@';
   });
+  // Display math ($$...$$)
+  s = s.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => renderMath(math.trim(), true));
+  // Inline math ($...$)
+  s = s.replace(/\$([^$\n]+)\$/g, (_, math) => renderMath(math.trim(), false));
   // thinking blocks
   s = s.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/g, (_, t) => '<details class="think"><summary>Thinking</summary>' + t + '</details>');
   // headings

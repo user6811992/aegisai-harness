@@ -804,6 +804,37 @@ async function main() {
         sendJson(res, 200, { ok: true, id: s.id });
         return;
       }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/webhook') {
+        const event = req.headers['x-github-event'] || new URL(req.url, 'http://x').searchParams.get('event') || 'push';
+        const parsed = await readJson(req);
+        const secret = process.env.AEGISAI_WEBHOOK_SECRET;
+        const sig = req.headers['x-hub-signature-256'];
+        if (secret && sig) {
+          const ok = require('./webhooks').verifySignature(JSON.stringify(parsed), sig, secret);
+          if (!ok) { sendJson(res, 401, { error: 'invalid signature' }); return; }
+        }
+        const r = await require('./webhooks').handle(event, parsed, { projectRoot: process.cwd() });
+        sendJson(res, 200, r);
+        return;
+      }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/scheduled-tasks') {
+        sendJson(res, 200, { tasks: require('./scheduled_tasks').list() });
+        return;
+      }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/scheduled-tasks') {
+        const parsed = await readJson(req);
+        if (!parsed.prompt && !parsed.name) { sendJson(res, 400, { error: 'prompt or name required' }); return; }
+        const r = require('./scheduled_tasks').create(parsed);
+        sendJson(res, 200, r);
+        return;
+      }
+      if (req.method === 'DELETE' && req.url.split('?')[0] === '/api/scheduled-tasks') {
+        const u = new URL(req.url, 'http://x');
+        const id = u.searchParams.get('id');
+        if (!id) { sendJson(res, 400, { error: 'id required' }); return; }
+        sendJson(res, 200, require('./scheduled_tasks').remove(id));
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/context') {
         const tokenizer = require('./tokenizer');
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
@@ -1100,7 +1131,7 @@ async function main() {
     });
     // Never let a stray rejection kill the web server.
     process.on('unhandledRejection', (e) => { try { console.error('[unhandledRejection]', (e && e.stack) || e); } catch (_) {} });
-    server.listen(port, host, () => console.log('Web UI at http://' + host + ':' + port));
+    server.listen(port, host, () => { console.log('Web UI at http://' + host + ':' + port); try { require('./scheduled_tasks').startScheduler(); } catch (e) {} });
     return;
   }
 
