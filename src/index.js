@@ -207,6 +207,8 @@ async function main() {
     // executes the agent or mutates state needs `execute`.
     function requiredScope(method, urlPath) {
       if (method !== 'GET') return 'execute';
+      // Side-effecting GETs require execute, not read.
+      if (urlPath === '/api/probe' || urlPath === '/api/ab-test' || urlPath === '/api/i18n') return 'execute';
       const readOnly = ['/api/version', '/api/config', '/api/models', '/api/models/scan', '/api/models/hf-search',
         '/api/context', '/api/sessions', '/api/sessions/search', '/api/search-sessions', '/api/files', '/api/file',
         '/api/projects', '/api/skills', '/api/memories', '/api/errors', '/api/integrations', '/api/dag-runs',
@@ -461,7 +463,13 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/deck') {
           const parsed = await readJson(req);
-          const out = parsed.path || require('path').join(require('os').tmpdir(), 'deck-' + Date.now() + '.pdf');
+          let out = parsed.path;
+          if (out) {
+            try { out = assertAllowedPath(out); }
+            catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
+          } else {
+            out = require('path').join(require('os').tmpdir(), 'deck-' + Date.now() + '.pdf');
+          }
           const r = require('./deck').generate(parsed.outline || parsed.slides || [], out, parsed.meta);
           sendJson(res, 200, { ok: true, slides: r.slides, bytes: r.bytes, path: r.path });
           return;
@@ -470,8 +478,11 @@ async function main() {
           const u = new URL(req.url, 'http://x');
           const target = u.searchParams.get('path');
           if (!target) { sendJson(res, 400, { error: 'path required' }); return; }
+          let allowed;
+          try { allowed = assertAllowedPath(target); }
+          catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
           try {
-            const r = require('./skill_schema').validateFile(target);
+            const r = require('./skill_schema').validateFile(allowed);
             sendJson(res, 200, r);
           } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
           return;
@@ -534,7 +545,10 @@ async function main() {
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/malware-scan') {
           const parsed = await readJson(req);
           const targets = parsed.targets || (parsed.path ? [parsed.path] : []);
-          sendJson(res, 200, require('./malware_scan').scan(targets, { recursive: parsed.recursive }));
+          let allowed;
+          try { allowed = targets.map((t) => assertAllowedPath(t)); }
+          catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
+          sendJson(res, 200, require('./malware_scan').scan(allowed, { recursive: parsed.recursive }));
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/skills-catalog') {
@@ -575,6 +589,7 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/secret-scan') {
           const parsed = await readJson(req);
+          if (parsed.text == null && !parsed.path) { sendJson(res, 400, { error: 'text or path required' }); return; }
           const text = parsed.text != null ? String(parsed.text) : require('fs').readFileSync(assertAllowedPath(parsed.path), 'utf8');
           const findings = await require('./secret_verify').scan(text, { source: parsed.path || '<inline>', verify: Boolean(parsed.verify), offline: Boolean(parsed.offline) });
           sendJson(res, 200, { summary: require('./secret_verify').summarize(findings), findings: findings.map(({ raw, ...x }) => x) });
@@ -594,6 +609,7 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/doc-convert') {
           const parsed = await readJson(req);
+          if (!parsed.path) { sendJson(res, 400, { error: 'path required' }); return; }
           const r = require('./doc_convert').toMarkdown(assertAllowedPath(parsed.path));
           sendJson(res, 200, { format: r.format, markdown: r.markdown.slice(0, 200000), bytes: r.markdown.length });
           return;
@@ -807,11 +823,12 @@ async function main() {
       }
       if (req.method === 'POST' && req.url.split('?')[0] === '/api/sessions/tags') {
         const parsed = await readJson(req);
-        const sid = warnMissing(parsed.id);
+        if (!parsed.id) { sendJson(res, 400, { error: 'session id required' }); return; }
+        const sid = String(parsed.id);
         const tags = Array.isArray(parsed.tags) ? parsed.tags.map((t) => String(t).trim()).filter(Boolean) : [];
         const d = dbSafe();
         const r = d ? d.setSessionTags(sid, tags) : { ok: false, error: 'db unavailable' };
-        sendJson(res, r.ok ? 200 : 500, r);
+        sendJson(res, r.ok ? 200 : 404, r);
         return;
       }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/events') {
@@ -889,8 +906,12 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/backup/import') {
           const parsed = await readJson(req);
+          const data = parsed && parsed.data;
+          const tables = (data && typeof data === 'object') ? Object.keys(data) : [];
+          const known = tables.filter((t) => Array.isArray(data[t]));
+          if (known.length === 0) { sendJson(res, 400, { error: 'data with at least one known table array required' }); return; }
           let ok = false;
-          try { require('./backup').importState(parsed.data); ok = true; } catch (e) {}
+          try { require('./backup').importState(data); ok = true; } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
           sendJson(res, 200, { ok });
           return;
         }
