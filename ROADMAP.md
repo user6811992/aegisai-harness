@@ -497,9 +497,43 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 - [ ] Synthetic security log corpus (talos/EvidenceForge) — generated hunt datasets for testing `security_kb` and detection rules. — **H**
 - [ ] IoC feed import (talos/IOCs) — load indicators into `security_kb` with hashes/domains/IPs for offline matching. — **H**
 
-## Batch plan (updated)
+## v0.79 — From anthropics, openai, usestrix, projectdiscovery, microsoft, qybaihe
+(`aquaticsecurity` returned 404 — org not found/renamed; nothing to mine.)
 
-### Batch 3 — next
+### Agent skills & plugins (anthropics/skills, claude-plugins-official)
+- [ ] Align `SKILL.md` with the canonical Agent Skills schema (name, description, license, allowed-tools) and validate on import. — **H**
+- [ ] Adopt the official plugin manifest shape for `plugin_marketplace` so third-party directories can be consumed. — **M**
+- [ ] Domain plugin packs (legal/knowledge-work style bundles) as a first-class packaging unit. — **M**
+
+### Multi-agent handoffs (openai/openai-agents-python)
+- [ ] Handoff primitive — transfer the conversation (with context) from one agent to another, distinct from agents-as-tools. — **H**
+
+### Pentest → remediation loop (usestrix/strix, usestrix/benchmarks)
+- [ ] Remediation stage — after a finding, propose a patch, apply it in a worktree, re-run the probe to prove the fix, and record evidence. — **H**
+- [ ] Pentest eval harness — deterministic target fixtures + expected findings, scored like `yasscore`. — **H**
+- [ ] Package-install guard (supply-chain firewall) — policy check before `npm install`-style actions. — **M**
+
+### Template-driven scanning & web recon (projectdiscovery)
+- [ ] YAML template scanner (nuclei-style subset) — request templates with matchers/extractors, run against a target, emit SARIF. — **H**
+- [ ] Endpoint crawler (katana-style) — crawl links + extract from JS, feed the pentest pipeline and `re_index`. — **H**
+- [ ] HTTP probe tool (httpx-style) — status, title, headers, tech fingerprint for a list of URLs. — **H**
+- [ ] OOB interaction channel (interactsh-style) for blind SSRF/XXE — needs an external collaborator or self-hosted listener. — **M**
+- [ ] DNS/port enumeration adapters (subfinder/dnsx/naabu) behind the pentest profile. — **M**
+
+### Document ingestion (microsoft/markitdown)
+- [ ] Document → Markdown converter — PDF text, DOCX/XLSX/PPTX (OOXML zip+XML, zero deps), HTML, CSV; wire into attachments and `/api/file`. — **H**
+- [ ] Playwright driver as an alternative browser backend to raw CDP. — **M**
+
+### Cheap decision routing & generation skills (qybaihe/mu, codex-ppt)
+- [ ] Tiny-model boolean router — route binary decisions (yes/no gates) to a small local model, with fallback to heuristics. — **H**
+- [ ] Slide/deck skill — generate 16:9 PDF decks using the existing `pdf_writer`. — **H**
+- [ ] Deterministic design-direction picker (hash-design pattern) — seeded choice among style presets for generated artifacts. — **L**
+
+### Runtime defense for generated apps (qybaihe/bla)
+- [ ] Opt-in guard injection for generated JS/TS/Electron apps (defensive scaffolding), reported as a build-time artefact. — **M**
+
+
+### Batch 3 — next (v0.79)
 | Item | Source | Feasibility |
 |---|---|---|
 | Model behaviour probe suite | nvidia/garak | H |
@@ -508,12 +542,22 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 | Multi-phase audit with independent verification | cloudflare/security-audit-skill | H |
 | `mcp-inspect` deterministic MCP tests | modelcontextprotocol/inspector | H |
 | Screenshot → vision → click | bytedance/UI-TARS-desktop | H |
+| YAML template scanner (nuclei subset) | projectdiscovery/nuclei | H |
+| Endpoint crawler | projectdiscovery/katana | H |
+| Remediation loop (find → fix → re-verify) | usestrix/strix | H |
+| Document → Markdown converter | microsoft/markitdown | H |
+| Handoff primitive | openai/openai-agents-python | H |
 | Conversation templates | prior backlog | H |
-| Multi-model A/B testing across runs | prior backlog | H |
+| Multi-model A/B across runs | prior backlog | H |
 
 ### Batch 4 — after
 | Item | Source | Feasibility |
 |---|---|---|
+| HTTP probe tool (httpx-style) | projectdiscovery/httpx | H |
+| Pentest eval harness | usestrix/benchmarks | H |
+| Tiny-model boolean router | qybaihe/mu | H |
+| Slide/deck skill (PDF) | qybaihe/codex-ppt | H |
+| Canonical Agent Skills schema | anthropics/skills | H |
 | Interactive architecture map page | haydenschmitty/floorplan | H |
 | Guardrail routing API surface | sandbox-quantum/switch-trust | H |
 | IoC feed import | cisco-talos/IOCs | H |
@@ -527,12 +571,20 @@ Feasibility: **H** = fits current JS architecture, **M** = needs external servic
 | Binary function similarity | cisco-talos/binary_function_similarity | M |
 | RAGFlow-style private retrieval | bytedance/deer-flow | M |
 | Codex-style MCP config presets | openai/codex | H |
+| Package-install guard | usestrix/firewall | M |
+| OOB interaction channel | projectdiscovery/interactsh | M |
+| DNS/port enumeration | projectdiscovery/subfinder+dnsx+naabu | M |
+| Playwright browser driver | microsoft/playwright | M |
+| Official plugin manifest | anthropics/claude-plugins-official | M |
+| Domain plugin packs | anthropics/knowledge-work-plugins | M |
+| Runtime defense scaffolding | qybaihe/bla | M |
 | Plugin marketplace maturity | prior backlog | M |
 | Mobile PWA polish | prior backlog | H |
 
 ### Batch 5 — polish / ecosystem
 | Item | Source | Feasibility |
 |---|---|---|
+| Deterministic design-direction picker | qybaihe/hash-design | L |
 | Community plugin ecosystem | prior backlog | ecosystem |
 | Docs & tutorials | prior backlog | H |
 | Performance optimization (large context) | prior backlog | H |
