@@ -201,6 +201,33 @@ async function main() {
       res.end(JSON.stringify(obj));
     }
 
+    // Scope required by a route. Read-only GETs need `read`; anything that
+    // executes the agent or mutates state needs `execute`.
+    function requiredScope(method, urlPath) {
+      if (method !== 'GET') return 'execute';
+      const readOnly = ['/api/version', '/api/config', '/api/models', '/api/models/scan', '/api/models/hf-search',
+        '/api/context', '/api/sessions', '/api/sessions/search', '/api/search-sessions', '/api/files', '/api/file',
+        '/api/projects', '/api/skills', '/api/memories', '/api/errors', '/api/integrations', '/api/dag-runs',
+        '/api/stream', '/api/events'];
+      return readOnly.includes(urlPath) ? 'read' : 'read';
+    }
+
+    // Filesystem roots the file browser/editor may touch.
+    function allowedRoots() {
+      const configured = (process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '').split(',').map((s) => s.trim()).filter(Boolean);
+      if (configured.length) return configured.map((r) => path.resolve(r));
+      return [path.resolve(process.cwd())];
+    }
+    function assertAllowedPath(target) {
+      const resolved = path.resolve(String(target || ''));
+      const roots = allowedRoots();
+      for (const root of roots) {
+        const rel = path.relative(root, resolved);
+        if (!rel.startsWith('..') && !path.isAbsolute(rel)) return resolved;
+      }
+      throw Object.assign(new Error('path outside allowed roots'), { status: 403 });
+    }
+
     const handleRequest = async (req, res) => {
       // CORS: never wildcard. Reflect only same-host origins; reject cross-site.
       const origin = req.headers.origin;
@@ -215,19 +242,29 @@ async function main() {
       res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
       if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
-      // auth (fixed-length comparison; token may change via /api/config)
+      // ---- auth ----
+      // Static assets stay public so a fresh browser can load the UI shell and
+      // prompt for a token. Only /api/* and /mcp are gated.
+      const urlPathOnly = req.url.split('?')[0];
+      const needsAuth = urlPathOnly.startsWith('/api/') || urlPathOnly === '/mcp';
       const expectedToken = currentToken();
-      if (expectedToken) {
+      if (expectedToken && needsAuth) {
         const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || new URL(req.url, 'http://x').searchParams.get('token') || '';
-        if (!tokenMatches(supplied, expectedToken)) {
-          // A valid personal access token (PAT) may stand in for the global token.
-          let patOk = false;
+        let authorized = tokenMatches(supplied, expectedToken);
+        let patScopes = null;
+        if (!authorized) {
+          // A personal access token may stand in, but only within its scopes.
           try {
             const pats = require('./access_tokens');
             const v = pats.verify ? pats.verify(supplied) : null;
-            patOk = Boolean(v && (v.ok !== false));
-          } catch (e) { patOk = false; }
-          if (!patOk) { sendJson(res, 401, { error: 'unauthorized' }); return; }
+            if (v && v.ok !== false) { authorized = true; patScopes = Array.isArray(v.scopes) ? v.scopes : []; }
+          } catch (e) { authorized = false; }
+        }
+        if (!authorized) { sendJson(res, 401, { error: 'unauthorized' }); return; }
+        if (patScopes) {
+          const required = requiredScope(req.method, urlPathOnly);
+          const allowed = patScopes.includes('*') || patScopes.includes(required) || (required === 'read' && patScopes.includes('execute'));
+          if (!allowed) { sendJson(res, 403, { error: 'insufficient_scope', required, granted: patScopes }); return; }
         }
       }
       // rate limit — API only; static assets must not consume the API budget
@@ -364,14 +401,10 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/file') {
           const parsed = await readJson(req);
-          const target = parsed.path;
-          if (!target) { sendJson(res, 400, { error: 'path required' }); return; }
-          const allowed = (process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '').split(',').map((s) => s.trim()).filter(Boolean);
-          const path = require('path');
-          const resolved = path.resolve(target);
-          if (allowed.length && !allowed.some((root) => { const rel = path.relative(path.resolve(root), resolved); return !rel.startsWith('..') && !path.isAbsolute(rel); })) {
-            sendJson(res, 403, { error: 'path outside allowed roots' }); return;
-          }
+          if (!parsed.path) { sendJson(res, 400, { error: 'path required' }); return; }
+          let resolved;
+          try { resolved = assertAllowedPath(parsed.path); }
+          catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
           try {
             require('fs').writeFileSync(resolved, String(parsed.content == null ? '' : parsed.content), 'utf8');
             sendJson(res, 200, { ok: true, path: resolved, bytes: Buffer.byteLength(String(parsed.content || '')) });
@@ -443,19 +476,35 @@ async function main() {
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/search-sessions') {
         const q = (new URL(req.url, 'http://x').searchParams.get('q') || '').toLowerCase();
         const results = [];
-        for (const [sid, msgs] of sessions.entries()) {
-          for (const m of msgs) {
+        const seen = new Set();
+        const scan = (sid, msgs) => {
+          for (const m of msgs || []) {
             if ((m.content || '').toLowerCase().includes(q)) {
-              results.push({ sessionId: sid, role: m.role, snippet: (m.content || '').slice(0, 100), match: true });
-              break;
+              results.push({ sessionId: sid, role: m.role, snippet: (m.content || '').slice(0, 140), match: true });
+              return;
             }
           }
+        };
+        // Persisted sessions first so search survives restarts.
+        try {
+          const d = dbSafe();
+          for (const s of (d ? d.listSessions() : [])) {
+            if (seen.has(s.id)) continue;
+            seen.add(s.id);
+            scan(s.id, s.messages);
+          }
+        } catch (e) {}
+        for (const [sid, msgs] of sessions.entries()) {
+          if (seen.has(sid)) continue;
+          scan(sid, msgs);
         }
         sendJson(res, 200, { results, query: q });
         return;
       }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/files') {
-        const dir = new URL(req.url, 'http://x').searchParams.get('dir') || process.cwd();
+        let dir;
+        try { dir = assertAllowedPath(new URL(req.url, 'http://x').searchParams.get('dir') || process.cwd()); }
+        catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
         let entries = [];
         try {
           const fs = require('fs');
@@ -472,8 +521,11 @@ async function main() {
         return;
       }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/file') {
-        const filePath = new URL(req.url, 'http://x').searchParams.get('path');
-        if (!filePath) { sendJson(res, 400, { error: 'path required' }); return; }
+        const requested = new URL(req.url, 'http://x').searchParams.get('path');
+        if (!requested) { sendJson(res, 400, { error: 'path required' }); return; }
+        let filePath;
+        try { filePath = assertAllowedPath(requested); }
+        catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
         try {
           const fs = require('fs');
           const content = fs.readFileSync(filePath, 'utf8');

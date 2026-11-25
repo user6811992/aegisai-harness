@@ -99,19 +99,47 @@ async function dispatch(msg) {
 function createHandler() {
   return async (req, res) => {
     if (req.method === 'POST') {
+      const MAX = parseInt(process.env.AEGISAI_MCP_MAX_BODY || String(2 * 1024 * 1024), 10);
       let body = '';
-      req.on('data', (c) => { body += c; });
+      let bytes = 0;
+      let done = false;
+      req.on('data', (c) => {
+        if (done) return;
+        bytes += c.length;
+        if (bytes > MAX) {
+          done = true;
+          res.writeHead(413, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32600, message: 'request body too large' } }));
+          req.resume();
+          return;
+        }
+        body += c;
+      });
+      req.on('error', () => {
+        if (done) return;
+        done = true;
+        try { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32600, message: 'request stream error' } })); } catch (e) {}
+      });
       req.on('end', async () => {
+        if (done) return;
+        done = true;
         let msg;
         try { msg = JSON.parse(body); } catch (e) { res.writeHead(400, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32700, message: 'parse error' } })); return; }
-        const result = await dispatch(msg);
+        // Dispatch error boundary: a throwing tool must not kill the transport.
+        let result;
+        try {
+          result = await dispatch(msg);
+        } catch (e) {
+          const id = msg && msg.id !== undefined ? msg.id : null;
+          try { res.writeHead(200, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', id, error: { code: -32603, message: String((e && e.message) || e) } })); } catch (_) {}
+          return;
+        }
         if (result === null) { res.writeHead(202, { 'Content-Type': 'application/json' }); res.end(); return; }
         const headers = { 'Content-Type': 'application/json' };
         if (result._sessionId) { headers['Mcp-Session-Id'] = result._sessionId; delete result._sessionId; }
         const sid = req.headers['mcp-session-id'];
         if (sid && sessions.has(sid)) headers['Mcp-Session-Id'] = sid;
-        res.writeHead(200, headers);
-        res.end(JSON.stringify(result));
+        try { res.writeHead(200, headers); res.end(JSON.stringify(result)); } catch (e) {}
       });
       return;
     }

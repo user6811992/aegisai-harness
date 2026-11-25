@@ -73,23 +73,10 @@ class Tui extends EventEmitter {
       return;
     }
     if (s.startsWith('\x1b[') || s.startsWith('\x1bO')) return; // ignore escape sequences
-    // Handle pasted text containing newlines: submit each complete line.
-    if (s.includes('\n') || s.includes('\r')) {
-      const parts = s.split(/\r\n|\r|\n/);
-      for (let i = 0; i < parts.length; i++) {
-        if (parts[i]) this.input += parts[i].replace(/[^\x20-\x7e\t]/g, '');
-        if (i < parts.length - 1) {
-          const cmd = this.input.trim();
-          this.input = '';
-          this.emit('command', cmd);
-          if (cmd) this.addMessage('user', cmd);
-        }
-      }
-      this.render();
-      return;
-    }
-    // Accept the whole printable run (paste support), dropping control chars.
-    const printable = s.replace(/[^\x20-\x7e\t]/g, '');
+    // A pasted block (multi-char, may contain newlines) is inserted verbatim so the
+    // user can review/edit it; only a bare Enter submits. Newlines become spaces
+    // because the input is single-line.
+    const printable = s.replace(/[\r\n]+/g, ' ').replace(/[^\x20-\x7e\t]/g, '');
     if (printable) {
       this.input += printable;
       this.render();
