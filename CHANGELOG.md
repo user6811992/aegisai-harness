@@ -2,7 +2,7 @@
 
 All notable changes to AegisAi Harness are documented here.
 
-## [0.89.3] - 2026-11-25
+## [0.89.4] - 2026-11-25
 
 ### Fixed
 - Installation: Windows installer now preflights Node.js 22.13+ with actionable messages; launcher no longer hides npm failures, uses `--omit=dev`, and records a dependency marker. Inno uninstall removes stale `node_modules`/lockfiles; `install.ps1` preserves `data/` and handles GitHub source zips.
