@@ -460,9 +460,15 @@ async function runAgent(opts) {
             try { const rbId = require('../rollback').snapshotFile(args.path, projectRoot); toolLog.push({ name: '__rollback__', args: { path: args.path }, resultPreview: rbId }); } catch (e) {}
           }
           // tool result cache: return cached result for identical read/search calls
-          const cached = require('../tool_cache').get(name, args);
+          const cached = require('../tool_cache').get(name, args, projectRoot);
           if (cached !== null) {
             toolLog.push({ name, args, result: cached, cached: true });
+            // run afterTool hooks and tracer for cache hits too
+            await hooks.run('afterTool', { name, args, result: cached });
+            if (toolSpan) {
+              if (cached && cached.ok === false) tracer.failSpan(toolSpan, cached.output);
+              else tracer.endSpan(toolSpan);
+            }
             return { name, args, result: cached };
           }
           const toolStart = Date.now();
@@ -472,7 +478,7 @@ async function runAgent(opts) {
           while (true) {
             try {
               result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline, toolContext, sharedContext });
-              require('../tool_cache').set(name, args, result);
+              require('../tool_cache').set(name, args, result, projectRoot);
               break;
             } catch (e) {
               if (retries >= MAX_RETRIES) { result = { ok: false, output: String(e.message || e) }; break; }
@@ -480,6 +486,8 @@ async function runAgent(opts) {
               await new Promise((res) => setTimeout(res, 200 * retries));
             }
           }
+          // invalidate cache on mutating tools
+          require('../tool_cache').invalidate(name, projectRoot);
           try { require('../profiler').recordTool(name, Date.now() - toolStart, result && result.ok !== false); } catch (e) {}
         }
       } catch (e) {

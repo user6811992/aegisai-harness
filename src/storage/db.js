@@ -175,6 +175,9 @@ function rowToSession(r) {
 function listSessions() { return all('SELECT * FROM sessions ORDER BY updated DESC').map(rowToSession); }
 function getSession(id) { const row = one('SELECT * FROM sessions WHERE id = ?', [id]); return row ? rowToSession(row) : null; }
 function setSessionTags(id, tags) {
+  if (!id) return { ok: false, error: 'id required', status: 400 };
+  const existing = one('SELECT id FROM sessions WHERE id = ?', [id]);
+  if (!existing) return { ok: false, error: 'session not found', status: 404 };
   try { run('UPDATE sessions SET tags=? WHERE id=?', [JSON.stringify(tags || []), id]); return { ok: true, id, tags: tags || [] }; }
   catch (e) { return { ok: false, error: String(e.message || e) }; }
 }

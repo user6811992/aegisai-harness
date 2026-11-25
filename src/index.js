@@ -558,8 +558,11 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/skills-catalog/fetch') {
           const parsed = await readJson(req);
-          const r = await require('./skills_catalog').fetchCatalog(parsed.url);
-          sendJson(res, 200, { count: r.count, fetched: r.skills.length });
+          if (!parsed.url) { sendJson(res, 400, { error: 'url required' }); return; }
+          try {
+            const r = await require('./skills_catalog').fetchCatalog(parsed.url);
+            sendJson(res, 200, { count: r.count, fetched: r.skills.length });
+          } catch (e) { sendJson(res, 502, { error: String(e.message || e) }); }
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/i18n') {

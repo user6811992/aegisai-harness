@@ -12,6 +12,13 @@ function highlight(code) {
     .replace(str, (m) => '<span class="str">' + m + '</span>')
     .replace(kw, (m) => '<span class="kw">' + m + '</span>');
 }
+function inlineFormat(text) {
+  let s = text;
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
+  return s;
+}
 function render(text) {
   let s = escapeHtml(text);
   // thinking blocks
@@ -20,25 +27,40 @@ function render(text) {
   s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => '<pre class="code"><code data-lang="' + lang + '">' + highlight(code.replace(/\n$/, '')) + '</code></pre>');
   // headings
   s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  // inline code
-  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
-  // bold/italic
-  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  // links (url already escaped; safeUrl handles protocols)
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
-  // lists
-  s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
-  // tables (markdown pipe tables)
+  // tables (parse on raw text before inline formatting of pipes)
   s = s.replace(/(?:^|\n)(\|.+\|\n\|[-:| ]+\|\n(?:\|.+\|\n?)+)/g, (block) => {
     const lines = block.trim().split('\n');
     if (lines.length < 3) return block;
-    const header = lines[0].split('|').slice(1, -1).map((c) => c.trim());
-    const rows = lines.slice(2).map((l) => l.split('|').slice(1, -1).map((c) => c.trim()));
+    function splitCells(line) {
+      const cells = [];
+      let current = '';
+      let inCode = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '`') { inCode = !inCode; current += ch; }
+        else if (ch === '|' && !inCode) { cells.push(current.trim()); current = ''; }
+        else { current += ch; }
+      }
+      if (current.trim() || cells.length > 0) cells.push(current.trim());
+      if (cells.length > 0 && cells[0] === '') cells.shift();
+      if (cells.length > 0 && cells[cells.length - 1] === '') cells.pop();
+      return cells;
+    }
+    const header = splitCells(lines[0]).map(inlineFormat);
+    const rows = lines.slice(2).map((l) => splitCells(l).map(inlineFormat));
     let html = '<table class="md-table"><thead><tr>' + header.map((h) => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>';
     for (const row of rows) html += '<tr>' + row.map((c) => '<td>' + c + '</td>').join('') + '</tr>';
     html += '</tbody></table>';
     return '\n' + html + '\n';
   });
+  // inline code
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  // bold/italic
+  s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
+  // links
+  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
+  // lists
+  s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
   // paragraphs
   s = s.split(/\n{2,}/).map((b) => /^<(h\d|pre|ul|li|details|table)/.test(b.trim()) ? b : '<p>' + b.replace(/\n/g, '<br>') + '</p>').join('\n');
   return s;

@@ -555,7 +555,7 @@ function App() {
     setInput('');
     setAttachments([]);
     setHistoryIdx(-1);
-    if (text.trim()) setPromptHistory((h) => [...h.slice(-49), text.trim()]);
+    if (input.trim()) setPromptHistory((h) => [...h.slice(-49), input.trim()]);
     setMessages((m) => [...m, { role: 'user', content: displayText }]);
     setLoading(true);
     setToolLog([]);
