@@ -467,6 +467,8 @@ function App() {
   const [attachments, setAttachments] = useState([]);
   const [attachPreview, setAttachPreview] = useState(null);
   const [fileEditor, setFileEditor] = useState(null);
+  const [showBlame, setShowBlame] = useState(false);
+  const [blameData, setBlameData] = useState(null);
   const [needAuth, setNeedAuth] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const inputRef = useRef(null);
@@ -938,6 +940,14 @@ function App() {
               <span class="editor-path" title=${fileEditor.path}>${fileEditor.path.split(/[\\/]/).pop()}</span>
               <span class="editor-dirty">${fileEditor.dirty ? '●' : ''}</span>
               <button class="btn-sm" onClick=${() => saveEditor()} disabled=${!fileEditor.dirty}>Save</button>
+              <button class="btn-sm" onClick=${async () => {
+                if (showBlame) { setShowBlame(false); setBlameData(null); return; }
+                try {
+                  const r = await API('/api/git-blame?path=' + encodeURIComponent(fileEditor.path));
+                  if (r.ok) { setBlameData(r.data || r); setShowBlame(true); }
+                  else toast('Blame failed: ' + (r.data && r.data.error || r.status), 'error');
+                } catch (e) { toast('Blame failed: ' + e.message, 'error'); }
+              }}>${showBlame ? 'Hide Blame' : 'Blame'}</button>
               <button class="btn-sm" onClick=${() => setFileEditor(null)}>Close</button>
             </div>
             <textarea
@@ -946,6 +956,12 @@ function App() {
               onInput=${(e) => setFileEditor(Object.assign({}, fileEditor, { content: e.target.value, dirty: true }))}
               spellcheck="false"
             ></textarea>
+            ${showBlame && blameData ? html`
+              <div class="blame-pane">
+                <div class="blame-head">Git Blame</div>
+                <pre class="blame-list">${(blameData.entries || blameData || []).map((l) => html`<div class="blame-line"><span class="blame-author">${l.author || '?'}</span> <span class="blame-commit">${l.commit || ''}</span> <span class="blame-code">${l.line || l.content || l.text || ''}</span></div>`)}</pre>
+              </div>
+            ` : null}
           </aside>
         ` : null}
       </div>
