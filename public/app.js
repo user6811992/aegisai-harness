@@ -6,7 +6,7 @@ const html = htm.bind(h);
 
 // Auth token support: stored in sessionStorage, sent as Bearer on every API call.
 function authToken() { try { return sessionStorage.getItem('aegisai_token') || localStorage.getItem('aegisai_token') || ''; } catch (e) { return ''; } }
-function setAuthToken(t) { try { if (t) sessionStorage.setItem('aegisai_token', t); else sessionStorage.removeItem('aegisai_token'); } catch (e) {} }
+function setAuthToken(t) { try { if (t) { sessionStorage.setItem('aegisai_token', t); localStorage.setItem('aegisai_token', t); } else { sessionStorage.removeItem('aegisai_token'); localStorage.removeItem('aegisai_token'); } } catch (e) {} }
 function authHeaders(extra) {
   const h = Object.assign({}, extra || {});
   const t = authToken();

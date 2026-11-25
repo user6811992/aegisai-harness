@@ -58,6 +58,24 @@ class Tui extends EventEmitter {
     const s = d.toString();
     if (!s) return;
     if (s === '\u0003') { this.stop(); return; } // Ctrl+C
+    // Bracketed paste: ESC[200~ ... ESC[201~. Process the content between the
+    // markers as literal text (newlines become spaces, no auto-submit).
+    if (s.includes('\x1b[200~') || s.includes('\x1b[201~') || this._pasteBuffer !== undefined) {
+      if (this._pasteBuffer === undefined) this._pasteBuffer = '';
+      const parts = s.split(/\x1b\[200~|\x1b\[201~/);
+      let buf = this._pasteBuffer;
+      for (const chunk of parts) buf += chunk.replace(/\r?\n/g, ' ').replace(/[^\x20-\x7e\t]/g, '');
+      if (s.includes('\x1b[201~')) {
+        const text = buf.trim();
+        if (text) this.input += (this.input ? ' ' : '') + text;
+        this._pasteBuffer = undefined;
+        this.render();
+        return;
+      }
+      this._pasteBuffer = buf;
+      this.render();
+      return;
+    }
     // Split pasted/multi-byte chunks into lines and printable runs.
     if (s === '\r' || s === '\n') {
       const cmd = this.input.trim();

@@ -221,11 +221,17 @@ async function main() {
       return [path.resolve(process.cwd())];
     }
     function assertAllowedPath(target) {
+      const fs = require('fs');
       const resolved = path.resolve(String(target || ''));
       const roots = allowedRoots();
+      // Resolve symlinks/junctions so a link can't escape the allowed root.
+      let real = resolved;
+      try { real = fs.realpathSync(resolved); } catch (e) { /* file may not exist yet */ }
       for (const root of roots) {
-        const rel = path.relative(root, resolved);
-        if (!rel.startsWith('..') && !path.isAbsolute(rel)) return resolved;
+        let rootReal = root;
+        try { rootReal = fs.realpathSync(root); } catch (e) {}
+        const rel = path.relative(rootReal, real);
+        if (!rel.startsWith('..') && !path.isAbsolute(rel)) return real;
       }
       throw Object.assign(new Error('path outside allowed roots'), { status: 403 });
     }
@@ -730,8 +736,11 @@ async function main() {
         catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
         try {
           const fs = require('fs');
+          const MAX_FILE = parseInt(process.env.AEGISAI_MAX_FILE_BYTES || '2097152', 10); // 2 MiB
+          const st = fs.statSync(filePath);
+          if (st.size > MAX_FILE) { sendJson(res, 413, { error: 'file too large', size: st.size, limit: MAX_FILE }); return; }
           const content = fs.readFileSync(filePath, 'utf8');
-          sendJson(res, 200, { content, path: filePath });
+          sendJson(res, 200, { content, path: filePath, size: st.size });
         } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
         return;
       }
