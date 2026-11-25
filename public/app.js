@@ -445,7 +445,8 @@ function ToolTimeline({ tools }) {
 
 function App() {
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState('');
+  const [promptHistory, setPromptHistory] = useState([]);
+  const [historyIdx, setHistoryIdx] = useState(-1);
   const [loading, setLoading] = useState(false);
   const [ctx, setCtx] = useState({ tokens: 0, limit: 8192 });
   const [showConfig, setShowConfig] = useState(false);
@@ -550,6 +551,8 @@ function App() {
     const displayText = input || (attachments.length ? '(attached ' + attachments.map((a) => a.name).join(', ') + ')' : '');
     setInput('');
     setAttachments([]);
+    setHistoryIdx(-1);
+    if (text.trim()) setPromptHistory((h) => [...h.slice(-49), text.trim()]);
     setMessages((m) => [...m, { role: 'user', content: displayText }]);
     setLoading(true);
     setToolLog([]);
@@ -951,7 +954,24 @@ function App() {
             `)}
           </div>
         ` : null}
-        <textarea ref=${inputRef} value=${input} onInput=${(e) => setInput(e.target.value)} onKeyDown=${(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Type a message... (Shift+Enter for new line, drag files to attach)" rows="2"></textarea>
+        <textarea ref=${inputRef} value=${input} onInput=${(e) => setInput(e.target.value)} onKeyDown=${(e) => {
+          if (e.key === 'ArrowUp' && !e.shiftKey && (input === '' || historyIdx >= 0)) {
+            e.preventDefault();
+            if (promptHistory.length === 0) return;
+            const next = historyIdx < 0 ? promptHistory.length - 1 : Math.max(0, historyIdx - 1);
+            setHistoryIdx(next);
+            setInput(promptHistory[next] || '');
+            return;
+          }
+          if (e.key === 'ArrowDown' && !e.shiftKey && historyIdx >= 0) {
+            e.preventDefault();
+            const next = historyIdx + 1;
+            if (next >= promptHistory.length) { setHistoryIdx(-1); setInput(''); }
+            else { setHistoryIdx(next); setInput(promptHistory[next] || ''); }
+            return;
+          }
+          if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+        }} placeholder="Type a message... (Shift+Enter for new line, ↑/↓ for history, drag files to attach)" rows="2"></textarea>
         <button onClick=${send} disabled=${loading || (!input.trim() && attachments.length === 0)}>Send</button>
       </footer>
       ${attachPreview ? html`

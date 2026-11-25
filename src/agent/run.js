@@ -180,6 +180,23 @@ async function runAgent(opts) {
   let iterations = 0;
   const MAX_ITERS = 25;
   while (iterations < MAX_ITERS) {
+    // smart context compression: summarize old messages instead of truncating
+    if (iterations > 1 && msgs.length > 8) {
+      try {
+        const cc = require('../context_compress');
+        if (cc.shouldCompress(msgs, 8000)) {
+          const system = msgs.filter((m) => m.role === 'system');
+          const recent = msgs.slice(-4);
+          const old = msgs.slice(system.length, -4);
+          if (old.length > 0) {
+            const summary = await cc.summarize(old, model);
+            if (summary) {
+              msgs = system.concat([{ role: 'system', content: 'Summary of earlier conversation:\n' + summary }]).concat(recent);
+            }
+          }
+        }
+      } catch (e) {}
+    }
     // agent-decided / threshold compaction into a capsule
     if (agentCompact && iterations > 1 && require('../capsule').shouldCompact(msgs, typeof agentCompact === 'number' ? agentCompact : 0.8)) {
       require('../capsule').write(capsuleSession || 'default', msgs, { reason: 'auto-compact', iteration: iterations });
@@ -440,7 +457,26 @@ async function runAgent(opts) {
           if (rollback && (name === 'write_file' || name === 'delete_file')) {
             try { const rbId = require('../rollback').snapshotFile(args.path, projectRoot); toolLog.push({ name: '__rollback__', args: { path: args.path }, resultPreview: rbId }); } catch (e) {}
           }
-          result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline, toolContext, sharedContext });
+          // tool result cache: return cached result for identical read/search calls
+          const cached = require('../tool_cache').get(name, args);
+          if (cached !== null) {
+            toolLog.push({ name, args, result: cached, cached: true });
+            return { name, args, result: cached };
+          }
+          // auto-retry with backoff for transient failures
+          let retries = 0;
+          const MAX_RETRIES = 2;
+          while (true) {
+            try {
+              result = await coding.execCodingTool(name, args, projectRoot, { sandbox, offline, toolContext, sharedContext });
+              require('../tool_cache').set(name, args, result);
+              break;
+            } catch (e) {
+              if (retries >= MAX_RETRIES) { result = { ok: false, output: String(e.message || e) }; break; }
+              retries++;
+              await new Promise((res) => setTimeout(res, 200 * retries));
+            }
+          }
         }
       } catch (e) {
         result = { ok: false, output: String(e.message || e) };
@@ -450,6 +486,8 @@ async function runAgent(opts) {
         if (result && result.ok === false) tracer.failSpan(toolSpan, result.output);
         else tracer.endSpan(toolSpan);
       }
+      // invalidate cache on writes
+      if (name === 'write_file' || name === 'delete_file' || name === 'edit_file') require('../tool_cache').clear();
       return { name, args, result };
     }));
 

@@ -28,8 +28,19 @@ function render(text) {
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
   // lists
   s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
+  // tables (markdown pipe tables)
+  s = s.replace(/(?:^|\n)(\|.+\|\n\|[-:| ]+\|\n(?:\|.+\|\n?)+)/g, (block) => {
+    const lines = block.trim().split('\n');
+    if (lines.length < 3) return block;
+    const header = lines[0].split('|').slice(1, -1).map((c) => c.trim());
+    const rows = lines.slice(2).map((l) => l.split('|').slice(1, -1).map((c) => c.trim()));
+    let html = '<table class="md-table"><thead><tr>' + header.map((h) => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>';
+    for (const row of rows) html += '<tr>' + row.map((c) => '<td>' + c + '</td>').join('') + '</tr>';
+    html += '</tbody></table>';
+    return '\n' + html + '\n';
+  });
   // paragraphs
-  s = s.split(/\n{2,}/).map((b) => /^<(h\d|pre|ul|li|details)/.test(b.trim()) ? b : '<p>' + b.replace(/\n/g, '<br>') + '</p>').join('\n');
+  s = s.split(/\n{2,}/).map((b) => /^<(h\d|pre|ul|li|details|table)/.test(b.trim()) ? b : '<p>' + b.replace(/\n/g, '<br>') + '</p>').join('\n');
   return s;
 }
 window.HarnessMarkdown = { render, escapeHtml, safeUrl };
