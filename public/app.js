@@ -661,7 +661,14 @@ function App() {
   const [fileEntries, setFileEntries] = useState([]);
   const [fileContent, setFileContent] = useState('');
   const [selectedFile, setSelectedFile] = useState('');
-  const [showCompare, setShowCompare] = useState(false);
+  const [showSnippets, setShowSnippets] = useState(false);
+  const [snippets, setSnippets] = useState([]);
+  const [snippetForm, setSnippetForm] = useState({ name: '', language: 'javascript', code: '', description: '' });
+  const [showSandbox, setShowSandbox] = useState(false);
+  const [sandboxCode, setSandboxCode] = useState('');
+  const [sandboxLang, setSandboxLang] = useState('python');
+  const [sandboxResult, setSandboxResult] = useState(null);
+  const [sandboxRunning, setSandboxRunning] = useState(false);
   const [compareModels, setCompareModels] = useState('');
   const [comparePrompt, setComparePrompt] = useState('');
   const [compareResult, setCompareResult] = useState(null);
@@ -719,7 +726,31 @@ function App() {
     } catch (e) { toast('Save failed: ' + e.message, 'error'); }
   }
 
-  async function runCompare() {
+  async function loadSnippets() {
+    try { const r = await API('/api/snippets'); setSnippets(r.snippets || []); }
+    catch (e) { toast('Failed to load snippets: ' + e.message, 'error'); }
+  }
+  async function saveSnippet() {
+    try {
+      await API('/api/snippets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(snippetForm) });
+      toast('Snippet saved', 'success');
+      setSnippetForm({ name: '', language: 'javascript', code: '', description: '' });
+      loadSnippets();
+    } catch (e) { toast('Save failed: ' + e.message, 'error'); }
+  }
+  async function deleteSnippet(id) {
+    try { await API('/api/snippets?id=' + encodeURIComponent(id), { method: 'DELETE' }); toast('Snippet deleted', 'success'); loadSnippets(); }
+    catch (e) { toast('Delete failed: ' + e.message, 'error'); }
+  }
+  async function runSandbox() {
+    if (!sandboxCode.trim()) { toast('Enter code first', 'error'); return; }
+    setSandboxRunning(true); setSandboxResult(null);
+    try {
+      const r = await API('/api/sandbox', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ code: sandboxCode, language: sandboxLang }) });
+      setSandboxResult(r);
+    } catch (e) { toast('Sandbox failed: ' + e.message, 'error'); }
+    finally { setSandboxRunning(false); }
+  }
     if (!comparePrompt.trim() || !compareModels.trim()) { toast('Enter a prompt and models', 'error'); return; }
     setComparing(true);
     try {
@@ -892,6 +923,64 @@ function App() {
           </div>
         </div>
       ` : null}
+      ${showSnippets ? html`
+        <div class="modal-backdrop" onClick=${() => setShowSnippets(false)}>
+          <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Code Snippets</h2>
+            <div class="snippet-form">
+              <input value=${snippetForm.name} onInput=${(e) => setSnippetForm(Object.assign({}, snippetForm, { name: e.target.value }))} placeholder="Name" style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)" />
+              <select value=${snippetForm.language} onChange=${(e) => setSnippetForm(Object.assign({}, snippetForm, { language: e.target.value }))} style="padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)">
+                <option value="javascript">JavaScript</option><option value="python">Python</option><option value="bash">Bash</option><option value="go">Go</option><option value="rust">Rust</option><option value="text">Text</option>
+              </select>
+              <textarea value=${snippetForm.code} onInput=${(e) => setSnippetForm(Object.assign({}, snippetForm, { code: e.target.value }))} placeholder="Code..." rows="6" style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg);font-family:monospace" />
+              <input value=${snippetForm.description} onInput=${(e) => setSnippetForm(Object.assign({}, snippetForm, { description: e.target.value }))} placeholder="Description (optional)" style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)" />
+              <div class="modal-actions">
+                <button class="btn-primary" onClick=${saveSnippet}>Save Snippet</button>
+              </div>
+            </div>
+            <div class="snippet-list">
+              ${snippets.map((s) => html`
+                <div class="snippet-item">
+                  <div class="snippet-head">
+                    <strong>${s.name}</strong> <span class="hint">${s.language}</span>
+                    <button class="btn-sm" onClick=${() => { navigator.clipboard.writeText(s.code); toast('Copied', 'success'); }}>Copy</button>
+                    <button class="btn-sm" onClick=${() => deleteSnippet(s.id)}>Delete</button>
+                  </div>
+                  <pre class="snippet-code">${s.code.slice(0, 300)}</pre>
+                  ${s.description ? html`<p class="hint">${s.description}</p>` : null}
+                </div>
+              `)}
+            </div>
+            <div class="modal-actions">
+              <button onClick=${() => setShowSnippets(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
+      ${showSandbox ? html`
+        <div class="modal-backdrop" onClick=${() => setShowSandbox(false)}>
+          <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Code Sandbox</h2>
+            <label>Language
+              <select value=${sandboxLang} onChange=${(e) => setSandboxLang(e.target.value)} style="padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)">
+                <option value="python">Python</option><option value="javascript">JavaScript</option><option value="bash">Bash</option><option value="go">Go</option><option value="rust">Rust</option>
+              </select>
+            </label>
+            <textarea value=${sandboxCode} onInput=${(e) => setSandboxCode(e.target.value)} placeholder="Enter code..." rows="8" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--fg);font-family:monospace" />
+            <div class="modal-actions">
+              <button class="btn-primary" onClick=${runSandbox} disabled=${sandboxRunning}>${sandboxRunning ? 'Running...' : 'Run'}</button>
+              <button onClick=${() => setShowSandbox(false)}>Close</button>
+            </div>
+            ${sandboxResult ? html`
+              <div class="sandbox-result">
+                <div class="sandbox-status ${sandboxResult.ok ? 'ok' : 'err'}">${sandboxResult.ok ? '✓ Exit ' + sandboxResult.exitCode : '✗ ' + (sandboxResult.error || 'Failed')} (${sandboxResult.durationMs}ms, ${sandboxResult.runtime})</div>
+                ${sandboxResult.stdout ? html`<pre class="sandbox-output">${sandboxResult.stdout}</pre>` : null}
+                ${sandboxResult.stderr ? html`<pre class="sandbox-error">${sandboxResult.stderr}</pre>` : null}
+              </div>
+            ` : null}
+          </div>
+        </div>
+      ` : null}
       <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${async (s) => {
         try {
           const d = await API('/api/sessions?id=' + encodeURIComponent(s.id));
@@ -907,9 +996,10 @@ function App() {
         <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)" aria-label="Open settings">⚙️</button>
         <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)" aria-label="Open command palette">⌘</button>
         <button onClick=${() => setShowFiles(true) || loadFiles('')} title="File browser" aria-label="Open file browser">📁</button>
+        <button onClick=${() => setShowSandbox(true)} title="Code sandbox" aria-label="Open code sandbox">🧪</button>
         <button onClick=${() => setShowSearch(true)} title="Search conversations" aria-label="Search conversations">🔍</button>
         <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown" aria-label="Export chat as Markdown">📤</button>
-        <button onClick=${() => setShowCompare(true)} title="Compare models" aria-label="Compare models">⚖️</button>
+        <button onClick=${() => setShowSnippets(true) || loadSnippets()} title="Snippets" aria-label="Open snippets">📝</button>
         <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)" aria-label="Open help">?</button>
       </header>
       <div class=${'main-layout' + (fileEditor ? ' split' : '')}>
