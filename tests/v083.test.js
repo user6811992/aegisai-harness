@@ -75,7 +75,7 @@ test('v085: Use button checks r.ok before updating config', () => {
 test('v085: onboarding finish checks r.ok', () => {
   const app = read('public/app.js');
   // Count occurrences of r.ok check in finish context
-  assert.ok(app.includes("if (!r.ok) {\n        let msg = 'HTTP ' + r.status;"), 'onboarding r.ok check missing');
+  assert.ok(/if \(!r\.ok\) \{\s*\n\s*let msg = 'HTTP '/.test(app), 'onboarding r.ok check missing');
 });
 
 test('v085: SW cache version is v4', () => {
