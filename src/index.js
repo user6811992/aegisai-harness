@@ -921,11 +921,12 @@ async function main() {
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/backup/import') {
           const parsed = await readJson(req);
           const data = parsed && parsed.data;
-          const tables = (data && typeof data === 'object') ? Object.keys(data) : [];
-          const known = tables.filter((t) => Array.isArray(data[t]));
+          const keys = (data && typeof data === 'object') ? Object.keys(data) : [];
+          const known = keys.filter((k) => require('./backup').TABLES.includes(k));
           if (known.length === 0) { sendJson(res, 400, { error: 'data with at least one known table array required' }); return; }
           let ok = false;
-          try { require('./backup').importState(data); ok = true; } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
+          try { require('./backup').importState(data); ok = true; }
+          catch (e) { sendJson(res, 400, { error: String(e.message || e) }); return; }
           sendJson(res, 200, { ok });
           return;
         }
