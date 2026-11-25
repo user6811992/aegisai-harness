@@ -835,6 +835,25 @@ async function main() {
         sendJson(res, 200, require('./scheduled_tasks').remove(id));
         return;
       }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/sandbox') {
+        const parsed = await readJson(req);
+        if (!parsed.code) { sendJson(res, 400, { error: 'code required' }); return; }
+        const lang = parsed.language || 'python';
+        const r = await require('./code_sandbox').run(parsed.code, lang, { timeout: parsed.timeout, runtime: parsed.runtime });
+        sendJson(res, r.ok ? 200 : 400, r);
+        return;
+      }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/git-blame') {
+        const u = new URL(req.url, 'http://x');
+        const filePath = u.searchParams.get('path');
+        if (!filePath) { sendJson(res, 400, { error: 'path required' }); return; }
+        let allowed;
+        try { allowed = assertAllowedPath(filePath); }
+        catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
+        const r = require('./git_integration').blame(require('path').dirname(allowed), allowed);
+        sendJson(res, r.ok ? 200 : 400, r);
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/context') {
         const tokenizer = require('./tokenizer');
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
