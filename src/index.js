@@ -740,6 +740,35 @@ async function main() {
         sendJson(res, r.ok ? 200 : 502, r);
         return;
       }
+      if (req.method === 'GET' && req.url.split('?')[0] === '/api/snippets') {
+        const q = new URL(req.url, 'http://x').searchParams.get('q');
+        sendJson(res, 200, { snippets: q ? require('./snippets').search(q) : require('./snippets').list() });
+        return;
+      }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/snippets') {
+        const parsed = await readJson(req);
+        if (!parsed.code && !parsed.name) { sendJson(res, 400, { error: 'code or name required' }); return; }
+        const r = require('./snippets').save(parsed);
+        sendJson(res, 200, r);
+        return;
+      }
+      if (req.method === 'DELETE' && req.url.split('?')[0] === '/api/snippets') {
+        const u = new URL(req.url, 'http://x');
+        const id = u.searchParams.get('id');
+        if (!id) { sendJson(res, 400, { error: 'id required' }); return; }
+        sendJson(res, 200, require('./snippets').remove(id));
+        return;
+      }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/sessions/import') {
+        const parsed = await readJson(req);
+        if (!parsed.session || !parsed.session.id) { sendJson(res, 400, { error: 'session with id required' }); return; }
+        const s = parsed.session;
+        const d = dbSafe();
+        if (d) d.saveSession({ id: s.id, title: s.title || s.id, messages: s.messages || [], updated: s.updated || new Date().toISOString(), tags: s.tags || [] });
+        sessions.set(s.id, s.messages || []);
+        sendJson(res, 200, { ok: true, id: s.id });
+        return;
+      }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/context') {
         const tokenizer = require('./tokenizer');
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
@@ -1307,6 +1336,7 @@ async function main() {
       if (t === '/channels-extra') { console.log(JSON.stringify(require('./channels_extra').status(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/image-gen ')) { const p = t.slice(11).trim().split('|'); const r = await require('./image_gen').generate(p[0], { size: p[1], output: p[2] }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/profile') { console.log(JSON.stringify(require('./profiler').report(), null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/snippets')) { const q = t.slice(10).trim(); const r = q ? require('./snippets').search(q) : require('./snippets').list(); console.log(JSON.stringify(r.map((s) => ({ id: s.id, name: s.name, lang: s.language })), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/rename ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const edit = await require('./lsp').rename(p[0], p[1], Number(p[2]), Number(p[3]), p[4]); const applied = require('./lsp').applyWorkspaceEdit(edit, { dryRun: p[5] !== 'apply' }); console.log(JSON.stringify(applied, null, 2).slice(0, 2000)); rl.prompt(); return; }
       if (t.startsWith('/ab-test ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./ab_testing').run({ prompts: [p[0] || ''], models: p.slice(1).filter(Boolean), trials: Number(p[p.length-1]) || 3, projectRoot: root }); console.log(require('./ab_testing').format(r)); rl.prompt(); return; }
       if (t.startsWith('/malware-scan ')) { const p = t.slice(14).trim().split('|').map((x) => x.trim()); const r = require('./malware_scan').scan(p[0].split(','), { recursive: p.includes('recursive') }); console.log(JSON.stringify(r, null, 2).slice(0, 3000)); rl.prompt(); return; }
@@ -1319,6 +1349,7 @@ async function main() {
       if (t === '/channels-extra') { console.log(JSON.stringify(require('./channels_extra').status(), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/image-gen ')) { const p = t.slice(11).trim().split('|'); const r = await require('./image_gen').generate(p[0], { size: p[1], output: p[2] }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/profile') { console.log(JSON.stringify(require('./profiler').report(), null, 2).slice(0, 3000)); rl.prompt(); return; }
+      if (t.startsWith('/snippets')) { const q = t.slice(10).trim(); const r = q ? require('./snippets').search(q) : require('./snippets').list(); console.log(JSON.stringify(r.map((s) => ({ id: s.id, name: s.name, lang: s.language })), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/skills-catalog')) { const r = await require('./skills_catalog').fetchCatalog(); console.log(JSON.stringify({ count: r.count }, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/skills-import ')) { const u = t.slice(15).trim(); const name = u.split('/').pop().replace(/\.md$/i, '') || 'imported'; const r = await require('./skills_catalog').importSkill(u, name); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t.startsWith('/ab-test ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./ab_testing').run({ prompts: [p[0] || ''], models: p.slice(1, -1).filter(Boolean), trials: Number(p[p.length-1]) || 3, projectRoot: root }); console.log(require('./ab_testing').format(r)); rl.prompt(); return; }
