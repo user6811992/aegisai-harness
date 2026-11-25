@@ -241,6 +241,10 @@ async function backendListModels() {
 }
 
 async function backendChat(bodyObj, onChunk, signal) {
+  if (!signal) {
+    const ms = parseInt(process.env.AEGISAI_BACKEND_TIMEOUT_MS || '300000', 10);
+    signal = AbortSignal.timeout(ms);
+  }
   if (isCircuitOpen()) throw new Error('circuit breaker open');
   // escalation strategy: try efficient, then capable on failure/empty
   if (state.type === 'router' && state.routerStrategy === 'escalation' && state.routerUrls.length > 1) {

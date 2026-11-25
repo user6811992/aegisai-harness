@@ -270,9 +270,12 @@ async function main() {
         }
         if (!authorized) { sendJson(res, 401, { error: 'unauthorized' }); return; }
         if (patScopes) {
-          const required = requiredScope(req.method, urlPathOnly);
-          const allowed = patScopes.includes('*') || patScopes.includes(required) || (required === 'read' && patScopes.includes('execute'));
-          if (!allowed) { sendJson(res, 403, { error: 'insufficient_scope', required, granted: patScopes }); return; }
+          // /api/stream performs its own scope check (stream/execute) inside stream_actions.
+          if (urlPathOnly !== '/api/stream') {
+            const required = requiredScope(req.method, urlPathOnly);
+            const allowed = patScopes.includes('*') || patScopes.includes(required) || (required === 'read' && patScopes.includes('execute'));
+            if (!allowed) { sendJson(res, 403, { error: 'insufficient_scope', required, granted: patScopes }); return; }
+          }
         }
       }
       // rate limit — API only; static assets must not consume the API budget
