@@ -7,7 +7,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
-offline-first: no cloud dependencies, no telemetry. 66 milestones, ~200 modules,
+offline-first: no cloud dependencies, no telemetry. 85 milestones, ~275 modules,
 257 tests, CI green.
 
 > Status: v0.85.0 (see [ROADMAP.md](./ROADMAP.md)).

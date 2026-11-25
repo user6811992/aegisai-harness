@@ -16,6 +16,17 @@ All notable changes to AegisAi Harness are documented here.
 ### Added
 - `scripts/check-version-consistency.js`, `scripts/check-node.js`, `docs/TROUBLESHOOTING.md`, and regression tests for entry points, web auth, path traversal, and UI wiring.
 
+## [0.64.0] - 2026-11-21 through 2026-11-25
+
+See ROADMAP.md and git history for per-version detail (v0.64–v0.85). Highlights:
+
+- v0.64–v0.66: UX overhaul and enhancements (onboarding wizard, command palette, toast notifications, dashboard, help panel, keyboard shortcuts, session sidebar, drag-and-drop, tool timeline, responsive layout). 59 issues closed.
+- v0.67: publishing setup (npm OIDC trusted publishing, Docker/GHCR, Pages, Discussions, wiki, AirLLM provider, ledger seq-collision fix, installer version fix, --version flag).
+- v0.68–v0.74: web UI overhaul (Preact, vendored deps, CORS, auto-start Ollama, model management, streaming chat, conversation export, multi-model comparison, file browser, conversation search, themes, keyboard shortcuts, auto-update).
+- v0.75–v0.77: issue fixes (#60–#90), batch 1 & 2 UX (file browser, conversation search, themes, split editor, attachment chips, session tags).
+- v0.78–v0.80: issue fixes (#85–#94), batch 3 (model probes, skill scanner, verified secret scanning, audit pipeline, MCP inspector, nuclei templates, crawler, remediation, doc conversion, handoff, conversation templates, A/B testing, browser vision tools).
+- v0.81–v0.85: batch 4 & 5 (http probe, pentest eval, tiny router, deck PDF, skill schema, architecture map, guardrail API, IoC import, synthetic logs, Teams/Mattermost, agent CLI adapters, package guard, LSP rename, multi-model A/B, malware scan, i18n, skills catalog, a11y/PWA), plus issue fixes (#95–#99).
+
 ## [0.63.0] - 2026-11-22
 
 ### Added

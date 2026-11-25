@@ -15,10 +15,10 @@ Layers:
 
 ## Guides
 
-- **Build your own harness:** see `tests/minimal-harness` concepts — a loop, three tools, a permission gate, a context file, a budget, a resumable transcript.
+- **Build your own harness:** see `src/agent/run.js` and `src/tools/registry.js` — a loop, tools, a permission gate, a context file, a budget, a resumable transcript.
 - **Add a tool:** register in `src/tools/registry.js`; add execution in `src/tools/coding.js`; declare capabilities.
 - **Add a gate:** implement a pure `enforce(name, args, ctx)` function and wire into `src/agent/run.js` before tool execution.
-- **Add an MCP server:** configure in `mcp.json`; the security scanner (`src/mcp_security.js`) checks tool descriptions before loading.
+- **Add an MCP server:** configure in `.mcp.json` or via the REPL `/mcp` commands; the security scanner (`src/mcp_security.js`) checks tool descriptions before loading.
 - **Set project rules:** write `.aegisai/charter.yaml` with `protected_paths`, `forbidden_tools`, `require_approval`, `quality_gates`.
 - **Run offline:** `AEGISAI_OFFLINE=true` removes network tools; all backends can be local.
 
