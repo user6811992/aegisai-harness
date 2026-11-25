@@ -6,6 +6,7 @@
   <header><h2>Live Trajectory</h2><button onclick="location.href='/'">Back</button></header>
   <pre id="feed" style="max-height:70vh;overflow:auto"></pre>
 </div>
+<script src="/authtoken.js"></script>
 <script>
 const es = new EventSource('/api/events');
 es.onmessage = (e) => {

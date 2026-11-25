@@ -1,4 +1,4 @@
-const CACHE = 'aegisai-harness-v2';
+const CACHE = 'aegisai-harness-v3';
 const PRECACHE = ['/', '/style.css', '/app.js', '/manifest.json', '/vendor/preact.mjs', '/vendor/hooks.mjs', '/vendor/htm.mjs', '/vendor/tailwind.js'];
 
 self.addEventListener('install', (e) => {
@@ -21,6 +21,24 @@ self.addEventListener('fetch', (e) => {
   if (url.origin !== self.location.origin) return;
   // Never intercept API / protocol calls: always network, never cached.
   if (url.pathname.startsWith('/api/') || url.pathname === '/mcp' || url.pathname.startsWith('/mcp/')) return;
+
+  const isNavigation = req.mode === 'navigate' || (req.headers.get('accept') || '').includes('text/html');
+  if (isNavigation) {
+    // Network-first for pages so a new build is picked up immediately; fall back
+    // to cache only when offline.
+    e.respondWith(
+      fetch(req).then((res) => {
+        if (res && res.ok && res.type === 'basic') {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+        }
+        return res;
+      }).catch(() => caches.match(req).then((hit) => hit || caches.match('/')))
+    );
+    return;
+  }
+
+  // Static assets: cache-first is fine (they are versioned by CACHE).
   e.respondWith(
     caches.match(req).then((hit) => hit || fetch(req).then((res) => {
       if (res && res.ok && res.type === 'basic') {
@@ -28,6 +46,6 @@ self.addEventListener('fetch', (e) => {
         caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
       }
       return res;
-    }).catch(() => hit))
+    }))
   );
 });

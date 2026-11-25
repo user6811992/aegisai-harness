@@ -119,7 +119,9 @@ async function main() {
   }
 
   if (mcpServerFlag) {
-    const port = parseInt(process.env.AEGISAI_MCP_PORT || '3001', 10);
+    const portIdx = args.indexOf('--port');
+    const cliPort = portIdx >= 0 ? parseInt(args[portIdx + 1], 10) : 0;
+    const port = cliPort || parseInt(process.env.AEGISAI_MCP_PORT || '3001', 10);
     require('./mcp_server').start(port, process.env.HOST || '127.0.0.1');
     return;
   }

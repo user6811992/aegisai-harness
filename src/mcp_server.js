@@ -164,8 +164,22 @@ function createHandler() {
 
 function start(port, host) {
   const http = require('http');
-  const server = http.createServer(createHandler());
-  server.listen(port || 3001, host || '127.0.0.1', () => console.log('MCP server at http://' + (host || '127.0.0.1') + ':' + (port || 3001) + '/mcp'));
+  const handler = createHandler();
+  const expected = () => process.env.AEGISAI_TOKEN || process.env.LOCALAI_TOKEN || '';
+  const server = http.createServer((req, res) => {
+    const want = expected();
+    if (want) {
+      const supplied = (req.headers['authorization'] || '').replace(/^Bearer\s+/i, '') || (() => { try { return new URL(req.url, 'http://x').searchParams.get('token') || ''; } catch (e) { return ''; } })();
+      // Constant-time-ish comparison to avoid length leaks.
+      let ok = supplied.length === want.length;
+      if (ok) { let diff = 0; for (let i = 0; i < want.length; i++) diff |= supplied.charCodeAt(i) ^ want.charCodeAt(i); ok = diff === 0; }
+      if (!ok) { res.writeHead(401, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32001, message: 'unauthorized' } })); return; }
+    }
+    handler(req, res).catch((e) => {
+      try { if (!res.headersSent) { res.writeHead(500, { 'Content-Type': 'application/json' }); res.end(JSON.stringify({ jsonrpc: '2.0', error: { code: -32603, message: String((e && e.message) || e) } })); } else res.end(); } catch (_) {}
+    });
+  });
+  server.listen(port || 3001, host || '127.0.0.1', () => console.log('MCP server at http://' + (host || '127.0.0.1') + ':' + (port || 3001) + '/mcp' + (expected() ? ' (auth required)' : '')));
   return server;
 }
 

@@ -111,7 +111,7 @@ class Tui extends EventEmitter {
       if (msgIdx >= 0 && msgIdx < this.messages.length) {
         const m = this.messages[msgIdx];
         const prefix = m.role === 'user' ? ANSI.fg.green + '> ' : ANSI.fg.blue + '  ';
-        chatCell = prefix + m.content.slice(0, chatWidth - 3) + ANSI.reset;
+        chatCell = prefix + sanitizeLine(m.content).slice(0, chatWidth - 3) + ANSI.reset;
       }
       // pad chat
       const pad = Math.max(0, chatWidth - stripAnsi(chatCell).length);
@@ -119,19 +119,30 @@ class Tui extends EventEmitter {
       // sidebar
       out += ANSI.dim + '│' + ANSI.reset;
       const sl = sidebarLines[r] || '';
-      out += ANSI.dim + sl.slice(0, sidebarWidth - 1) + ANSI.reset;
+      out += ANSI.dim + sanitizeLine(sl).slice(0, sidebarWidth - 1) + ANSI.reset;
     }
     // Input line
     out += ANSI.move(inputRow, 1) + ANSI.clearLine;
-    out += ANSI.fg.green + '> ' + ANSI.reset + this.input + ANSI.showCursor;
+    out += ANSI.fg.green + '> ' + ANSI.reset + sanitizeLine(this.input) + ANSI.showCursor;
     // Status bar
     out += ANSI.move(statusRow, 1) + ANSI.clearLine;
-    out += ANSI.bg.blue + ANSI.fg.white + ANSI.bold + ' ' + this.status + ' '.repeat(Math.max(0, cols - this.status.length - 1)) + ANSI.reset;
+    const statusSafe = sanitizeLine(this.status);
+    out += ANSI.bg.blue + ANSI.fg.white + ANSI.bold + ' ' + statusSafe + ' '.repeat(Math.max(0, cols - statusSafe.length - 1)) + ANSI.reset;
     process.stdout.write(out);
   }
 }
 
 function stripAnsi(s) { return String(s).replace(/\x1b\[[0-9;]*m/g, ''); }
+
+// Make untrusted text safe for a single TUI row: drop ANSI/control sequences and
+// collapse newlines so a message cannot break the layout.
+function sanitizeLine(s) {
+  return String(s == null ? '' : s)
+    .replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '')
+    .replace(/\x1b\][^\x07]*\x07/g, '')
+    .replace(/[\r\n]+/g, ' ')
+    .replace(/[\x00-\x08\x0b-\x1f\x7f]/g, '');
+}
 
 function launch(opts) {
   const tui = new Tui(opts);
@@ -139,4 +150,4 @@ function launch(opts) {
   return tui;
 }
 
-module.exports = { Tui, launch, ANSI, stripAnsi };
+module.exports = { Tui, launch, ANSI, stripAnsi, sanitizeLine };

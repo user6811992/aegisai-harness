@@ -15,6 +15,7 @@
   <h3>Recent runs</h3>
   <div id="runs" class="graph"></div>
 </div>
+<script src="/authtoken.js"></script>
 <script>
 async function load() {
   const r = await fetch('/api/dag-runs'); const data = await r.json();

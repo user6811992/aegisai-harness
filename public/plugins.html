@@ -9,6 +9,7 @@
   <h3>Live events</h3>
   <pre id="events" style="max-height:400px;overflow:auto"></pre>
 </div>
+<script src="/authtoken.js"></script>
 <script>
 async function load() {
   const r = await fetch('/api/plugins'); const data = await r.json();
