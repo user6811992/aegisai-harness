@@ -7,6 +7,10 @@ const { DATA_DIR } = require('./core/config');
 function dir() { return path.join(DATA_DIR, 'snippets'); }
 function ensureDir() { fs.mkdirSync(dir(), { recursive: true }); }
 
+function safeId(id) {
+  return String(id || '').replace(/[^a-z0-9-]/g, '');
+}
+
 function list() {
   ensureDir();
   const out = [];
@@ -23,13 +27,15 @@ function list() {
 }
 
 function get(id) {
-  try { return JSON.parse(fs.readFileSync(path.join(dir(), id + '.json'), 'utf8')); }
+  const safe = safeId(id);
+  if (!safe) return null;
+  try { return JSON.parse(fs.readFileSync(path.join(dir(), safe + '.json'), 'utf8')); }
   catch (e) { return null; }
 }
 
 function save(snip) {
   ensureDir();
-  const id = String((snip && (snip.id || snip.name)) || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || ('snip-' + Date.now());
+  const id = safeId((snip && (snip.id || snip.name)) || '') || ('snip-' + Date.now());
   const record = {
     id,
     name: snip.name || id,
@@ -40,13 +46,23 @@ function save(snip) {
     created: snip.created || new Date().toISOString(),
     updated: new Date().toISOString(),
   };
-  fs.writeFileSync(path.join(dir(), id + '.json'), JSON.stringify(record, null, 2));
+  const target = path.join(dir(), id + '.json');
+  const resolved = path.resolve(target);
+  const root = path.resolve(dir());
+  if (!resolved.startsWith(root + path.sep)) throw new Error('path traversal blocked');
+  fs.writeFileSync(target, JSON.stringify(record, null, 2));
   return record;
 }
 
 function remove(id) {
-  try { fs.unlinkSync(path.join(dir(), id + '.json')); return { ok: true, id }; }
-  catch (e) { return { ok: false, id, error: String(e.message || e) }; }
+  const safe = safeId(id);
+  if (!safe) return { ok: false, id, error: 'invalid id' };
+  const target = path.join(dir(), safe + '.json');
+  const resolved = path.resolve(target);
+  const root = path.resolve(dir());
+  if (!resolved.startsWith(root + path.sep)) return { ok: false, id: safe, error: 'path traversal blocked' };
+  try { fs.unlinkSync(target); return { ok: true, id: safe }; }
+  catch (e) { return { ok: false, id: safe, error: String(e.message || e) }; }
 }
 
 function search(query) {

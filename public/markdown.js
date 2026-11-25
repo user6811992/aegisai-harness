@@ -14,20 +14,30 @@ function highlight(code) {
 }
 function inlineFormat(text) {
   let s = text;
-  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
-  s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
   return s;
 }
 function render(text) {
   let s = escapeHtml(text);
+  // Protect fenced code blocks with placeholders.
+  const codeBlocks = [];
+  s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
+    const idx = codeBlocks.length;
+    codeBlocks.push('<pre class="code"><code data-lang="' + lang + '">' + highlight(code.replace(/\n$/, '')) + '</code></pre>');
+    return '\n@@CODEBLOCK_' + idx + '@@\n';
+  });
+  // Protect inline code spans.
+  const inlineCodes = [];
+  s = s.replace(/`([^`]+)`/g, (_, code) => {
+    const idx = inlineCodes.length;
+    inlineCodes.push('<code>' + escapeHtml(code) + '</code>');
+    return '@@INLINE_' + idx + '@@';
+  });
   // thinking blocks
   s = s.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/g, (_, t) => '<details class="think"><summary>Thinking</summary>' + t + '</details>');
-  // fenced code
-  s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => '<pre class="code"><code data-lang="' + lang + '">' + highlight(code.replace(/\n$/, '')) + '</code></pre>');
   // headings
   s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^# (.+)$/gm, '<h1>$1</h1>');
-  // tables (parse on raw text before inline formatting of pipes)
+  // tables (parse on protected text)
   s = s.replace(/(?:^|\n)(\|.+\|\n\|[-:| ]+\|\n(?:\|.+\|\n?)+)/g, (block) => {
     const lines = block.trim().split('\n');
     if (lines.length < 3) return block;
@@ -35,14 +45,19 @@ function render(text) {
       const cells = [];
       let current = '';
       let inCode = false;
-      let inLink = 0; // depth of parentheses in link destinations
+      let inLink = 0;
       let escaped = false;
       for (let i = 0; i < line.length; i++) {
         const ch = line[i];
-        if (escaped) { current += ch; escaped = false; continue; }
-        if (ch === '\\') { escaped = true; current += ch; continue; }
+        if (escaped) {
+          if (ch === '|') { current += '|'; }
+          else { current += '\\' + ch; }
+          escaped = false;
+          continue;
+        }
+        if (ch === '\\') { escaped = true; continue; }
         if (ch === '`') { inCode = !inCode; current += ch; }
-        else if (ch === '(' && !inCode) { inLink++; current += ch; }
+        else if (ch === '(' && !inCode && i > 0 && line[i - 1] === ']') { inLink++; current += ch; }
         else if (ch === ')' && !inCode && inLink > 0) { inLink--; current += ch; }
         else if (ch === '|' && !inCode && inLink === 0) { cells.push(current.trim()); current = ''; }
         else { current += ch; }
@@ -59,7 +74,9 @@ function render(text) {
     html += '</tbody></table>';
     return '\n' + html + '\n';
   });
-  // inline code
+  // Restore inline code.
+  s = s.replace(/@@INLINE_(\d+)@@/g, (_, idx) => inlineCodes[Number(idx)]);
+  // inline code (for any remaining)
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
   // bold/italic
   s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>').replace(/\*([^*]+)\*/g, '<em>$1</em>');
@@ -69,6 +86,8 @@ function render(text) {
   s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
   // paragraphs
   s = s.split(/\n{2,}/).map((b) => /^<(h\d|pre|ul|li|details|table)/.test(b.trim()) ? b : '<p>' + b.replace(/\n/g, '<br>') + '</p>').join('\n');
+  // Restore code blocks.
+  s = s.replace(/@@CODEBLOCK_(\d+)@@/g, (_, idx) => codeBlocks[Number(idx)]);
   return s;
 }
 window.HarnessMarkdown = { render, escapeHtml, safeUrl };

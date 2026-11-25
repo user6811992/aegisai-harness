@@ -357,10 +357,16 @@ async function main() {
           const parsed = await readJson(req);
           const sid = parsed.sessionId;
           if (!sid) { sendJson(res, 400, { error: 'sessionId required' }); return; }
-          const hist = sessions.get(sid);
-          if (!hist) { sendJson(res, 404, { error: 'session not found' }); return; }
-          const idx = Math.max(0, Math.min(parsed.index || 0, hist.length));
-          const branched = hist.slice(0, idx);
+          const hist = getSessionMessages(sid);
+          if (!hist || hist.length === 0) { sendJson(res, 404, { error: 'session not found' }); return; }
+          const idx = parsed.index;
+          if (idx !== undefined && idx !== null) {
+            if (!Number.isInteger(idx) || idx < 0 || idx > hist.length) {
+              sendJson(res, 400, { error: 'index must be an integer in [0, ' + hist.length + ']' }); return;
+            }
+          }
+          const i = (idx == null) ? 0 : idx;
+          const branched = hist.slice(0, i);
           const newId = sid + '_' + Date.now();
           sessions.set(newId, branched);
           try { require('./storage/db').saveSession({ id: newId, messages: branched, updated: new Date().toISOString() }); } catch (e) {}
@@ -579,12 +585,29 @@ async function main() {
           // SSRF protection: block private/loopback/link-local hosts.
           try {
             const u = new URL(parsed.url);
-            const host = u.hostname.toLowerCase();
-            if (host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0' ||
+            let host = u.hostname.toLowerCase();
+            host = host.replace(/\.$/, '');
+            host = host.replace(/^\[|\]$/g, '');
+            const blocked = host === 'localhost' || host === '127.0.0.1' || host === '::1' || host === '0.0.0.0' ||
                 /^10\./.test(host) || /^192\.168\./.test(host) || /^172\.(1[6-9]|2\d|3[01])\./.test(host) ||
-                /^169\.254\./.test(host) || /^127\./.test(host) || host.endsWith('.local')) {
-              sendJson(res, 403, { error: 'fetching private/loopback addresses is not allowed' }); return;
-            }
+                /^169\.254\./.test(host) || /^127\./.test(host) || host.endsWith('.local') ||
+                host === 'localhost.' || host.endsWith('.localhost') ||
+                /^\d+$/.test(host) || /^0x/i.test(host) || /^0\d/.test(host) ||
+                /^fc/i.test(host) || /^fd/i.test(host) || /^fe80/i.test(host) || /^::ffff:127\./i.test(host);
+            if (blocked) { sendJson(res, 403, { error: 'fetching private/loopback addresses is not allowed' }); return; }
+            // DNS resolution check.
+            try {
+              const dns = require('dns');
+              const { promisify } = require('util');
+              const lookup = promisify(dns.lookup);
+              const resolved = await lookup(host);
+              const ip = resolved.address;
+              if (ip === '127.0.0.1' || ip === '::1' || ip === '0.0.0.0' ||
+                  /^10\./.test(ip) || /^192\.168\./.test(ip) || /^172\.(1[6-9]|2\d|3[01])\./.test(ip) ||
+                  /^169\.254\./.test(ip) || /^127\./.test(ip) || /^fc/i.test(ip) || /^fd/i.test(ip) || /^fe80/i.test(ip)) {
+                sendJson(res, 403, { error: 'fetching private/loopback addresses is not allowed' }); return;
+              }
+            } catch (e) { /* DNS resolution failed, allow (will fail at fetch) */ }
           } catch (e) { sendJson(res, 400, { error: 'invalid url' }); return; }
           try {
             const r = await require('./skills_catalog').fetchCatalog(parsed.url);
@@ -736,7 +759,12 @@ async function main() {
       if (req.method === 'POST' && req.url.split('?')[0] === '/api/image-gen') {
         const parsed = await readJson(req);
         if (!parsed.prompt) { sendJson(res, 400, { error: 'prompt required' }); return; }
-        const r = await require('./image_gen').generate(parsed.prompt, { size: parsed.size, output: parsed.output, url: parsed.url });
+        let outPath = parsed.output;
+        if (outPath) {
+          try { outPath = assertAllowedPath(outPath); }
+          catch (e) { sendJson(res, e.status || 403, { error: String(e.message || e) }); return; }
+        }
+        const r = await require('./image_gen').generate(parsed.prompt, { size: parsed.size, output: outPath, url: parsed.url });
         sendJson(res, r.ok ? 200 : 502, r);
         return;
       }
@@ -763,16 +791,24 @@ async function main() {
         const parsed = await readJson(req);
         if (!parsed.session || !parsed.session.id) { sendJson(res, 400, { error: 'session with id required' }); return; }
         const s = parsed.session;
+        if (!Array.isArray(s.messages)) { sendJson(res, 400, { error: 'messages must be an array' }); return; }
+        for (const m of s.messages) {
+          if (!m || typeof m !== 'object' || Array.isArray(m)) { sendJson(res, 400, { error: 'each message must be an object' }); return; }
+          if (typeof m.role !== 'string' || typeof m.content !== 'string') { sendJson(res, 400, { error: 'message must have string role and content' }); return; }
+        }
+        const existing = sessions.get(s.id);
+        if (existing) { sendJson(res, 409, { error: 'session already exists; pass overwrite:true to replace' }); return; }
         const d = dbSafe();
-        if (d) d.saveSession({ id: s.id, title: s.title || s.id, messages: s.messages || [], updated: s.updated || new Date().toISOString(), tags: s.tags || [] });
-        sessions.set(s.id, s.messages || []);
+        if (d) d.saveSession({ id: s.id, title: s.title || s.id, messages: s.messages, updated: s.updated || new Date().toISOString(), tags: s.tags || [] });
+        sessions.set(s.id, s.messages);
         sendJson(res, 200, { ok: true, id: s.id });
         return;
       }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/context') {
         const tokenizer = require('./tokenizer');
         const sid = new URL(req.url, 'http://x').searchParams.get('session') || 'default';
-        const tokens = tokenizer.countMessages(sessions.get(sid) || []);
+        const history = getSessionMessages(sid);
+        const tokens = tokenizer.countMessages(history || []);
         const tl = sessionToolLogs.get(sid) || [];
         sendJson(res, 200, { tokens, limit: 8192, ratio: +(tokens / 8192).toFixed(3), compacted: tl.some((t) => t.name === '__compact__') });
         return;
@@ -1350,7 +1386,7 @@ async function main() {
       if (t.startsWith('/image-gen ')) { const p = t.slice(11).trim().split('|'); const r = await require('./image_gen').generate(p[0], { size: p[1], output: p[2] }); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t === '/profile') { console.log(JSON.stringify(require('./profiler').report(), null, 2).slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/snippets')) { const q = t.slice(10).trim(); const r = q ? require('./snippets').search(q) : require('./snippets').list(); console.log(JSON.stringify(r.map((s) => ({ id: s.id, name: s.name, lang: s.language })), null, 2)); rl.prompt(); return; }
-      if (t.startsWith('/skills-catalog')) { const r = await require('./skills_catalog').fetchCatalog(); console.log(JSON.stringify({ count: r.count }, null, 2)); rl.prompt(); return; }
+      if (t.startsWith('/skills-catalog')) { const u = t.slice(15).trim(); if (!u) { console.log('Usage: /skills-catalog <url>'); rl.prompt(); return; } const r = await require('./skills_catalog').fetchCatalog(u); console.log(JSON.stringify({ count: r.count }, null, 2)); rl.prompt(); return; }
       if (t.startsWith('/skills-import ')) { const u = t.slice(15).trim(); const name = u.split('/').pop().replace(/\.md$/i, '') || 'imported'; const r = await require('./skills_catalog').importSkill(u, name); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t.startsWith('/ab-test ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./ab_testing').run({ prompts: [p[0] || ''], models: p.slice(1, -1).filter(Boolean), trials: Number(p[p.length-1]) || 3, projectRoot: root }); console.log(require('./ab_testing').format(r)); rl.prompt(); return; }
       if (t.startsWith('/malware-scan ')) { const p = t.slice(14).trim().split('|').map((x) => x.trim()); const r = require('./malware_scan').scan(p[0].split(','), { recursive: p.includes('recursive') }); console.log(JSON.stringify(r, null, 2).slice(0, 3000)); rl.prompt(); return; }
