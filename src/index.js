@@ -352,7 +352,30 @@ async function main() {
           const parsed = await readJson(req);
           const models = parsed.models || [process.env.AEGISAI_MODEL || 'llama3.2:3b'];
           const result = await require('./model_compare').compare(parsed.prompt || '', models, { projectRoot: process.cwd() });
-          sendJson(res, 200, { comparison: result, formatted: require('./model_compare').formatComparison(result) });
+          const analysis = require('./model_compare').analyze(result);
+          sendJson(res, 200, { comparison: result, formatted: require('./model_compare').formatComparison(result), analysis });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/diff') {
+          const parsed = await readJson(req);
+          const d = require('./text_diff');
+          sendJson(res, 200, { diff: d.diffWords(parsed.a || '', parsed.b || ''), similarity: +d.similarity(parsed.a || '', parsed.b || '').toFixed(3) });
+          return;
+        }
+        if (req.method === 'POST' && req.url.split('?')[0] === '/api/file') {
+          const parsed = await readJson(req);
+          const target = parsed.path;
+          if (!target) { sendJson(res, 400, { error: 'path required' }); return; }
+          const allowed = (process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST || '').split(',').map((s) => s.trim()).filter(Boolean);
+          const path = require('path');
+          const resolved = path.resolve(target);
+          if (allowed.length && !allowed.some((root) => { const rel = path.relative(path.resolve(root), resolved); return !rel.startsWith('..') && !path.isAbsolute(rel); })) {
+            sendJson(res, 403, { error: 'path outside allowed roots' }); return;
+          }
+          try {
+            require('fs').writeFileSync(resolved, String(parsed.content == null ? '' : parsed.content), 'utf8');
+            sendJson(res, 200, { ok: true, path: resolved, bytes: Buffer.byteLength(String(parsed.content || '')) });
+          } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models/hf-search') {
@@ -492,7 +515,7 @@ async function main() {
         try {
           const d = dbSafe();
           for (const s of (d ? d.listSessions() : [])) {
-            byId.set(s.id, { id: s.id, title: s.title || s.id, messages: (s.messages || []).length, updated: s.updated || null });
+            byId.set(s.id, { id: s.id, title: s.title || s.id, messages: (s.messages || []).length, updated: s.updated || null, tags: s.tags || [] });
           }
         } catch (e) {}
         // Merge live in-memory sessions (fresher).
@@ -503,10 +526,20 @@ async function main() {
             title: firstUser ? String(firstUser.content || '').slice(0, 60) : id,
             messages: (msgs || []).length,
             updated: sessionUpdated.get(id) || (byId.get(id) || {}).updated || null,
+            tags: (byId.get(id) || {}).tags || [],
           });
         }
         const list = Array.from(byId.values()).sort((a, b) => String(b.updated || '').localeCompare(String(a.updated || '')));
         sendJson(res, 200, { sessions: list });
+        return;
+      }
+      if (req.method === 'POST' && req.url.split('?')[0] === '/api/sessions/tags') {
+        const parsed = await readJson(req);
+        const sid = warnMissing(parsed.id);
+        const tags = Array.isArray(parsed.tags) ? parsed.tags.map((t) => String(t).trim()).filter(Boolean) : [];
+        const d = dbSafe();
+        const r = d ? d.setSessionTags(sid, tags) : { ok: false, error: 'db unavailable' };
+        sendJson(res, r.ok ? 200 : 500, r);
         return;
       }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/events') {

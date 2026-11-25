@@ -273,6 +273,45 @@ kbd { background: var(--panel); border: 1px solid var(--border); border-radius: 
 .file-preview { flex: 1; border: 1px solid var(--border); border-radius: 6px; padding: 8px; max-height: 300px; overflow-y: auto; }
 .file-preview h3 { margin: 0 0 8px; font-size: 13px; }
 .file-content { font-size: 12px; line-height: 1.4; white-space: pre-wrap; word-break: break-all; margin: 0; }
+/* Compare (side-by-side + diff) */
+.compare-summary { display: flex; gap: 12px; flex-wrap: wrap; margin: 8px 0; }
+.compare-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px; margin-top: 8px; }
+.compare-col { border: 1px solid var(--border); border-radius: 8px; background: var(--bg); overflow: hidden; display: flex; flex-direction: column; }
+.compare-head { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px; background: var(--panel); border-bottom: 1px solid var(--border); font-size: 12px; }
+.compare-badge { font-size: 11px; padding: 1px 6px; border-radius: 10px; }
+.compare-badge.ok { background: color-mix(in srgb, var(--success) 20%, transparent); color: var(--success); }
+.compare-badge.err { background: color-mix(in srgb, var(--danger) 20%, transparent); color: var(--danger); }
+.compare-body { max-height: 260px; overflow: auto; }
+.compare-pre { margin: 0; padding: 8px; font-size: 12px; line-height: 1.45; white-space: pre-wrap; word-break: break-word; }
+.compare-pre.err { color: var(--danger); }
+.compare-pre.diff ins { background: color-mix(in srgb, var(--success) 30%, transparent); text-decoration: none; }
+.compare-pre.diff del { background: color-mix(in srgb, var(--danger) 25%, transparent); text-decoration: line-through; opacity: 0.8; }
+
+/* Attachment chips */
+.attach-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+.attach-chip { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); background: var(--panel); border-radius: 14px; padding: 3px 8px; font-size: 12px; }
+.attach-name { cursor: pointer; text-decoration: underline dotted; }
+.attach-name:hover { color: var(--accent); }
+.attach-size { color: var(--muted, #8b949e); font-size: 11px; }
+.attach-remove { border: none; background: none; color: var(--fg); cursor: pointer; font-size: 14px; line-height: 1; padding: 0 2px; }
+.attach-remove:hover { color: var(--danger); }
+
+/* Session tags */
+.tag-filter { display: flex; gap: 4px; flex-wrap: wrap; padding: 4px 8px; }
+.tag-pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; user-select: none; }
+.tag-pill.small { font-size: 10px; padding: 0 6px; cursor: default; }
+.tag-pill.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.session-tags { display: flex; gap: 4px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+.tag-input { flex: 1; min-width: 90px; font-size: 11px; padding: 2px 6px; border: 1px dashed var(--border); border-radius: 6px; background: var(--input); color: var(--fg); }
+
+/* Split view editor */
+.main-layout.split { display: grid; grid-template-columns: 1fr minmax(320px, 45%); }
+.editor-pane { display: flex; flex-direction: column; border-left: 1px solid var(--border); background: var(--bg); min-height: 0; }
+.editor-head { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-bottom: 1px solid var(--border); background: var(--panel); font-size: 12px; }
+.editor-path { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: monospace; }
+.editor-dirty { color: var(--warning); }
+.editor-area { flex: 1; width: 100%; resize: none; border: none; outline: none; padding: 10px; background: var(--bg); color: var(--fg); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12.5px; line-height: 1.5; }
+.file-preview-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 /* Compare */
 .compare-results { margin-top: 16px; max-height: 400px; overflow-y: auto; }
 .compare-card { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 8px; }

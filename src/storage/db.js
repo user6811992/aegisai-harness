@@ -143,6 +143,9 @@ function open(dbPath) {
       db.exec(`CREATE TABLE IF NOT EXISTS access_tokens (id TEXT PRIMARY KEY, token TEXT, name TEXT, scopes TEXT, created TEXT)`);
       db.exec(`CREATE TABLE IF NOT EXISTS metrics (name TEXT, value REAL, labels TEXT, ts INTEGER)`);
     },
+    function v26() {
+      try { db.exec(`ALTER TABLE sessions ADD COLUMN tags TEXT DEFAULT '[]'`); } catch (e) {}
+    },
   ];
   for (let i = currentVersion; i < migrations.length; i++) {
     migrations[i]();
@@ -165,10 +168,16 @@ function run(sql, params) { db.prepare(sql).run(...(params || [])); }
 function rowToSession(r) {
   let messages = [];
   try { messages = JSON.parse(r.messages || '[]'); } catch (e) { messages = []; }
-  return { id: r.id, title: r.title, updated: r.updated, parent_id: r.parent_id, branch_from: r.branch_from, messages };
+  let tags = [];
+  try { tags = JSON.parse(r.tags || '[]'); } catch (e) { tags = []; }
+  return { id: r.id, title: r.title, updated: r.updated, parent_id: r.parent_id, branch_from: r.branch_from, messages, tags };
 }
 function listSessions() { return all('SELECT * FROM sessions ORDER BY updated DESC').map(rowToSession); }
 function getSession(id) { const row = one('SELECT * FROM sessions WHERE id = ?', [id]); return row ? rowToSession(row) : null; }
+function setSessionTags(id, tags) {
+  try { run('UPDATE sessions SET tags=? WHERE id=?', [JSON.stringify(tags || []), id]); return { ok: true, id, tags: tags || [] }; }
+  catch (e) { return { ok: false, error: String(e.message || e) }; }
+}
 function saveSession(s) {
   const id = s.id || ('sess_' + Date.now());
   const title = s.title || 'Untitled';
@@ -176,11 +185,16 @@ function saveSession(s) {
   const updated = new Date().toISOString();
   const parentId = s.parent_id || null;
   const branchFrom = (s.branch_from === undefined) ? null : s.branch_from;
+  const tags = JSON.stringify(s.tags || []);
   const existing = one('SELECT id FROM sessions WHERE id = ?', [id]);
   if (existing) {
-    run('UPDATE sessions SET title=?, updated=?, messages=?, parent_id=?, branch_from=? WHERE id=?', [title, updated, messages, parentId, branchFrom, id]);
+    run('UPDATE sessions SET title=?, updated=?, messages=?, parent_id=?, branch_from=?, tags=? WHERE id=?', [title, updated, messages, parentId, branchFrom, tags, id]);
   } else {
-    run('INSERT INTO sessions (id, title, updated, parent_id, branch_from, messages) VALUES (?,?,?,?,?,?)', [id, title, updated, parentId, branchFrom, messages]);
+    try {
+      run('INSERT INTO sessions (id, title, updated, parent_id, branch_from, messages, tags) VALUES (?,?,?,?,?,?,?)', [id, title, updated, parentId, branchFrom, messages, tags]);
+    } catch (e) {
+      run('INSERT INTO sessions (id, title, updated, parent_id, branch_from, messages) VALUES (?,?,?,?,?,?)', [id, title, updated, parentId, branchFrom, messages]);
+    }
   }
   return id;
 }
@@ -214,5 +228,5 @@ function saveMemory(m) {
 function deleteMemory(id) { run('DELETE FROM memories WHERE id = ?', [id]); }
 
 module.exports = { open, get, isOpen, close, backend,
-  listSessions, getSession, saveSession, deleteSession,
+  listSessions, getSession, saveSession, deleteSession, setSessionTags,
   listMemories, getMemory, saveMemory, deleteMemory };

@@ -325,12 +325,28 @@ function ConfigModal({ cfg, setCfg, onClose }) {
 function SessionSidebar({ open, onClose, onSelect }) {
   const [sessions, setSessions] = useState([]);
   const [q, setQ] = useState('');
-  useEffect(() => {
-    if (open) {
-      API('/api/sessions').then((d) => setSessions(d.sessions || [])).catch(() => {});
-    }
-  }, [open]);
-  const filtered = sessions.filter((s) => !q || (s.title || s.id || '').toLowerCase().includes(q.toLowerCase()));
+  const [tagFilter, setTagFilter] = useState('');
+  const [tagDraft, setTagDraft] = useState({});
+  const load = () => API('/api/sessions').then((d) => setSessions(d.sessions || [])).catch(() => {});
+  useEffect(() => { if (open) load(); }, [open]);
+  const allTags = Array.from(new Set(sessions.flatMap((s) => s.tags || []))).sort();
+  const filtered = sessions.filter((s) => {
+    const text = ((s.title || '') + ' ' + (s.id || '')).toLowerCase();
+    const matchesQ = !q || text.includes(q.toLowerCase());
+    const matchesTag = !tagFilter || (s.tags || []).includes(tagFilter);
+    return matchesQ && matchesTag;
+  });
+  async function saveTags(s) {
+    const raw = tagDraft[s.id];
+    if (raw == null) return;
+    const tags = raw.split(',').map((t) => t.trim()).filter(Boolean);
+    try {
+      await API('/api/sessions/tags', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id: s.id, tags }) });
+      toast('Tags saved', 'success');
+      setTagDraft((d) => { const n = Object.assign({}, d); delete n[s.id]; return n; });
+      load();
+    } catch (e) { toast('Tag save failed: ' + e.message, 'error'); }
+  }
   if (!open) return null;
   return html`
     <div class="sidebar">
@@ -339,17 +355,57 @@ function SessionSidebar({ open, onClose, onSelect }) {
         <button class="sidebar-close" onClick=${onClose}>×</button>
       </div>
       <input class="sidebar-search" value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="Search sessions..." />
+      ${allTags.length ? html`
+        <div class="tag-filter">
+          <span class=${'tag-pill' + (tagFilter === '' ? ' active' : '')} onClick=${() => setTagFilter('')}>all</span>
+          ${allTags.map((t) => html`<span class=${'tag-pill' + (tagFilter === t ? ' active' : '')} onClick=${() => setTagFilter(tagFilter === t ? '' : t)}>${t}</span>`)}
+        </div>
+      ` : null}
       <div class="sidebar-list">
         ${filtered.map((s) => html`
-          <div class="session-item" onClick=${() => { onSelect(s); onClose(); }}>
-            <div class="session-title">${s.title || s.id}</div>
+          <div class="session-item">
+            <div class="session-title" onClick=${() => { onSelect(s); onClose(); }}>${s.title || s.id}</div>
             <div class="session-meta">${s.updated || ''}</div>
+            <div class="session-tags">
+              ${(s.tags || []).map((t) => html`<span class="tag-pill small">${t}</span>`)}
+              <input
+                class="tag-input"
+                placeholder="+ tags (comma sep)"
+                value=${tagDraft[s.id] != null ? tagDraft[s.id] : (s.tags || []).join(', ')}
+                onInput=${(e) => setTagDraft((d) => Object.assign({}, d, { [s.id]: e.target.value }))}
+                onKeyDown=${(e) => { if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); saveTags(s); } }}
+              />
+            </div>
           </div>
         `)}
         ${filtered.length === 0 ? html`<div class="sidebar-empty">No sessions found</div>` : null}
       </div>
     </div>
   `;
+}
+
+// Word-level diff render: additions highlighted, deletions struck through.
+function DiffText({ a, b }) {
+  const tok = (s) => String(s || '').split(/(\s+)/).filter((t) => t !== '');
+  const A = tok(a).slice(0, 3000);
+  const B = tok(b).slice(0, 3000);
+  const n = A.length, m = B.length;
+  const dp = Array.from({ length: n + 1 }, () => new Uint32Array(m + 1));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i][j] = A[i] === B[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const out = [];
+  let i = 0, j = 0, key = 0;
+  while (i < n && j < m) {
+    if (A[i] === B[j]) { out.push(html`<span key=${key++}>${A[i]}</span>`); i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { out.push(html`<del key=${key++}>${A[i]}</del>`); i++; }
+    else { out.push(html`<ins key=${key++}>${B[j]}</ins>`); j++; }
+  }
+  while (i < n) out.push(html`<del key=${key++}>${A[i++]}</del>`);
+  while (j < m) out.push(html`<ins key=${key++}>${B[j++]}</ins>`);
+  return html`<pre class="compare-pre diff">${out}</pre>`;
 }
 
 function ToolTimeline({ tools }) {
@@ -383,6 +439,9 @@ function App() {
   const [toasts, setToasts] = useState([]);
   const [toolLog, setToolLog] = useState([]);
   const [dragOver, setDragOver] = useState(false);
+  const [attachments, setAttachments] = useState([]);
+  const [attachPreview, setAttachPreview] = useState(null);
+  const [fileEditor, setFileEditor] = useState(null);
   const [needAuth, setNeedAuth] = useState(false);
   const [tokenInput, setTokenInput] = useState('');
   const inputRef = useRef(null);
@@ -437,12 +496,13 @@ function App() {
         setDragOver(false);
         const files = e.dataTransfer.files;
         if (files.length) {
-          toast('Attached ' + files.length + ' file(s)', 'info');
-          // Read file contents and append to input
           Array.from(files).forEach((f) => {
             const reader = new FileReader();
             reader.onload = (ev) => {
-              setInput((prev) => prev + '\n[File: ' + f.name + ']\n' + ev.target.result.slice(0, 2000) + '\n');
+              const content = String(ev.target.result || '').slice(0, 2000);
+              const id = 'att_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6);
+              setAttachments((prev) => [...prev, { id, name: f.name, size: f.size, content }]);
+              toast('Attached ' + f.name, 'info');
             };
             reader.readAsText(f);
           });
@@ -470,10 +530,16 @@ function App() {
   }
 
   async function send() {
-    if (!input.trim() || loading) return;
-    const text = input;
+    if ((!input.trim() && attachments.length === 0) || loading) return;
+    let text = input;
+    if (attachments.length) {
+      const parts = attachments.map((a) => '[File: ' + a.name + ']\n' + a.content);
+      text = (text ? text + '\n\n' : '') + parts.join('\n\n');
+    }
+    const displayText = input || (attachments.length ? '(attached ' + attachments.map((a) => a.name).join(', ') + ')' : '');
     setInput('');
-    setMessages((m) => [...m, { role: 'user', content: text }]);
+    setAttachments([]);
+    setMessages((m) => [...m, { role: 'user', content: displayText }]);
     setLoading(true);
     setToolLog([]);
     // Add empty assistant message for streaming
@@ -565,6 +631,7 @@ function App() {
   const [comparePrompt, setComparePrompt] = useState('');
   const [compareResult, setCompareResult] = useState(null);
   const [comparing, setComparing] = useState(false);
+  const [compareDiff, setCompareDiff] = useState(false);
 
   async function exportChat(format) {
     try {
@@ -597,6 +664,24 @@ function App() {
       setSelectedFile(filePath);
       setFileContent(d.content || '');
     } catch (e) { toast('Failed to read file: ' + e.message, 'error'); }
+  }
+
+  async function openInEditor(filePath) {
+    try {
+      const d = await API('/api/file?path=' + encodeURIComponent(filePath));
+      setFileEditor({ path: filePath, content: d.content || '', dirty: false });
+      setShowFiles(false);
+      toast('Opened in editor', 'info');
+    } catch (e) { toast('Open failed: ' + e.message, 'error'); }
+  }
+
+  async function saveEditor() {
+    if (!fileEditor) return;
+    try {
+      await API('/api/file', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ path: fileEditor.path, content: fileEditor.content }) });
+      setFileEditor(Object.assign({}, fileEditor, { dirty: false }));
+      toast('Saved ' + fileEditor.path.split(/[\\/]/).pop(), 'success');
+    } catch (e) { toast('Save failed: ' + e.message, 'error'); }
   }
 
   async function runCompare() {
@@ -715,7 +800,10 @@ function App() {
               </div>
               ${selectedFile ? html`
                 <div class="file-preview">
-                  <h3>${selectedFile.split(/[\\/]/).pop()}</h3>
+                  <div class="file-preview-head">
+                    <h3>${selectedFile.split(/[\\/]/).pop()}</h3>
+                    <button class="btn-sm" onClick=${() => openInEditor(selectedFile)}>Open in editor</button>
+                  </div>
                   <pre class="file-content">${fileContent.slice(0, 5000)}</pre>
                 </div>
               ` : null}
@@ -741,14 +829,29 @@ function App() {
               <button onClick=${() => setShowCompare(false)}>Close</button>
             </div>
             ${compareResult ? html`
-              <div class="compare-results">
-                ${compareResult.comparison.results.map((r) => html`
-                  <div class="compare-card">
-                    <h3>${r.model} ${r.ok ? '✓' : '✗'} ${r.duration}ms</h3>
-                    <div class="compare-reply">${r.ok ? r.reply.slice(0, 500) : r.error}</div>
+              <div class="compare-summary">
+                ${compareResult.analysis ? html`<span class="hint">Agreement: ${(compareResult.analysis.agreement == null ? 'n/a' : (compareResult.analysis.agreement * 100).toFixed(1) + '%')}</span>` : null}
+                <span class="hint">Fastest: ${compareResult.comparison.fastest || 'n/a'}</span>
+                <span class="hint">Shortest: ${compareResult.comparison.shortest || 'n/a'}</span>
+                <span class="hint">Longest: ${compareResult.comparison.longest || 'n/a'}</span>
+              </div>
+              <div class=${'compare-grid' + (compareDiff ? ' with-diff' : '')}>
+                ${compareResult.comparison.results.map((r, i) => html`
+                  <div class="compare-col">
+                    <div class="compare-head">
+                      <strong>${r.model}</strong>
+                      <span class="compare-badge ${r.ok ? 'ok' : 'err'}">${r.ok ? r.duration + 'ms' : 'error'}</span>
+                    </div>
+                    <div class="compare-body">
+                      ${r.ok ? (compareDiff && i > 0
+                        ? html`<${DiffText} a=${compareResult.comparison.results[0].reply} b=${r.reply} />`
+                        : html`<pre class="compare-pre">${r.reply.slice(0, 2000)}</pre>`) : html`<pre class="compare-pre err">${r.error}</pre>`}
+                    </div>
                   </div>
                 `)}
-                <p class="hint">Fastest: ${compareResult.comparison.fastest} | Shortest: ${compareResult.comparison.shortest} | Longest: ${compareResult.comparison.longest}</p>
+              </div>
+              <div class="modal-actions">
+                <button class="btn-secondary" onClick=${() => setCompareDiff((v) => !v)}>${compareDiff ? 'Hide diff' : 'Show diff vs first'}</button>
               </div>
             ` : null}
           </div>
@@ -774,7 +877,7 @@ function App() {
         <button onClick=${() => setShowCompare(true)} title="Compare models">⚖️</button>
         <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)">?</button>
       </header>
-      <div class="main-layout">
+      <div class=${'main-layout' + (fileEditor ? ' split' : '')}>
         <main class="chat ${dragOver ? 'drag-over' : ''}">
           ${dragOver ? html`<div class="drag-overlay">Drop files here to attach</div>` : null}
           ${messages.length === 0 ? html`
@@ -796,11 +899,48 @@ function App() {
           ${loading ? html`<div class="msg assistant"><div class="bubble loading">Thinking<span class="dots">...</span></div></div>` : null}
           ${toolLog.length > 0 ? html`<${ToolTimeline} tools=${toolLog} />` : null}
         </main>
+        ${fileEditor ? html`
+          <aside class="editor-pane">
+            <div class="editor-head">
+              <span class="editor-path" title=${fileEditor.path}>${fileEditor.path.split(/[\\/]/).pop()}</span>
+              <span class="editor-dirty">${fileEditor.dirty ? '●' : ''}</span>
+              <button class="btn-sm" onClick=${() => saveEditor()} disabled=${!fileEditor.dirty}>Save</button>
+              <button class="btn-sm" onClick=${() => setFileEditor(null)}>Close</button>
+            </div>
+            <textarea
+              class="editor-area"
+              value=${fileEditor.content}
+              onInput=${(e) => setFileEditor(Object.assign({}, fileEditor, { content: e.target.value, dirty: true }))}
+              spellcheck="false"
+            ></textarea>
+          </aside>
+        ` : null}
       </div>
       <footer class="composer">
+        ${attachments.length ? html`
+          <div class="attach-chips">
+            ${attachments.map((a) => html`
+              <div class="attach-chip" key=${a.id}>
+                <span class="attach-icon">📄</span>
+                <span class="attach-name" onClick=${() => setAttachPreview(a)} title="Preview">${a.name}</span>
+                <span class="attach-size">${(a.size / 1024).toFixed(1)} KB</span>
+                <button class="attach-remove" onClick=${() => setAttachments((prev) => prev.filter((x) => x.id !== a.id))} title="Remove">×</button>
+              </div>
+            `)}
+          </div>
+        ` : null}
         <textarea ref=${inputRef} value=${input} onInput=${(e) => setInput(e.target.value)} onKeyDown=${(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }} placeholder="Type a message... (Shift+Enter for new line, drag files to attach)" rows="2"></textarea>
-        <button onClick=${send} disabled=${loading || !input.trim()}>Send</button>
+        <button onClick=${send} disabled=${loading || (!input.trim() && attachments.length === 0)}>Send</button>
       </footer>
+      ${attachPreview ? html`
+        <div class="modal-backdrop" onClick=${() => setAttachPreview(null)}>
+          <div class="modal" style="max-width: 720px" onClick=${(e) => e.stopPropagation()}>
+            <h2>${attachPreview.name}</h2>
+            <pre class="file-content">${attachPreview.content}</pre>
+            <div class="modal-actions"><button onClick=${() => setAttachPreview(null)}>Close</button></div>
+          </div>
+        </div>
+      ` : null}
     </div>
   `;
 }

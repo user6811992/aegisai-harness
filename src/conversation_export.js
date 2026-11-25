@@ -43,25 +43,37 @@ function toText(messages, meta) {
   return lines.join('\n');
 }
 
-// Simple PDF-like text output (not a real PDF, but a text file with .pdf extension for compatibility)
-// For real PDF, would need a library. This produces a readable text document.
+// Real PDF via the zero-dependency writer.
 function toPDF(messages, meta) {
-  // Produce a simple text-based document that can be opened in any text editor
-  // In a real implementation, this would use a PDF library like pdfkit
-  const text = toText(messages, meta);
-  return { content: text, mimeType: 'text/plain', extension: '.txt', note: 'PDF generation requires pdfkit; returning text format' };
+  meta = meta || {};
+  const blocks = [];
+  blocks.push({ text: meta.title || 'Conversation Export', size: 20, bold: true, gap: 6 });
+  if (meta.model) blocks.push({ text: 'Model: ' + meta.model, size: 9, gray: 0.45 });
+  if (meta.date) blocks.push({ text: 'Date: ' + meta.date, size: 9, gray: 0.45 });
+  blocks.push({ text: '', gap: 8 });
+  for (const m of messages || []) {
+    const role = (m.role || 'unknown').charAt(0).toUpperCase() + (m.role || 'unknown').slice(1);
+    blocks.push({ text: role, size: 12, bold: true, gap: 10 });
+    const body = String(m.content || '');
+    for (const para of body.split(/\r?\n/)) {
+      blocks.push({ text: para, size: 10.5 });
+    }
+    blocks.push({ text: '', gap: 4 });
+  }
+  return require('./pdf_writer').buildPdf(blocks, meta);
 }
 
 function exportToFile(messages, meta, format, outputPath) {
   format = (format || 'markdown').toLowerCase();
-  let content, ext;
+  let content, ext, encoding = 'utf8';
   if (format === 'json') { content = toJSON(messages, meta); ext = '.json'; }
   else if (format === 'text' || format === 'txt') { content = toText(messages, meta); ext = '.txt'; }
-  else if (format === 'pdf') { const r = toPDF(messages, meta); content = r.content; ext = r.extension; }
+  else if (format === 'pdf') { content = toPDF(messages, meta); ext = '.pdf'; encoding = 'latin1'; }
   else { content = toMarkdown(messages, meta); ext = '.md'; }
   const filePath = outputPath || path.join(process.cwd(), 'conversation-export' + ext);
-  fs.writeFileSync(filePath, content, 'utf8');
-  return { ok: true, path: filePath, format, bytes: Buffer.byteLength(content) };
+  fs.writeFileSync(filePath, content, encoding === 'latin1' ? null : 'utf8');
+  const bytes = Buffer.isBuffer(content) ? content.length : Buffer.byteLength(content);
+  return { ok: true, path: filePath, format: ext === '.pdf' ? 'pdf' : format, bytes };
 }
 
 module.exports = { toMarkdown, toJSON, toText, toPDF, exportToFile };

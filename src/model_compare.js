@@ -68,4 +68,21 @@ function formatComparison(comparison) {
   return lines.join('\n');
 }
 
-module.exports = { compare, formatComparison };
+// Pairwise similarity matrix + per-response token counts, for the comparison UI.
+function analyze(comparison) {
+  const { similarity } = require('./text_diff');
+  const ok = (comparison.results || []).filter((r) => r.ok);
+  const pairs = [];
+  for (let i = 0; i < ok.length; i++) {
+    for (let j = i + 1; j < ok.length; j++) {
+      pairs.push({ a: ok[i].model, b: ok[j].model, similarity: +similarity(ok[i].reply, ok[j].reply).toFixed(3) });
+    }
+  }
+  return {
+    pairs,
+    lengths: ok.map((r) => ({ model: r.model, chars: (r.reply || '').length, words: (r.reply || '').split(/\s+/).filter(Boolean).length, duration: r.duration })),
+    agreement: pairs.length ? +(pairs.reduce((s, p) => s + p.similarity, 0) / pairs.length).toFixed(3) : null,
+  };
+}
+
+module.exports = { compare, formatComparison, analyze };
