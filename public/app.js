@@ -661,7 +661,15 @@ function App() {
   const [fileEntries, setFileEntries] = useState([]);
   const [fileContent, setFileContent] = useState('');
   const [selectedFile, setSelectedFile] = useState('');
-  const [showSnippets, setShowSnippets] = useState(false);
+  const [showWebhooks, setShowWebhooks] = useState(false);
+  const [webhookEvent, setWebhookEvent] = useState('push');
+  const [webhookPayload, setWebhookPayload] = useState('{}');
+  const [webhookResult, setWebhookResult] = useState(null);
+  const [showScheduled, setShowScheduled] = useState(false);
+  const [scheduledTasks, setScheduledTasks] = useState([]);
+  const [schedForm, setSchedForm] = useState({ name: '', cron: 'every 5m', prompt: '', model: '' });
+  const [showPerf, setShowPerf] = useState(false);
+  const [perfReport, setPerfReport] = useState(null);
   const [snippets, setSnippets] = useState([]);
   const [snippetSearch, setSnippetSearch] = useState('');
   const [snippetForm, setSnippetForm] = useState({ name: '', language: 'javascript', code: '', description: '' });
@@ -738,6 +746,34 @@ function App() {
       setSnippetForm({ name: '', language: 'javascript', code: '', description: '' });
       loadSnippets();
     } catch (e) { toast('Save failed: ' + e.message, 'error'); }
+  }
+  async function loadScheduled() {
+    try { const r = await API('/api/scheduled-tasks'); setScheduledTasks(r.tasks || []); }
+    catch (e) { toast('Failed to load scheduled tasks: ' + e.message, 'error'); }
+  }
+  async function loadPerf() {
+    try { const r = await API('/api/profile'); setPerfReport(r); }
+    catch (e) { toast('Failed to load perf: ' + e.message, 'error'); }
+  }
+  async function createScheduled() {
+    try {
+      await API('/api/scheduled-tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(schedForm) });
+      toast('Scheduled task created', 'success');
+      setSchedForm({ name: '', cron: 'every 5m', prompt: '', model: '' });
+      loadScheduled();
+    } catch (e) { toast('Create failed: ' + e.message, 'error'); }
+  }
+  async function deleteScheduled(id) {
+    try { await API('/api/scheduled-tasks?id=' + encodeURIComponent(id), { method: 'DELETE' }); toast('Deleted', 'success'); loadScheduled(); }
+    catch (e) { toast('Delete failed: ' + e.message, 'error'); }
+  }
+  async function triggerWebhook() {
+    try {
+      const payload = JSON.parse(webhookPayload || '{}');
+      const r = await API('/api/webhook?event=' + encodeURIComponent(webhookEvent), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      setWebhookResult(r);
+      toast('Webhook triggered', 'success');
+    } catch (e) { toast('Webhook failed: ' + e.message, 'error'); }
   }
   async function deleteSnippet(id) {
     try { await API('/api/snippets?id=' + encodeURIComponent(id), { method: 'DELETE' }); toast('Snippet deleted', 'success'); loadSnippets(); }
@@ -983,6 +1019,81 @@ function App() {
           </div>
         </div>
       ` : null}
+      ${showWebhooks ? html`
+        <div class="modal-backdrop" onClick=${() => setShowWebhooks(false)}>
+          <div class="modal" style="max-width: 600px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Webhook Triggers</h2>
+            <p class="hint">POST to <code>/api/webhook?event=push</code> with a JSON payload. Set <code>AEGISAI_WEBHOOK_SECRET</code> for HMAC verification.</p>
+            <label>Event
+              <select value=${webhookEvent} onChange=${(e) => setWebhookEvent(e.target.value)} style="padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)">
+                <option value="push">push</option><option value="pull_request">pull_request</option><option value="issues">issues</option>
+              </select>
+            </label>
+            <label>Payload (JSON)
+              <textarea value=${webhookPayload} onInput=${(e) => setWebhookPayload(e.target.value)} rows="6" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--fg);font-family:monospace" />
+            </label>
+            <div class="modal-actions">
+              <button class="btn-primary" onClick=${triggerWebhook}>Trigger</button>
+              <button onClick=${() => setShowWebhooks(false)}>Close</button>
+            </div>
+            ${webhookResult ? html`<pre class="sandbox-output">${JSON.stringify(webhookResult, null, 2).slice(0, 2000)}</pre>` : null}
+          </div>
+        </div>
+      ` : null}
+      ${showScheduled ? html`
+        <div class="modal-backdrop" onClick=${() => setShowScheduled(false)}>
+          <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Scheduled Tasks</h2>
+            <div class="sched-form">
+              <input value=${schedForm.name} onInput=${(e) => setSchedForm(Object.assign({}, schedForm, { name: e.target.value }))} placeholder="Name" style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)" />
+              <input value=${schedForm.cron} onInput=${(e) => setSchedForm(Object.assign({}, schedForm, { cron: e.target.value }))} placeholder="Cron (e.g. every 5m, daily 09:00)" style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)" />
+              <textarea value=${schedForm.prompt} onInput=${(e) => setSchedForm(Object.assign({}, schedForm, { prompt: e.target.value }))} placeholder="Prompt to run..." rows="3" style="width:100%;padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)" />
+              <div class="modal-actions">
+                <button class="btn-primary" onClick=${createScheduled}>Create</button>
+              </div>
+            </div>
+            <div class="sched-list">
+              ${scheduledTasks.map((t) => html`
+                <div class="sched-item">
+                  <strong>${t.name}</strong> <span class="hint">${t.cron}</span>
+                  <span class="hint">runs: ${t.runCount}, next: ${t.nextRun ? new Date(t.nextRun).toLocaleString() : 'n/a'}</span>
+                  <button class="btn-sm" onClick=${() => deleteScheduled(t.id)}>Delete</button>
+                </div>
+              `)}
+            </div>
+            <div class="modal-actions">
+              <button onClick=${() => setShowScheduled(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
+      ${showPerf ? html`
+        <div class="modal-backdrop" onClick=${() => setShowPerf(false)}>
+          <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Performance Dashboard</h2>
+            ${perfReport ? html`
+              <div class="perf-summary">
+                <span class="hint">Total: ${perfReport.totalMs}ms</span>
+                <span class="hint">Iterations: ${perfReport.iterations}</span>
+                <span class="hint">Tokens: ${perfReport.tokens}</span>
+                <span class="hint">Tool calls: ${perfReport.toolCalls}</span>
+                <span class="hint">Unique tools: ${perfReport.uniqueTools}</span>
+                ${perfReport.topBottleneck ? html`<span class="hint">Top bottleneck: ${perfReport.topBottleneck.name} (${perfReport.topBottleneck.totalMs}ms)</span>` : null}
+              </div>
+              <table class="md-table">
+                <thead><tr><th>Tool</th><th>Count</th><th>Total ms</th><th>Avg ms</th><th>Errors</th><th>%</th></tr></thead>
+                <tbody>
+                  ${perfReport.tools.map((t) => html`<tr><td>${t.name}</td><td>${t.count}</td><td>${t.totalMs}</td><td>${t.avgMs}</td><td>${t.errors}</td><td>${t.pctOfTotal}%</td></tr>`)}
+                </tbody>
+              </table>
+            ` : html`<p class="hint">No profiling data yet. Run an agent task first.</p>`}
+            <div class="modal-actions">
+              <button onClick=${() => { require && 0; loadPerf(); }}>Refresh</button>
+              <button onClick=${() => setShowPerf(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      ` : null}
       <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${async (s) => {
         try {
           const d = await API('/api/sessions?id=' + encodeURIComponent(s.id));
@@ -1004,6 +1115,9 @@ function App() {
         <button onClick=${() => setShowConfig(true)} title="Settings (Ctrl+,)" aria-label="Open settings">⚙️</button>
         <button onClick=${() => setShowPalette(true)} title="Command palette (Ctrl+K)" aria-label="Open command palette">⌘</button>
         <button onClick=${() => setShowFiles(true) || loadFiles('')} title="File browser" aria-label="Open file browser">📁</button>
+        <button onClick=${() => { setShowWebhooks(true); }} title="Webhooks" aria-label="Webhooks">🔗</button>
+        <button onClick=${() => { setShowScheduled(true); loadScheduled(); }} title="Scheduled tasks" aria-label="Scheduled tasks">⏰</button>
+        <button onClick=${() => { setShowPerf(true); loadPerf(); }} title="Performance" aria-label="Performance dashboard">📊</button>
         <button onClick=${() => setShowSandbox(true)} title="Code sandbox" aria-label="Open code sandbox">🧪</button>
         <button onClick=${() => setShowSearch(true)} title="Search conversations" aria-label="Search conversations">🔍</button>
         <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown" aria-label="Export chat as Markdown">📤</button>
