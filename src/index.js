@@ -345,6 +345,9 @@ async function main() {
           if (stream) {
             res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
             let fullReply = '';
+            let streamBuf = '';
+            const stripSpecial = require('./agent/run').stripSpecialTokens;
+            const specialTokens = ['<', '<|', '<|i', '<|im', '<|im_', '<|im_s', '<|im_st', '<|im_sta', '<|im_star', '<|im_start', '<|e', '<|eo', '<|eot', '<end', '<end_', '<end_o', '<end_of', '<start', '<star', '<start_', '<start_o', '<start_of', '<bos', '<eos'];
             const writeEvent = (obj) => { try { if (!res.writableEnded && !res.destroyed) res.write('data: ' + JSON.stringify(obj) + '\n\n'); } catch (e) {} };
             try {
               const result = await runAgent({
@@ -352,7 +355,17 @@ async function main() {
                 messages: ((history || []).some((m) => m && m.role === 'system') ? history : [{ role: 'system', content: 'You are the AegisAi Harness assistant. Answer conversationally and helpfully. Only call a tool when the user explicitly asks for an action. Never print tool calls or JSON as text.' }].concat(history || [])).concat([{ role: 'user', content: parsed.message || '' }]),
                 projectRoot: process.cwd(),
                 onEvent: (e) => {
-                  if (e.type === 'token') { fullReply += (e.content || ''); writeEvent({ type: 'token', content: e.content || '' }); }
+                  if (e.type === 'token') {
+                    streamBuf += (e.content || '');
+                    streamBuf = stripSpecial(streamBuf);
+                    if (streamBuf.length > 32) {
+                      const emitLen = streamBuf.length - 32;
+                      const chunk = streamBuf.slice(0, emitLen);
+                      streamBuf = streamBuf.slice(emitLen);
+                      fullReply += chunk;
+                      writeEvent({ type: 'token', content: chunk });
+                    }
+                  }
                   else if (e.type === 'tool_call') { writeEvent({ type: 'tool_call', name: e.name, args: e.args }); }
                   else if (e.type === 'tool_result') { writeEvent({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }); }
                   else if (e.type === 'status') { writeEvent({ type: 'status', message: e.message }); }
@@ -360,6 +373,13 @@ async function main() {
                 autoApprove,
                 approvalHandler: async () => false,
               });
+              // Flush remaining buffer, removing partial special-token prefixes.
+              let tail = stripSpecial(streamBuf);
+              for (const p of specialTokens) {
+                if (tail.endsWith(p)) { tail = tail.slice(0, tail.length - p.length); break; }
+              }
+              if (tail) { fullReply += tail; writeEvent({ type: 'token', content: tail }); }
+              streamBuf = '';
               const reply = (result.final && result.final.final) || fullReply;
               const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
               rememberSession(sid, updated);

@@ -641,12 +641,16 @@ function App() {
               throw new Error(data.message || 'stream error');
             } else if (data.type === 'done') {
               if (data.toolLog) setToolLog(data.toolLog);
-              // Fall back to the authoritative reply if no token frames arrived.
-              if (!fullReply && data.reply) {
+              // Always apply the authoritative reply from the server.
+              if (data.reply) {
                 fullReply = data.reply;
                 setMessages((m) => {
                   const updated = [...m];
-                  updated[updated.length - 1] = { role: 'assistant', content: fullReply };
+                  if (updated.length > 0 && updated[updated.length - 1].role === 'assistant') {
+                    updated[updated.length - 1] = { role: 'assistant', content: fullReply };
+                  } else {
+                    updated.push({ role: 'assistant', content: fullReply });
+                  }
                   return updated;
                 });
               }

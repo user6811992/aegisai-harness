@@ -31,6 +31,16 @@ function isSmallTalk(input) {
   return greetings.has(t);
 }
 
+function stripSpecialTokens(text) {
+  if (typeof text !== 'string') return text;
+  let s = text;
+  const tokens = ['<|im_start|>', '<|im_end|>', '<|eot_id|>', '<|assistant|>', '<|user|>', '<|system|>', '<end_of_turn>', '<start_of_turn>', '<eos>', '<bos>'];
+  for (const t of tokens) s = s.split(t).join('');
+  // Generic chat-template tokens like <|...|>
+  s = s.replace(/<\|[^>]*?\|>/g, '');
+  return s;
+}
+
 function isIdentityQuestion(input) {
   const raw = String(__lastUserText(input) || '').trim();
   const t = raw.toLowerCase().replace(/[.!?]+$/g, '').trim();
@@ -303,7 +313,7 @@ async function runAgent(opts) {
       if (parsed.length) toolCalls = parsed.map((c, i) => ({ id: 'lenient_' + i, type: 'function', function: { name: c.name, arguments: JSON.stringify(c.arguments || {}) } }));
     }
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
-      let finalText = msg.content || '';
+      let finalText = stripSpecialTokens(msg.content || '');
       if (verifyWork) {
         const vr = require('../verifier').verify(finalText, toolLog);
         finalText += '\n\n[verification] ' + (vr.verified ? 'verified' : 'UNVERIFIED: ' + vr.issues.join('; '));
@@ -328,7 +338,7 @@ async function runAgent(opts) {
       return { final: { type: 'done', final: '(token budget exceeded)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
 
-    msgs.push({ role: 'assistant', content: msg.content || '', tool_calls: toolCalls });
+    msgs.push({ role: 'assistant', content: stripSpecialTokens(msg.content || ''), tool_calls: toolCalls });
 
     // parallel tool execution
     const results = await Promise.all(toolCalls.map(async (tc) => {
@@ -642,4 +652,4 @@ async function runAgent(opts) {
   return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
 }
 
-module.exports = { runAgent, isSmallTalk, isIdentityQuestion };
+module.exports = { runAgent, isSmallTalk, isIdentityQuestion, stripSpecialTokens };

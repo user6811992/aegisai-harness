@@ -2,6 +2,11 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.4] - 2026-11-26
+
+### Fixed
+- Chat: strip chat-template special tokens ( Kia, etc.) from streamed and final replies; buffer partial tokens across chunks.
+
 ## [1.0.3] - 2026-11-26
 
 ### Added
@@ -364,3 +369,4 @@ See ROADMAP.md and git history for per-version detail (v0.64–v0.85). Highlight
 ### Added
 - Initial harness scaffold: agent loop, tool registry, backends, storage, MCP client, compaction, hooks, tracing, eval, vault, backup, proxy, web UI
 ```
+
