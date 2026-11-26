@@ -78,7 +78,7 @@ test('v085: onboarding finish checks r.ok', () => {
   assert.ok(/if \(!r\.ok\) \{\s*\n\s*let msg = 'HTTP '/.test(app), 'onboarding r.ok check missing');
 });
 
-test('v085: SW cache version is v4', () => {
+test('v085: SW cache version is v7', () => {
   const sw = read('public/sw.js');
-  assert.match(sw, /aegisai-harness-v5/);
+  assert.match(sw, /aegisai-harness-v7/);
 });
