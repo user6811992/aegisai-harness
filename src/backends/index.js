@@ -1,5 +1,15 @@
 // src/backends/index.js
 // Multi-backend adapter (Ollama + OpenAI-compatible). Normalizes to Ollama shape.
+const DEFAULT_URLS = {
+  ollama: 'http://127.0.0.1:11434',
+  llamacpp: 'http://127.0.0.1:8081',
+  lmstudio: 'http://127.0.0.1:1234',
+  openai: 'http://127.0.0.1:8000',
+  strata: 'http://127.0.0.1:8000',
+  robin: 'http://127.0.0.1:8000',
+  hyperqwen: 'http://127.0.0.1:8000',
+  exllamav3: 'http://127.0.0.1:8000',
+};
 const state = {
   type: (process.env.BACKEND_TYPE || '').toLowerCase(),
   url: process.env.BACKEND_URL || process.env.OLLAMA_URL || 'http://127.0.0.1:11434',
@@ -66,9 +76,17 @@ function isOpenaiCompat() {
   return ['llamacpp','lmstudio','openai','strata','robin','hyperqwen','exllamav3'].includes(t);
 }
 function setBackend(type, url) {
-  if (type) state.type = type.toLowerCase();
-  if (url) state.url = url;
-  state.explicit = true;
+  if (type) {
+    const newType = String(type).toLowerCase();
+    const changed = newType !== state.type;
+    state.type = newType;
+    if (url) state.url = url;
+    else if (changed && DEFAULT_URLS[newType]) state.url = DEFAULT_URLS[newType];
+    else if (!state.url && DEFAULT_URLS[newType]) state.url = DEFAULT_URLS[newType];
+  } else if (url) {
+    state.url = url;
+  }
+  if (type || url) state.explicit = true;
 }
 
 async function detectBackend() {
@@ -195,6 +213,10 @@ async function backendChatImpl(bodyObj, onChunk, signal) {
     temperature: bodyObj.options && bodyObj.options.temperature,
   };
   if (bodyObj.maxTokens && bodyObj.maxTokens > 0) oaiBody.max_tokens = bodyObj.maxTokens;
+  if (Array.isArray(bodyObj.tools) && bodyObj.tools.length > 0) {
+    oaiBody.tools = bodyObj.tools;
+    if (bodyObj.tool_choice) oaiBody.tool_choice = bodyObj.tool_choice;
+  }
   const headers = { 'Content-Type': 'application/json' };
   if (state.apiKey) headers['Authorization'] = 'Bearer ' + state.apiKey;
   const r = await fetch(state.url + '/v1/chat/completions', { method: 'POST', headers, body: JSON.stringify(oaiBody), signal });
@@ -290,4 +312,4 @@ async function healthCheck() {
   } catch (e) { return false; }
 }
 
-module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen };
+module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen, DEFAULT_URLS };

@@ -10,7 +10,7 @@
     "preinstall": "node scripts/check-node.js",
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test --test-force-exit tests/**/*.test.js",
+    "test": "node tests/run-tests.js",
     "lint": "node scripts/run-lint.js",
     "check:version": "node scripts/check-version-consistency.js"
   },

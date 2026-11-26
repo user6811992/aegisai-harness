@@ -56,6 +56,16 @@ async function main() {
     ].join('\n'));
     process.exit(0);
   }
+  // Load persisted backend/model settings before detection.
+  try {
+    const saved = require('./settings').load();
+    if (saved && saved.BACKEND_TYPE) process.env.BACKEND_TYPE = saved.BACKEND_TYPE;
+    if (saved && saved.BACKEND_URL) process.env.BACKEND_URL = saved.BACKEND_URL;
+    if (saved && saved.AEGISAI_MODEL) process.env.AEGISAI_MODEL = saved.AEGISAI_MODEL;
+  } catch (e) {}
+  if (process.env.BACKEND_TYPE || process.env.BACKEND_URL) {
+    try { require('./backends').setBackend(process.env.BACKEND_TYPE, process.env.BACKEND_URL || undefined); } catch (e) {}
+  }
   await detectBackend();
   logger.info('backend', { type: getType(), url: getUrl() });
   try {
@@ -306,6 +316,32 @@ async function main() {
           const history = Array.isArray(parsed.history) ? parsed.history : getSessionMessages(sid);
           const stream = parsed.stream === true;
           const autoApprove = process.env.AEGISAI_WEB_AUTO_APPROVE === 'true';
+          const __msg = String(parsed.message || '').trim();
+          // Deterministic chat commands.
+          let __cmdReply = null;
+          const mBackend = __msg.match(/^\/backend\s+(\S+)\s*$/i) || __msg.match(/^change the backend to\s+(\S+)\s*$/i);
+          if (mBackend) {
+            const b = require('./backends');
+            b.setBackend(mBackend[1], undefined);
+            process.env.BACKEND_TYPE = b.getType();
+            process.env.BACKEND_URL = b.getUrl();
+            try { const s = require('./settings').load(); s.BACKEND_TYPE = b.getType(); s.BACKEND_URL = b.getUrl(); if (process.env.AEGISAI_MODEL) s.AEGISAI_MODEL = process.env.AEGISAI_MODEL; require('./settings').save(s); } catch (e) {}
+            __cmdReply = 'Backend changed to ' + b.getType() + ' (' + b.getUrl() + ')';
+          }
+          const mModel = __msg.match(/^\/model\s+(.+)$/i) || __msg.match(/^change the model to\s+(.+)$/i);
+          if (!__cmdReply && mModel) {
+            const name = mModel[1].trim();
+            process.env.AEGISAI_MODEL = name;
+            try { const s = require('./settings').load(); s.AEGISAI_MODEL = name; require('./settings').save(s); } catch (e) {}
+            __cmdReply = 'Model changed to ' + name;
+          }
+          if (__cmdReply) {
+            const updated = (Array.isArray(history) ? history : []).concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: __cmdReply }]);
+            try { rememberSession(sid, updated); } catch (e) {}
+            try { sessionToolLogs.set(sid, []); } catch (e) {}
+            sendJson(res, 200, { reply: __cmdReply, toolLog: [] });
+            return;
+          }
           if (stream) {
             res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
             let fullReply = '';
@@ -313,7 +349,7 @@ async function main() {
             try {
               const result = await runAgent({
                 model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
-                messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
+                messages: ((history || []).some((m) => m && m.role === 'system') ? history : [{ role: 'system', content: 'You are the AegisAi Harness assistant. Answer conversationally and helpfully. Only call a tool when the user explicitly asks for an action. Never print tool calls or JSON as text.' }].concat(history || [])).concat([{ role: 'user', content: parsed.message || '' }]),
                 projectRoot: process.cwd(),
                 onEvent: (e) => {
                   if (e.type === 'token') { fullReply += (e.content || ''); writeEvent({ type: 'token', content: e.content || '' }); }
@@ -338,7 +374,7 @@ async function main() {
           }
           const result = await runAgent({
             model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
-            messages: history.concat([{ role: 'user', content: parsed.message || '' }]),
+            messages: ((history || []).some((m) => m && m.role === 'system') ? history : [{ role: 'system', content: 'You are the AegisAi Harness assistant. Answer conversationally and helpfully. Only call a tool when the user explicitly asks for an action. Never print tool calls or JSON as text.' }].concat(history || [])).concat([{ role: 'user', content: parsed.message || '' }]),
             projectRoot: process.cwd(),
             onEvent: () => {},
             // Tool execution from the browser is opt-in. Default: no writes.
@@ -380,8 +416,20 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/backend') {
           const parsed = await readJson(req);
-          require('./backends').setBackend(parsed.type);
-          sendJson(res, 200, { ok: true, type: parsed.type });
+          const type = (parsed && parsed.type) ? String(parsed.type).trim() : '';
+          if (!type) { sendJson(res, 400, { error: 'type required' }); return; }
+          const b = require('./backends');
+          b.setBackend(type, parsed.url ? String(parsed.url) : undefined);
+          process.env.BACKEND_TYPE = b.getType();
+          process.env.BACKEND_URL = b.getUrl();
+          try {
+            const s = require('./settings').load();
+            s.BACKEND_TYPE = b.getType();
+            s.BACKEND_URL = b.getUrl();
+            if (process.env.AEGISAI_MODEL) s.AEGISAI_MODEL = process.env.AEGISAI_MODEL;
+            require('./settings').save(s);
+          } catch (e) {}
+          sendJson(res, 200, { ok: true, type: b.getType(), url: b.getUrl() });
           return;
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models') {
@@ -784,6 +832,7 @@ async function main() {
         const u = new URL(req.url, 'http://x');
         const id = u.searchParams.get('id');
         if (!id) { sendJson(res, 400, { error: 'id required' }); return; }
+        if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(id)) { sendJson(res, 400, { error: 'invalid id' }); return; }
         sendJson(res, 200, require('./snippets').remove(id));
         return;
       }
@@ -791,6 +840,10 @@ async function main() {
         const parsed = await readJson(req);
         if (!parsed.session || !parsed.session.id) { sendJson(res, 400, { error: 'session with id required' }); return; }
         const s = parsed.session;
+        if (typeof s.id !== 'string' || !s.id.trim()) { sendJson(res, 400, { error: 'session id must be a non-empty string' }); return; }
+        if (s.title !== undefined && typeof s.title !== 'string') { sendJson(res, 400, { error: 'title must be a string' }); return; }
+        if (s.tags !== undefined && (!Array.isArray(s.tags) || !s.tags.every((t) => typeof t === 'string'))) { sendJson(res, 400, { error: 'tags must be an array of strings' }); return; }
+        if (parsed.overwrite !== undefined && typeof parsed.overwrite !== 'boolean') { sendJson(res, 400, { error: 'overwrite must be a boolean' }); return; }
         if (!Array.isArray(s.messages)) { sendJson(res, 400, { error: 'messages must be an array' }); return; }
         for (const m of s.messages) {
           if (!m || typeof m !== 'object' || Array.isArray(m)) { sendJson(res, 400, { error: 'each message must be an object' }); return; }
@@ -1127,7 +1180,28 @@ async function main() {
           if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
           if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;
           for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'AEGISAI_TOKEN', 'AEGISAI_WEB_AUTO_APPROVE', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
-            if (parsed[k] !== undefined) process.env[k] = parsed[k];
+            if (parsed[k] !== undefined) {
+              if (typeof parsed[k] !== 'string') { sendJson(res, 400, { error: k + ' must be a string' }); return; }
+              process.env[k] = parsed[k];
+            }
+          }
+          if (parsed.BACKEND_TYPE !== undefined || parsed.BACKEND_URL !== undefined) {
+            const b = require('./backends');
+            b.setBackend(process.env.BACKEND_TYPE, (parsed.BACKEND_URL !== undefined ? process.env.BACKEND_URL : undefined));
+            try { await b.detectBackend(); } catch (e) {}
+            process.env.BACKEND_TYPE = b.getType();
+            process.env.BACKEND_URL = b.getUrl();
+          }
+          // Persist backend/model settings.
+          if (parsed.BACKEND_TYPE !== undefined || parsed.BACKEND_URL !== undefined || parsed.AEGISAI_MODEL !== undefined) {
+            try {
+              const s = require('./settings').load();
+              const b = require('./backends');
+              s.BACKEND_TYPE = process.env.BACKEND_TYPE || b.getType();
+              s.BACKEND_URL = process.env.BACKEND_URL || b.getUrl();
+              if (process.env.AEGISAI_MODEL) s.AEGISAI_MODEL = process.env.AEGISAI_MODEL;
+              require('./settings').save(s);
+            } catch (e) {}
           }
           sendJson(res, 200, { ok: true });
           return;

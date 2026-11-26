@@ -31,45 +31,94 @@ function parseCron(expr) {
   return null;
 }
 
-function nextRun(schedule) {
-  const now = new Date();
-  if (schedule.type === 'interval') return now.getTime() + schedule.ms;
+function expandCronField(field, min, max, names) {
+  const out = new Set();
+  const parts = String(field || '*').split(',');
+  for (const part of parts) {
+    let p = part.trim();
+    if (!p) continue;
+    // handle names
+    if (names && /[a-zA-Z]/.test(p) && !p.includes('/') && !p.includes('-')) {
+      const v = names[p.toLowerCase()];
+      if (v !== undefined) { out.add(v); continue; }
+    }
+    // step
+    let step = 1;
+    if (p.includes('/')) {
+      const [range, st] = p.split('/');
+      step = parseInt(st, 10) || 1;
+      p = range;
+    }
+    let start = min, end = max;
+    if (p !== '*') {
+      if (p.includes('-')) {
+        const [a, b] = p.split('-');
+        const av = names && /[a-zA-Z]/.test(a) ? names[a.toLowerCase()] : parseInt(a, 10);
+        const bv = names && /[a-zA-Z]/.test(b) ? names[b.toLowerCase()] : parseInt(b, 10);
+        start = isNaN(av) ? min : av;
+        end = isNaN(bv) ? max : bv;
+      } else {
+        const v = names && /[a-zA-Z]/.test(p) ? names[p.toLowerCase()] : parseInt(p, 10);
+        if (isNaN(v)) { /* wildcard */ start = min; end = max; }
+        else { start = v; end = v; }
+      }
+    }
+    if (start > end) { /* wrap? */ }
+    for (let v = start; v <= end; v += step) {
+      if (v >= min && v <= max) out.add(v);
+    }
+    // handle */step already start=min
+  }
+  if (out.size === 0) {
+    for (let v = min; v <= max; v++) out.add(v);
+  }
+  return out;
+}
+
+function nextRun(schedule, now) {
+  const nowDate = now ? new Date(now) : new Date();
+  if (schedule.type === 'interval') return nowDate.getTime() + schedule.ms;
   if (schedule.type === 'daily') {
-    const next = new Date(now);
+    const next = new Date(nowDate);
     next.setHours(schedule.hour, schedule.minute, 0, 0);
-    if (next <= now) next.setDate(next.getDate() + 1);
+    if (next <= nowDate) next.setDate(next.getDate() + 1);
     return next.getTime();
   }
   if (schedule.type === 'cron') {
-    const minuteField = schedule.fields[0];
-    const hourField = schedule.fields[1];
-    const next = new Date(now);
-    next.setSeconds(0, 0);
-    // Parse step: */n
-    let minuteStep = 1;
-    let minuteStart = 0;
-    if (minuteField.startsWith('*/')) {
-      minuteStep = parseInt(minuteField.slice(2), 10) || 1;
-    } else if (minuteField !== '*') {
-      const m = parseInt(minuteField, 10);
-      if (!isNaN(m)) { minuteStart = m; minuteStep = 60; } // specific minute
+    const fields = schedule.fields;
+    const minuteSet = expandCronField(fields[0], 0, 59);
+    const hourSet = expandCronField(fields[1], 0, 23);
+    const domSet = expandCronField(fields[2], 1, 31);
+    const monthSet = expandCronField(fields[3], 1, 12, { jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12 });
+    const dowSet = expandCronField(fields[4], 0, 7, { sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6 });
+    const domRestricted = fields[2] !== '*';
+    const dowRestricted = fields[4] !== '*';
+    const limit = new Date(nowDate.getTime());
+    limit.setFullYear(limit.getFullYear() + 5);
+    const t = new Date(nowDate.getTime());
+    t.setSeconds(0, 0);
+    t.setMilliseconds(0);
+    t.setMinutes(t.getMinutes() + 1);
+    while (t.getTime() <= limit.getTime()) {
+      const min = t.getMinutes();
+      const hr = t.getHours();
+      const dom = t.getDate();
+      const mon = t.getMonth() + 1;
+      const dow = t.getDay(); // 0 Sun
+      // Simpler re-check:
+      let dayOk;
+      if (domRestricted && dowRestricted) dayOk = domSet.has(dom) || dowSet.has(dow) || dowSet.has(dow === 0 ? 7 : dow);
+      else if (domRestricted) dayOk = domSet.has(dom);
+      else if (dowRestricted) dayOk = dowSet.has(dow) || dowSet.has(dow === 0 ? 7 : dow);
+      else dayOk = true;
+      if (minuteSet.has(min) && hourSet.has(hr) && monthSet.has(mon) && dayOk) {
+        return t.getTime();
+      }
+      t.setMinutes(t.getMinutes() + 1);
     }
-    // Find next matching minute.
-    let min = now.getMinutes() + 1;
-    while (min < 60) {
-      if (minuteField === '*' || (min - minuteStart) % minuteStep === 0) break;
-      min++;
-    }
-    if (min >= 60) { min = minuteStart; next.setHours(next.getHours() + 1); }
-    next.setMinutes(min);
-    if (hourField !== '*' && !hourField.startsWith('*/')) {
-      const h = parseInt(hourField, 10);
-      if (!isNaN(h)) next.setHours(h);
-    }
-    if (next <= now) next.setMinutes(next.getMinutes() + 1);
-    return next.getTime();
+    return nowDate.getTime() + 60000;
   }
-  return now.getTime() + 60000;
+  return nowDate.getTime() + 60000;
 }
 
 function create(opts) {
@@ -181,4 +230,4 @@ function loadJobs() {
 
 loadJobs();
 
-module.exports = { create, list, get, remove, toggle, runJob, startScheduler, parseCron };
+module.exports = { create, list, get, remove, toggle, runJob, startScheduler, parseCron, nextRun };

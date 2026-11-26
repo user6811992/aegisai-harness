@@ -9,6 +9,35 @@ const { DoomLoopDetector, fingerprint } = require('../doomloop');
 const stopConditions = require('../stopconditions');
 const asyncTools = require('../async_tools');
 const { OFFLINE: CONFIG_OFFLINE } = require('../core/config');
+
+function __lastUserText(input) {
+  if (typeof input === 'string') return input;
+  if (Array.isArray(input)) {
+    const users = input.filter((m) => m && m.role === 'user');
+    const last = users[users.length - 1];
+    return last ? (typeof last.content === 'string' ? last.content : (last.content || '')) : '';
+  }
+  if (input && typeof input === 'object') {
+    if (typeof input.content === 'string') return input.content;
+    if (Array.isArray(input.messages)) return __lastUserText(input.messages);
+  }
+  return '';
+}
+
+function isSmallTalk(input) {
+  const raw = String(__lastUserText(input) || '').trim();
+  const t = raw.toLowerCase().replace(/[.!?]+$/g, '').trim();
+  const greetings = new Set(['hello','hi','hey','hi there','hello there','hey there','good morning','good afternoon','good evening','how are you','how are you doing','what\'s up','whats up','what is up','yo','greetings','sup']);
+  return greetings.has(t);
+}
+
+function isIdentityQuestion(input) {
+  const raw = String(__lastUserText(input) || '').trim();
+  const t = raw.toLowerCase().replace(/[.!?]+$/g, '').trim();
+  if (/^(hello|hi|hey|hell|helo)?\s*what are you$/.test(t)) return true;
+  if (/^(who are you|what can you do|what do you do|what is your name|who am i talking to)$/.test(t)) return true;
+  return false;
+}
 const dbModule = require('../storage/db');
 const path = require('path');
 
@@ -166,6 +195,10 @@ async function runAgent(opts) {
   tools.push({ type: 'function', function: { name: 'sequential_thinking', description: 'Structured reflective thinking: record a thought, decide if more thoughts needed.', parameters: { type: 'object', properties: { thought: { type: 'string' }, thoughtNumber: { type: 'number' }, totalThoughts: { type: 'number' }, nextThoughtNeeded: { type: 'boolean' }, isRevision: { type: 'boolean' }, branchId: { type: 'string' } } } } });
   tools.push({ type: 'function', function: { name: 'fetch_url', description: 'Fetch a URL and return its content as Markdown.', parameters: { type: 'object', properties: { url: { type: 'string' } }, required: ['url'] } } });
   tools.push({ type: 'function', function: { name: 'get_time', description: 'Current time in a timezone.', parameters: { type: 'object', properties: { timezone: { type: 'string' } } } } });
+
+  // Small-talk / identity guard: expose no tools for pure greetings/identity questions.
+  const __lastUser = [...msgs].reverse().find((m) => m.role === 'user');
+  if (isSmallTalk(__lastUser) || isIdentityQuestion(__lastUser)) tools = [];
 
   if (progressiveTools > 0) {
     const lastUser = [...msgs].reverse().find((m) => m.role === 'user');
@@ -566,12 +599,14 @@ async function runAgent(opts) {
         msgs.push({ role: 'tool', content: denied, name: r.name });
         continue;
       }
-      const preview = (r.result && (r.result.output || r.result.out)) || '';
+      let preview = '';
+      if (r.result && (r.result.output !== undefined || r.result.out !== undefined)) preview = r.result.output || r.result.out;
+      else if (r.result) preview = JSON.stringify(r.result);
       let previewStr = String(preview).slice(0, 500);
       if (toolOutputCompression > 0) previewStr = require('../output_compress').compress(String(preview), toolOutputCompression);
-      toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr, cached: !!r.cached });
+      toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr, cached: !!r.cached, ok: r.result ? r.result.ok !== false : true });
       onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
-      msgs.push({ role: 'tool', content: previewStr, name: r.name });
+      msgs.push({ role: 'tool', content: previewStr, name: r.name, tool_call_id: r.toolCallId });
     }
     // doom-loop detection
     if (detector) {
@@ -607,4 +642,4 @@ async function runAgent(opts) {
   return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
 }
 
-module.exports = { runAgent };
+module.exports = { runAgent, isSmallTalk, isIdentityQuestion };

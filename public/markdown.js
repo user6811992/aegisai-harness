@@ -20,6 +20,7 @@ function inlineFormat(text) {
 function render(text) {
   let s = escapeHtml(text);
   const nonce = Math.random().toString(36).slice(2, 10);
+  const mathBlocks = [];
   // Protect fenced code blocks with placeholders.
   const codeBlocks = [];
   s = s.replace(/```(\w*)\n([\s\S]*?)```/g, (_, lang, code) => {
@@ -41,10 +42,18 @@ function render(text) {
   });
   // thinking blocks
   s = s.replace(/&lt;think&gt;([\s\S]*?)&lt;\/think&gt;/g, (_, t) => '<details class="think"><summary>Thinking</summary>' + t + '</details>');
-  // Display math ($$...$$)
-  s = s.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => renderMath(math.trim(), true));
+  // Display math ($$...$$) -> protected placeholder (may contain pipes)
+  s = s.replace(/\$\$([\s\S]*?)\$\$/g, (_, math) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push(renderMath(math.trim(), true));
+    return '@@MATH_' + nonce + '_' + idx + '@@';
+  });
   // Inline math ($...$)
-  s = s.replace(/\$([^$\n]+)\$/g, (_, math) => renderMath(math.trim(), false));
+  s = s.replace(/\$([^$\n]+)\$/g, (_, math) => {
+    const idx = mathBlocks.length;
+    mathBlocks.push(renderMath(math.trim(), false));
+    return '@@MATH_' + nonce + '_' + idx + '@@';
+  });
   // headings
   s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>').replace(/^## (.+)$/gm, '<h2>$1</h2>').replace(/^# (.+)$/gm, '<h1>$1</h1>');
   // tables (parse on protected text)
@@ -77,8 +86,8 @@ function render(text) {
       if (cells.length > 0 && cells[cells.length - 1] === '') cells.pop();
       return cells;
     }
-    const header = splitCells(lines[0]).map((c) => inlineFormat(restoreInline(c, inlineCodes)));
-    const rows = lines.slice(2).map((l) => splitCells(l).map((c) => inlineFormat(restoreInline(c, inlineCodes))));
+    const header = splitCells(lines[0]).map((c) => inlineFormat(c));
+    const rows = lines.slice(2).map((l) => splitCells(l).map((c) => inlineFormat(c)));
     let html = '<table class="md-table"><thead><tr>' + header.map((h) => '<th>' + h + '</th>').join('') + '</tr></thead><tbody>';
     for (const row of rows) html += '<tr>' + row.map((c) => '<td>' + c + '</td>').join('') + '</tr>';
     html += '</tbody></table>';
@@ -90,18 +99,20 @@ function render(text) {
   // links
   s = s.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (_, label, url) => '<a href="' + escapeHtml(safeUrl(url.replace(/&amp;/g, '&'))) + '" target="_blank" rel="noopener">' + label + '</a>');
   // Restore inline code AFTER all inline formatting.
-  s = s.replace(/@@IC_[a-z0-9]+_(\d+)@@/g, (_, idx) => '<code>' + escapeHtml(inlineCodes[Number(idx)]) + '</code>');
+  s = s.replace(new RegExp('@@IC_' + nonce + '_(\\d+)@@', 'g'), (_, idx) => '<code>' + escapeHtml(inlineCodes[Number(idx)]) + '</code>');
+  // Restore math placeholders.
+  s = s.replace(new RegExp('@@MATH_' + nonce + '_(\\d+)@@', 'g'), (_, idx) => mathBlocks[Number(idx)]);
   // lists
   s = s.replace(/^- (.+)$/gm, '<li>$1</li>');
   // paragraphs (treat code-block placeholders as block elements)
   s = s.split(/\n{2,}/).map((b) => {
     const t = b.trim();
-    if (/^@@CB_[a-z0-9]+_\d+@@$/.test(t)) return t;
+    if (new RegExp('^@@CB_' + nonce + '_\\d+@@$').test(t)) return t;
     if (/^<(h\d|pre|ul|li|details|table)/.test(t)) return b;
     return '<p>' + b.replace(/\n/g, '<br>') + '</p>';
   }).join('\n');
   // Restore code blocks.
-  s = s.replace(/@@CB_[a-z0-9]+_(\d+)@@/g, (_, idx) => codeBlocks[Number(idx)]);
+  s = s.replace(new RegExp('@@CB_' + nonce + '_(\\d+)@@', 'g'), (_, idx) => codeBlocks[Number(idx)]);
   return s;
 }
 function restoreInline(text, inlineCodes) {

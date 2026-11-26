@@ -468,6 +468,15 @@ function ToolTimeline({ tools }) {
   `;
 }
 
+function highlightSearch(text, query) {
+  const esc = (s) => String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const q = String(query || '').trim();
+  const escaped = esc(text);
+  if (!q) return escaped;
+  const safeQ = q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  try { return escaped.replace(new RegExp(safeQ, 'gi'), (m) => '<mark class="search-highlight">' + m + '</mark>'); }
+  catch (e) { return escaped; }
+}
 function App() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -503,7 +512,17 @@ function App() {
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  useEffect(() => { updateCtx(); }, []);
+  useEffect(() => {
+    (async () => {
+      try {
+        const d = await API('/api/sessions?id=' + encodeURIComponent('default'));
+        if (d && Array.isArray(d.messages)) {
+          setMessages((d.messages || []).map((m) => ({ role: m.role, content: m.content })));
+        }
+      } catch (e) {}
+      updateCtx('default');
+    })();
+  }, []);
   useEffect(() => {
     // Server rejected our request: prompt for a token instead of failing silently.
     const onUnauth = () => setNeedAuth(true);
@@ -528,26 +547,6 @@ function App() {
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
-
-  // Focus management: move focus to first focusable element in modals.
-  useEffect(() => {
-    const modal = document.querySelector('.modal');
-    if (modal) {
-      const focusable = modal.querySelectorAll('button, input, textarea, select, a[href]');
-      if (focusable.length > 0) setTimeout(() => focusable[0].focus(), 50);
-      // Focus trap: Tab cycles within modal.
-      const trap = (e) => {
-        if (e.key !== 'Tab') return;
-        const els = modal.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]');
-        if (els.length === 0) return;
-        const first = els[0], last = els[els.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
-      };
-      modal.addEventListener('keydown', trap);
-      return () => modal.removeEventListener('keydown', trap);
-    }
-  }, [showCompare, showSnippets, showSandbox, showWebhooks, showScheduled, showPerf, showSearch, showFiles, showHelp, showConfig, showPalette]);
 
   // Drag and drop
   useEffect(() => {
@@ -583,7 +582,7 @@ function App() {
   }, []);
 
   async function updateCtx() {
-    try { const d = await API('/api/context'); setCtx(d); } catch (e) {}
+    try { const d = await API('/api/context?session=' + encodeURIComponent(currentSession)); setCtx(d); } catch (e) {}
   }
 
   function newChat() {
@@ -707,6 +706,7 @@ function App() {
   const [showWebhooks, setShowWebhooks] = useState(false);
   const [webhookEvent, setWebhookEvent] = useState('push');
   const [webhookPayload, setWebhookPayload] = useState('{}');
+  const [webhookSecret, setWebhookSecret] = useState('');
   const [webhookResult, setWebhookResult] = useState(null);
   const [webhookUrl, setWebhookUrl] = useState('');
   const [showScheduled, setShowScheduled] = useState(false);
@@ -729,6 +729,26 @@ function App() {
   const [compareResult, setCompareResult] = useState(null);
   const [comparing, setComparing] = useState(false);
   const [compareDiff, setCompareDiff] = useState(false);
+
+  // Focus management: move focus to first focusable element in modals.
+  useEffect(() => {
+    const modal = document.querySelector('.modal');
+    if (modal) {
+      const focusable = modal.querySelectorAll('button, input, textarea, select, a[href]');
+      if (focusable.length > 0) setTimeout(() => focusable[0].focus(), 50);
+      // Focus trap: Tab cycles within modal.
+      const trap = (e) => {
+        if (e.key !== 'Tab') return;
+        const els = modal.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]');
+        if (els.length === 0) return;
+        const first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      modal.addEventListener('keydown', trap);
+      return () => modal.removeEventListener('keydown', trap);
+    }
+  }, [showCompare, showSnippets, showSandbox, showWebhooks, showScheduled, showPerf, showSearch, showFiles, showHelp, showConfig, showPalette]);
 
   async function exportChat(format) {
     try {
@@ -816,7 +836,16 @@ function App() {
   async function triggerWebhook() {
     try {
       const payload = JSON.parse(webhookPayload || '{}');
-      const r = await API('/api/webhook?event=' + encodeURIComponent(webhookEvent), { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const body = JSON.stringify(payload);
+      const headers = { 'Content-Type': 'application/json' };
+      if (webhookSecret) {
+        const enc = new TextEncoder();
+        const key = await crypto.subtle.importKey('raw', enc.encode(webhookSecret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+        const sigBuf = await crypto.subtle.sign('HMAC', key, enc.encode(body));
+        const hex = Array.from(new Uint8Array(sigBuf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+        headers['X-Hub-Signature-256'] = 'sha256=' + hex;
+      }
+      const r = await API('/api/webhook?event=' + encodeURIComponent(webhookEvent), { method: 'POST', headers, body });
       setWebhookResult(r);
       toast('Webhook triggered', 'success');
     } catch (e) { toast('Webhook failed: ' + e.message, 'error'); }
@@ -925,12 +954,13 @@ function App() {
                       const d = await API('/api/sessions?id=' + encodeURIComponent(r.sessionId));
                       setCurrentSession(r.sessionId);
                       setMessages((d.messages || []).map((m) => ({ role: m.role, content: m.content })));
+                      updateCtx(r.sessionId);
                       setShowSearch(false);
                       toast('Loaded session: ' + r.sessionId, 'success');
                     } catch (e) { toast('Load failed: ' + e.message, 'error'); }
                   }}>
                     <span class="search-role">${r.role}</span>
-                    <span class="search-snippet">${r.snippet}</span>
+                    <span class="search-snippet" dangerouslySetInnerHTML=${{ __html: highlightSearch(r.snippet, searchQuery) }}></span>
                     <span class="search-session">${r.sessionId}</span>
                   </div>
                 `)}
@@ -1102,6 +1132,7 @@ function App() {
             <h2>Webhook Triggers</h2>
             <p class="hint">Webhook URL: <code>${window.location.origin}/api/webhook?event=push</code></p>
             <p class="hint">Set <code>AEGISAI_WEBHOOK_SECRET</code> for HMAC verification. Events: push, pull_request, issues.</p>
+            <input value=${webhookSecret} onInput=${(e) => setWebhookSecret(e.target.value)} placeholder="Webhook secret (for HMAC signing)" style="width:100%;padding:8px;border:1px solid var(--border);border-radius:6px;background:var(--input);color:var(--fg);margin-bottom:8px" />
             <label>Event
               <select value=${webhookEvent} onChange=${(e) => setWebhookEvent(e.target.value)} style="padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)">
                 <option value="push">push</option><option value="pull_request">pull_request</option><option value="issues">issues</option>
@@ -1172,38 +1203,13 @@ function App() {
           </div>
         </div>
       ` : null}
-      ${showPerf ? html`
-        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowPerf(false)}>
-          <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
-            <h2>Performance Dashboard</h2>
-            ${perfReport ? html`
-              <div class="perf-summary">
-                <span class="hint">Total: ${perfReport.totalMs}ms</span>
-                <span class="hint">Iterations: ${perfReport.iterations}</span>
-                <span class="hint">Tokens: ${perfReport.tokens}</span>
-                <span class="hint">Tool calls: ${perfReport.toolCalls}</span>
-                <span class="hint">Unique tools: ${perfReport.uniqueTools}</span>
-                ${perfReport.topBottleneck ? html`<span class="hint">Top bottleneck: ${perfReport.topBottleneck.name} (${perfReport.topBottleneck.totalMs}ms)</span>` : null}
-              </div>
-              <table class="md-table">
-                <thead><tr><th>Tool</th><th>Count</th><th>Total ms</th><th>Avg ms</th><th>Errors</th><th>%</th></tr></thead>
-                <tbody>
-                  ${perfReport.tools.map((t) => html`<tr><td>${t.name}</td><td>${t.count}</td><td>${t.totalMs}</td><td>${t.avgMs}</td><td>${t.errors}</td><td>${t.pctOfTotal}%</td></tr>`)}
-                </tbody>
-              </table>
-            ` : html`<p class="hint">No profiling data yet. Run an agent task first.</p>`}
-            <div class="modal-actions">
-              <button onClick=${() => { loadPerf(); }}>Refresh</button>
-              <button onClick=${() => setShowPerf(false)}>Close</button>
-            </div>
-          </div>
-        </div>
-      ` : null}
+
       <${SessionSidebar} open=${showSessions} onClose=${() => setShowSessions(false)} onSelect=${async (s) => {
         try {
           const d = await API('/api/sessions?id=' + encodeURIComponent(s.id));
           setCurrentSession(s.id);
           setMessages((d.messages || []).map((m) => ({ role: m.role, content: m.content })));
+          updateCtx(s.id);
           toast('Loaded session: ' + (s.title || s.id), 'success');
         } catch (e) { toast('Load failed: ' + e.message, 'error'); }
       }} />
@@ -1224,7 +1230,6 @@ function App() {
         <button onClick=${() => { setShowWebhooks(true); }} title="Webhooks" aria-label="Webhooks">🔗</button>
         <button onClick=${() => { setShowScheduled(true); loadScheduled(); }} title="Scheduled tasks" aria-label="Scheduled tasks">⏰</button>
         <button onClick=${() => { setShowPerf(true); loadPerf(); }} title="Performance" aria-label="Performance dashboard">📊</button>
-        <button onClick=${() => setShowPerf(true) || loadPerf()} title="Performance" aria-label="Performance dashboard">📊</button>
         <button onClick=${() => setShowSearch(true)} title="Search conversations" aria-label="Search conversations">🔍</button>
         <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown" aria-label="Export chat as Markdown">📤</button>
         <button onClick=${() => setShowSnippets(true) || loadSnippets()} title="Snippets" aria-label="Open snippets">📝</button>
