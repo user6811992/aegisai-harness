@@ -523,11 +523,20 @@ function App() {
       if ((e.ctrlKey || e.metaKey) && e.key === ',') { e.preventDefault(); setShowConfig(true); }
       if (e.key === '/' && e.ctrlKey) { e.preventDefault(); setShowHelp(true); }
       if (e.key === 'Escape') { setShowConfig(false); setShowHelp(false); setShowPalette(false); setShowSessions(false); }
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') { e.preventDefault(); setShowSessions((s) => !s); }
+      if ((e.ctrlKey || e.metaKey) && e.key === 'f') { e.preventDefault(); setShowSearch(true); }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
   }, []);
+
+  // Focus management: move focus to first focusable element in modals.
+  useEffect(() => {
+    const modal = document.querySelector('.modal');
+    if (modal) {
+      const focusable = modal.querySelectorAll('button, input, textarea, select, a[href]');
+      if (focusable.length > 0) setTimeout(() => focusable[0].focus(), 50);
+    }
+  }, [showCompare, showSnippets, showSandbox, showWebhooks, showScheduled, showPerf, showSearch, showFiles, showHelp, showConfig, showPalette]);
 
   // Drag and drop
   useEffect(() => {
@@ -988,6 +997,16 @@ function App() {
               </div>
               <div class="modal-actions">
                 <button class="btn-secondary" onClick=${() => setCompareDiff((v) => !v)}>${compareDiff ? 'Hide diff' : 'Show diff vs first'}</button>
+              </div>
+              <div class="compare-metrics">
+                <table class="md-table">
+                  <thead><tr><th>Metric</th>${compareResult.comparison.results.map((r) => html`<th>${r.model}</th>`)}</tr></thead>
+                  <tbody>
+                    <tr><td>Duration (ms)</td>${compareResult.comparison.results.map((r) => html`<td>${r.ok ? r.duration : 'err'}</td>`)}</tr>
+                    <tr><td>Reply length</td>${compareResult.comparison.results.map((r) => html`<td>${r.ok ? r.reply.length : 0}</td>`)}</tr>
+                    <tr><td>Status</td>${compareResult.comparison.results.map((r) => html`<td class=${r.ok ? 'ok' : 'err'}>${r.ok ? '✓' : '✗'}</td>`)}</tr>
+                  </tbody>
+                </table>
               </div>
             ` : null}
           </div>
