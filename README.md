@@ -56,6 +56,23 @@ npm start -- --web
 # Open http://127.0.0.1:8080
 ```
 
+### Split GGUF models
+
+Some GGUF models ship as multiple shards, for example:
+
+```text
+model-00001-of-00002.gguf
+model-00002-of-00002.gguf
+```
+
+Point llama.cpp at the **first shard**; it loads the remaining shards automatically:
+
+```bash
+llama-server -m /models/model-00001-of-00002.gguf --host 127.0.0.1 --port 8081
+```
+
+The harness groups the shards into one entry in **Settings → Discover** and marks it `[gguf split 1/2]`. Do not select the `00002` shard directly. If you need a single file for Ollama, merge the shards first with `llama-gguf-split --merge`.
+
 ### Terminal UI
 
 ```bash
