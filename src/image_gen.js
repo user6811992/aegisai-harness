@@ -16,13 +16,12 @@ async function generate(prompt, opts) {
 
   let outPath = opts.output;
   if (outPath) {
-    // Validate output path stays within allowed roots.
-    const path = require('path');
     const resolved = path.resolve(outPath);
-    // Simple check: must be in temp dir or cwd.
     const tmpdir = require('os').tmpdir();
     const cwd = process.cwd();
-    if (!resolved.startsWith(tmpdir) && !resolved.startsWith(cwd)) {
+    const relTmp = path.relative(tmpdir, resolved);
+    const relCwd = path.relative(cwd, resolved);
+    if ((relTmp.startsWith('..') || path.isAbsolute(relTmp)) && (relCwd.startsWith('..') || path.isAbsolute(relCwd))) {
       return { ok: false, error: 'output path outside allowed directories' };
     }
   } else {

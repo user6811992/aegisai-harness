@@ -240,7 +240,7 @@ async function runAgent(opts) {
         if (tools && tools.length > 0) {
           try {
             resp = await backends.backendChat({ model: m, messages: msgs, tools: [], stream: true, maxTokens }, (e) => onEvent(e), signal);
-            tools.length = 0;
+            tools = [];
             break;
           } catch (e2) {
             lastErr = e2;
@@ -447,7 +447,7 @@ async function runAgent(opts) {
           const t = mcpLookup.get(name);
           try {
             const r = await t.client.callTool(t.remoteName || t.name, args);
-            const content = (r && r.content) ? r.content.map((c) => c.text || JSON.stringify(c)).join('\n') : JSON.stringify(r);
+            const content = (r && r.content) ? r.content.map((c) => c.text || (typeof c === 'string' ? c : JSON.stringify(c))).join('\n') : JSON.stringify(r);
             result = { ok: !(r && r.isError), output: String(content).slice(0, 4000) };
           } catch (e) {
             result = { ok: false, output: String(e.message || e) };
@@ -468,7 +468,7 @@ async function runAgent(opts) {
               if (cached && cached.ok === false) tracer.failSpan(toolSpan, cached.output);
               else tracer.endSpan(toolSpan);
             }
-            return { name, args, result: cached, cached: true };
+            return { name, args, result: cached, cached: true, toolCallId: tc.id };
           }
           const toolStart = Date.now();
           // auto-retry with backoff for transient failures
@@ -499,7 +499,7 @@ async function runAgent(opts) {
       }
       // invalidate cache on writes
       if (name === 'write_file' || name === 'delete_file' || name === 'edit_file') require('../tool_cache').clear();
-      return { name, args, result };
+      return { name, args, result, toolCallId: tc.id };
     }));
 
     for (const r of results) {
@@ -507,56 +507,56 @@ async function runAgent(opts) {
         const preview = 'PAUSED (debugger): ' + r.name;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.actionBlocked) {
         const preview = r.actionBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.charterBlocked) {
         const preview = r.charterBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.readOnlyBlocked) {
         const preview = r.readOnlyBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.policyBlocked) {
         const preview = r.policyBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.ringBlocked) {
         const preview = r.ringBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.hookBlocked) {
         const preview = r.hookBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.blocked) {
         const preview = r.blocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
         onEvent({ type: 'tool_result', name: r.name, preview });
-        msgs.push({ role: 'tool', content: preview, name: r.name });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       if (r.denied) {

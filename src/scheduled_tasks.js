@@ -41,19 +41,28 @@ function nextRun(schedule) {
     return next.getTime();
   }
   if (schedule.type === 'cron') {
-    // Basic: parse minute and hour fields (support */n and specific values).
     const minuteField = schedule.fields[0];
     const hourField = schedule.fields[1];
     const next = new Date(now);
     next.setSeconds(0, 0);
-    // Try to set minute.
-    let minute = now.getMinutes() + 1;
-    if (minuteField !== '*') {
+    // Parse step: */n
+    let minuteStep = 1;
+    let minuteStart = 0;
+    if (minuteField.startsWith('*/')) {
+      minuteStep = parseInt(minuteField.slice(2), 10) || 1;
+    } else if (minuteField !== '*') {
       const m = parseInt(minuteField, 10);
-      if (!isNaN(m)) minute = m;
+      if (!isNaN(m)) { minuteStart = m; minuteStep = 60; } // specific minute
     }
-    next.setMinutes(minute);
-    if (hourField !== '*') {
+    // Find next matching minute.
+    let min = now.getMinutes() + 1;
+    while (min < 60) {
+      if (minuteField === '*' || (min - minuteStart) % minuteStep === 0) break;
+      min++;
+    }
+    if (min >= 60) { min = minuteStart; next.setHours(next.getHours() + 1); }
+    next.setMinutes(min);
+    if (hourField !== '*' && !hourField.startsWith('*/')) {
       const h = parseInt(hourField, 10);
       if (!isNaN(h)) next.setHours(h);
     }
@@ -132,16 +141,24 @@ async function runJob(id) {
   return job;
 }
 
+let _schedulerHandle = null;
+const _runningJobs = new Set();
+
 function startScheduler() {
-  // Check every minute for due jobs.
-  setInterval(() => {
+  if (_schedulerHandle) return;
+  _schedulerHandle = setInterval(() => {
     const now = Date.now();
     for (const [id, job] of jobs) {
-      if (job.enabled && job.nextRun <= now) {
-        runJob(id).catch(() => {});
+      if (job.enabled && job.nextRun <= now && !_runningJobs.has(id)) {
+        _runningJobs.add(id);
+        runJob(id).finally(() => _runningJobs.delete(id)).catch(() => {});
       }
     }
   }, 60000);
+}
+
+function stopScheduler() {
+  if (_schedulerHandle) { clearInterval(_schedulerHandle); _schedulerHandle = null; }
 }
 
 // Load persisted jobs on startup.

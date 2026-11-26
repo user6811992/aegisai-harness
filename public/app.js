@@ -470,6 +470,7 @@ function ToolTimeline({ tools }) {
 
 function App() {
   const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
   const [currentSession, setCurrentSession] = useState('default');
   const [promptHistory, setPromptHistory] = useState([]);
   const [historyIdx, setHistoryIdx] = useState(-1);
@@ -495,7 +496,6 @@ function App() {
   const inputRef = useRef(null);
   const chatRef = useRef(null);
 
-  const THEMES = ['dark', 'light', 'high-contrast', 'solarized'];
   // Apply theme to document for CSS variable switching
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
@@ -623,7 +623,7 @@ function App() {
         const { done, value } = await reader.read();
         if (done) break;
         buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\\n\\n');
+        const lines = buffer.split('\n\n');
         buffer = lines.pop() || '';
         for (const line of lines) {
           if (!line.startsWith('data: ')) continue;
@@ -718,6 +718,8 @@ function App() {
   const [snippetSearch, setSnippetSearch] = useState('');
   const [snippetForm, setSnippetForm] = useState({ name: '', language: 'javascript', code: '', description: '' });
   const [showSandbox, setShowSandbox] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
+  const [showSnippets, setShowSnippets] = useState(false);
   const [sandboxCode, setSandboxCode] = useState('');
   const [sandboxLang, setSandboxLang] = useState('python');
   const [sandboxResult, setSandboxResult] = useState(null);
@@ -832,6 +834,7 @@ function App() {
     } catch (e) { toast('Sandbox failed: ' + e.message, 'error'); }
     finally { setSandboxRunning(false); }
   }
+  async function runCompare() {
     if (!comparePrompt.trim() || !compareModels.trim()) { toast('Enter a prompt and models', 'error'); return; }
     setComparing(true);
     try {
@@ -1190,7 +1193,7 @@ function App() {
               </table>
             ` : html`<p class="hint">No profiling data yet. Run an agent task first.</p>`}
             <div class="modal-actions">
-              <button onClick=${() => { require && 0; loadPerf(); }}>Refresh</button>
+              <button onClick=${() => { loadPerf(); }}>Refresh</button>
               <button onClick=${() => setShowPerf(false)}>Close</button>
             </div>
           </div>

@@ -1,38 +1,34 @@
 // src/profiler.js
 // Built-in performance profiler for agent runs. Tracks tool call durations,
 // token usage over time, and identifies bottlenecks.
-const spans = [];
-const toolStats = new Map(); // name -> { count, totalMs, minMs, maxMs }
-let runStart = 0;
-let currentRun = null;
-
 function startRun(label) {
   runStart = Date.now();
-  currentRun = { label: label || 'run', start: runStart, tools: [], tokens: 0, iterations: 0 };
-  spans.length = 0;
-  toolStats.clear();
+  currentRun = { label: label || 'run', start: runStart, tools: [], tokens: 0, iterations: 0, spans: [], toolStats: new Map() };
   return currentRun;
 }
 
 function recordTool(name, durationMs, ok) {
-  const entry = { name, durationMs, ok: ok !== false, ts: Date.now() - runStart };
-  spans.push(entry);
-  const stat = toolStats.get(name) || { count: 0, totalMs: 0, minMs: Infinity, maxMs: 0, errors: 0 };
+  if (!currentRun) return;
+  const entry = { name, durationMs, ok: ok !== false, ts: Date.now() - currentRun.start };
+  currentRun.spans.push(entry);
+  const stat = currentRun.toolStats.get(name) || { count: 0, totalMs: 0, minMs: Infinity, maxMs: 0, errors: 0 };
   stat.count++;
   stat.totalMs += durationMs;
   stat.minMs = Math.min(stat.minMs, durationMs);
   stat.maxMs = Math.max(stat.maxMs, durationMs);
   if (ok === false) stat.errors++;
-  toolStats.set(name, stat);
-  if (currentRun) currentRun.tools.push(entry);
+  currentRun.toolStats.set(name, stat);
+  currentRun.tools.push(entry);
 }
 
 function recordTokens(n) { if (currentRun) currentRun.tokens += (n || 0); }
 function recordIteration() { if (currentRun) currentRun.iterations++; }
 
 function report() {
-  const totalMs = Date.now() - runStart;
-  const sorted = Array.from(toolStats.entries()).map(([name, s]) => ({
+  const run = currentRun;
+  if (!run) return { label: 'unknown', totalMs: 0, iterations: 0, tokens: 0, toolCalls: 0, uniqueTools: 0, topBottleneck: null, tools: [], spans: [] };
+  const totalMs = Date.now() - run.start;
+  const sorted = Array.from(run.toolStats.entries()).map(([name, s]) => ({
     name,
     count: s.count,
     totalMs: s.totalMs,
@@ -45,21 +41,19 @@ function report() {
 
   const topBottleneck = sorted.length > 0 ? sorted[0] : null;
   return {
-    label: currentRun ? currentRun.label : 'unknown',
+    label: run.label,
     totalMs,
-    iterations: currentRun ? currentRun.iterations : 0,
-    tokens: currentRun ? currentRun.tokens : 0,
-    toolCalls: spans.length,
-    uniqueTools: toolStats.size,
+    iterations: run.iterations,
+    tokens: run.tokens,
+    toolCalls: run.spans.length,
+    uniqueTools: run.toolStats.size,
     topBottleneck,
     tools: sorted,
-    spans: spans.slice(-50),
+    spans: run.spans.slice(-50),
   };
 }
 
 function reset() {
-  spans.length = 0;
-  toolStats.clear();
   currentRun = null;
   runStart = 0;
 }

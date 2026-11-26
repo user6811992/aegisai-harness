@@ -13,18 +13,23 @@ const LANGUAGES = {
   'rust': { image: 'rust:1.77', runCmd: (f) => { const out = f.replace(/\.rs$/, ''); return ['sh', '-c', 'rustc ' + f + ' -o ' + out + ' && ' + out]; }, ext: '.rs', localCmd: 'rustc' },
 };
 
+let _runtimeCache = null;
 function detectRuntime() {
+  if (_runtimeCache) return _runtimeCache;
   try {
     const { execSync } = require('child_process');
     execSync('docker --version', { stdio: 'ignore', timeout: 5000 });
-    return 'docker';
+    _runtimeCache = 'docker';
+    return _runtimeCache;
   } catch (e) {}
   try {
     const { execSync } = require('child_process');
     execSync('podman --version', { stdio: 'ignore', timeout: 5000 });
-    return 'podman';
+    _runtimeCache = 'podman';
+    return _runtimeCache;
   } catch (e) {}
-  return 'local';
+  _runtimeCache = 'local';
+  return _runtimeCache;
 }
 
 function run(code, lang, opts) {

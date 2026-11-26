@@ -12,7 +12,9 @@ function register(event, handler) {
 function verifySignature(payload, signature, secret) {
   if (!secret) return true;
   const hmac = crypto.createHmac('sha256', secret).update(payload).digest('hex');
-  return 'sha256=' + hmac === signature;
+  const expected = 'sha256=' + hmac;
+  if (signature.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }
 
 async function handle(event, payload, opts) {
@@ -24,7 +26,7 @@ async function handle(event, payload, opts) {
     model: opts.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
     messages: [{ role: 'user', content: prompt }],
     projectRoot: opts.projectRoot || process.cwd(),
-    autoApprove: opts.autoApprove !== false,
+    autoApprove: opts.autoApprove === true,
     onEvent: opts.onEvent || (() => {}),
   });
   return { ok: true, event, summary: (r.final && r.final.final) || '', toolLog: r.toolLog || [] };
