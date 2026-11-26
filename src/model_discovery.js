@@ -58,6 +58,12 @@ function detectBackend() {
   return 'generic';
 }
 
+function splitShardInfo(name) {
+  const m = String(name || '').match(/^(.*)-(\d{5})-of-(\d{5})\.gguf$/i);
+  if (!m) return null;
+  return { base: m[1], index: parseInt(m[2], 10), total: parseInt(m[3], 10) };
+}
+
 function scan(roots, maxFiles, backend) {
   // If no roots provided, use backend-specific defaults
   if (!roots || (Array.isArray(roots) && roots.length === 0)) {
@@ -115,7 +121,37 @@ function scan(roots, maxFiles, backend) {
     }
   } catch (e) {}
 
-  return found;
+  // Split GGUF models are one model in several shards. llama.cpp loads the
+  // rest automatically when pointed at the first shard, so list one entry
+  // instead of every shard.
+  const groups = new Map();
+  const output = [];
+  for (const f of found) {
+    const info = splitShardInfo(f.name);
+    if (!info) { output.push(f); continue; }
+    const key = path.dirname(f.path) + '|' + info.base;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push({ file: f, info });
+  }
+  for (const group of groups.values()) {
+    group.sort((a, b) => a.info.index - b.info.index);
+    if (group[0].info.index !== 1) {
+      output.push(...group.map((x) => x.file));
+      continue;
+    }
+    const first = group[0];
+    let totalBytes = 0;
+    for (const item of group) {
+      try { totalBytes += fs.statSync(item.file.path).size; }
+      catch (e) { totalBytes += Math.round((item.file.sizeGB || 0) * 1024 ** 3); }
+    }
+    output.push(Object.assign({}, first.file, {
+      sizeGB: +(totalBytes / 1024 ** 3).toFixed(2),
+      split: { index: 1, total: first.info.total, shards: group.map((x) => x.file.path) },
+    }));
+  }
+
+  return output;
 }
 
 function huggingFacePull(repo, filename) {
