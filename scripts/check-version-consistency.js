@@ -28,6 +28,7 @@ function check() {
   expect('README.md', /Status: v([\d.]+)/, 'status version');
   expect('llms.txt', /offline-first\. v([\d.]+)\./, 'catalog version');
   expect('CHANGELOG.md', /^## \[([\d.]+)\]/m, 'latest changelog entry');
+  expect('ROADMAP.md', /Current version:\*\*\s*v([\d.]+)/, 'current version');
 
   const srcVersion = read('src/version.js');
   if (!srcVersion || !srcVersion.includes(`'${version}'`)) {
