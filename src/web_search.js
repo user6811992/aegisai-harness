@@ -43,6 +43,39 @@ const ENGINES = {
       return { results, query };
     } catch (e) { return { results: [], error: String(e.message || e) }; }
   },
+  startpage: async (query, limit) => {
+    try {
+      const r = await fetch('https://www.startpage.com/sp/search?query=' + encodeURIComponent(query || ''), { signal: AbortSignal.timeout(12000), headers: { 'User-Agent': 'Mozilla/5.0 (AegisAiHarness/1.0)' } });
+      if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
+      const html = await r.text();
+      const results = [];
+      const re = /<a[^>]+class="w-gl__result-title"[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<p[^>]+class="w-gl__description"[^>]*>([\s\S]*?)<\/p>/gi;
+      let m;
+      while ((m = re.exec(html)) && results.length < limit) {
+        results.push({ title: strip(m[2]), url: m[1], snippet: strip(m[3]) });
+      }
+      if (results.length === 0) {
+        // fallback generic anchor parse
+        const re2 = /<a[^>]+href="(https?:\/\/[^"]+)"[^>]*>([^<]{3,80})<\/a>/gi;
+        let m2;
+        while ((m2 = re2.exec(html)) && results.length < limit) {
+          if (!/startpage\.com/.test(m2[1])) results.push({ title: strip(m2[2]), url: m2[1], snippet: '' });
+        }
+      }
+      return { results, query };
+    } catch (e) { return { results: [], error: String(e.message || e) }; }
+  },
+  firecrawl: async (query, limit) => {
+    const key = process.env.FIRECRAWL_API_KEY;
+    if (!key) return { results: [], error: 'FIRECRAWL_API_KEY not set' };
+    try {
+      const r = await fetch('https://api.firecrawl.dev/v1/search', { method: 'POST', signal: AbortSignal.timeout(15000), headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ query, limit }) });
+      if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
+      const d = await r.json();
+      const results = (d.data || d.results || []).slice(0, limit).map((x) => ({ title: x.title || x.metadata && x.metadata.title, url: x.url, snippet: x.description || x.markdown && x.markdown.slice(0, 200) }));
+      return { results, query };
+    } catch (e) { return { results: [], error: String(e.message || e) }; }
+  },
 };
 
 function resolveEngine(name) {

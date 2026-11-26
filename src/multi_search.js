@@ -4,7 +4,9 @@ const ws = require('./web_search');
 const { craap } = require('./deep_research');
 
 const ENGINES = [{ name: 'duckduckgo', fn: (q) => ws.search(q, 8, 'duckduckgo') }];
+ENGINES.push({ name: 'startpage', fn: (q) => ws.search(q, 8, 'startpage') });
 if (process.env.BRAVE_API_KEY) ENGINES.push({ name: 'brave', fn: (q) => ws.search(q, 8, 'brave') });
+if (process.env.FIRECRAWL_API_KEY) ENGINES.push({ name: 'firecrawl', fn: (q) => ws.search(q, 8, 'firecrawl') });
 if (process.env.SEARX_URL) ENGINES.push({ name: 'searx', fn: async (q) => {
   try {
     const r = await fetch(process.env.SEARX_URL + '/search?q=' + encodeURIComponent(q) + '&format=json', { signal: AbortSignal.timeout(12000) });

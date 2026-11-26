@@ -2,6 +2,11 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.8] - 2026-11-26
+
+### Added
+- Search engines: Startpage and Firecrawl support added to web_search/multi_search.
+
 ## [1.0.7] - 2026-11-26
 
 ### Added
