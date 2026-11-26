@@ -2,6 +2,11 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.6] - 2026-11-26
+
+### Fixed
+- Chat: deterministic commands respond as SSE when stream:true; backend alias normalization and validation.
+
 ## [1.0.5] - 2026-11-26
 
 ### Fixed

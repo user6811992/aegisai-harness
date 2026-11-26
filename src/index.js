@@ -325,6 +325,13 @@ async function main() {
             const raw = mBackend[1].trim();
             if (!b.isSupportedBackend(raw)) {
               const reply = 'Unknown backend: ' + raw;
+              if (stream) {
+                res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+                res.write('data: ' + JSON.stringify({ type: 'token', content: reply }) + '\n\n');
+                res.write('data: ' + JSON.stringify({ type: 'done', reply, toolLog: [] }) + '\n\n');
+                try { res.end(); } catch (e) {}
+                return;
+              }
               sendJson(res, 200, { reply, toolLog: [] });
               return;
             }
@@ -345,6 +352,13 @@ async function main() {
             const updated = (Array.isArray(history) ? history : []).concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: __cmdReply }]);
             try { rememberSession(sid, updated); } catch (e) {}
             try { sessionToolLogs.set(sid, []); } catch (e) {}
+            if (stream) {
+              res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+              res.write('data: ' + JSON.stringify({ type: 'token', content: __cmdReply }) + '\n\n');
+              res.write('data: ' + JSON.stringify({ type: 'done', reply: __cmdReply, toolLog: [] }) + '\n\n');
+              try { res.end(); } catch (e) {}
+              return;
+            }
             sendJson(res, 200, { reply: __cmdReply, toolLog: [] });
             return;
           }

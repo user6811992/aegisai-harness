@@ -80,9 +80,12 @@ const BACKEND_ALIASES = {
   'llama-cpp': 'llamacpp',
   'llama_cpp': 'llamacpp',
   'llama cpp': 'llamacpp',
+  'llama.cpp!': 'llamacpp',
   'lm studio': 'lmstudio',
   'lm-studio': 'lmstudio',
   'lm_studio': 'lmstudio',
+  'open-ai': 'openai',
+  'open ai': 'openai',
 };
 const SUPPORTED_BACKENDS = ['ollama', 'llamacpp', 'lmstudio', 'openai', 'router', 'strata', 'robin', 'hyperqwen', 'exllamav3'];
 
@@ -93,6 +96,10 @@ function normalizeBackendType(type) {
 
 function isSupportedBackend(type) {
   return SUPPORTED_BACKENDS.includes(normalizeBackendType(type));
+}
+
+function isKnownBackend(type) {
+  return isSupportedBackend(type);
 }
 
 function setBackend(type, url) {
@@ -332,4 +339,4 @@ async function healthCheck() {
   } catch (e) { return false; }
 }
 
-module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen, DEFAULT_URLS, normalizeBackendType, isSupportedBackend, SUPPORTED_BACKENDS };
+module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen, DEFAULT_URLS, normalizeBackendType, isSupportedBackend, isKnownBackend, SUPPORTED_BACKENDS };
