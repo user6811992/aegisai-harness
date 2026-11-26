@@ -2,10 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.12] - 2026-11-26
+
+### Fixed
+- Issue #184: v1.0.11 does not include fix commit; 10 issues still reproduce in fresh install.
+- Resolved: version tag mismatch; all validations from v1.0.11 now present on main.
+
 ## [1.0.11] - 2026-11-26
 
 ### Added
 - Tor/proxy support for web requests via AEGISAI_TOR_PROXY/TOR_PROXY (curl-backed, SOCKS/HTTP).
+- Persistent shell session module (src/persistent_shell.js) for stateful command execution.
 
 ## [1.0.10] - 2026-11-26
 

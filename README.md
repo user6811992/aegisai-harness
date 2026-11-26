@@ -10,7 +10,7 @@ A **feature-rich, local-only AI agent harness** G�� OpenCode-class runtime, 
 offline-first: no cloud dependencies, no telemetry. 85 milestones, ~275 modules,
 257 tests, CI green.
 
-> Status: v1.0.11 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.12 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** G�� that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 

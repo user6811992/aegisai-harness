@@ -1,6 +1,6 @@
 {
   "name": "aegisai-harness",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "description": "AegisAi Harness — feature-rich, local-only AI agent harness",
   "type": "commonjs",
   "main": "src/index.js",
