@@ -58,7 +58,7 @@ function ToastContainer() {
     };
   }, []);
   return html`
-    <div class="toast-container">
+    <div class="toast-container" role="status" aria-live="polite" aria-atomic="true">
       ${toasts.map((t) => html`<div class=${'toast toast-' + t.type}>${t.msg}</div>`)}
     </div>
   `;
@@ -535,6 +535,17 @@ function App() {
     if (modal) {
       const focusable = modal.querySelectorAll('button, input, textarea, select, a[href]');
       if (focusable.length > 0) setTimeout(() => focusable[0].focus(), 50);
+      // Focus trap: Tab cycles within modal.
+      const trap = (e) => {
+        if (e.key !== 'Tab') return;
+        const els = modal.querySelectorAll('button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]');
+        if (els.length === 0) return;
+        const first = els[0], last = els[els.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      };
+      modal.addEventListener('keydown', trap);
+      return () => modal.removeEventListener('keydown', trap);
     }
   }, [showCompare, showSnippets, showSandbox, showWebhooks, showScheduled, showPerf, showSearch, showFiles, showHelp, showConfig, showPalette]);
 
