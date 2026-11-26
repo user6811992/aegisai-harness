@@ -1018,6 +1018,17 @@ function App() {
                     <tr><td>Status</td>${compareResult.comparison.results.map((r) => html`<td class=${r.ok ? 'ok' : 'err'}>${r.ok ? '✓' : '✗'}</td>`)}</tr>
                   </tbody>
                 </table>
+                <div class="compare-chart">
+                  ${compareResult.comparison.results.map((r, i) => {
+                    const maxDur = Math.max(...compareResult.comparison.results.map((x) => x.ok ? x.duration : 0));
+                    const pct = maxDur > 0 ? (r.ok ? (r.duration / maxDur * 100) : 0) : 0;
+                    return html`<div class="chart-bar">
+                      <span class="chart-label">${r.model}</span>
+                      <div class="chart-track"><div class="chart-fill" style="width:${pct}%"></div></div>
+                      <span class="chart-value">${r.ok ? r.duration + 'ms' : 'err'}</span>
+                    </div>`;
+                  })}
+                </div>
               </div>
             ` : null}
           </div>

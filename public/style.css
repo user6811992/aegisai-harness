@@ -1,4 +1,9 @@
-.skip-link {
+.compare-chart { margin-top: 12px; }
+.chart-bar { display: flex; align-items: center; gap: 8px; margin: 4px 0; }
+.chart-label { min-width: 120px; font-size: 0.85em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chart-track { flex: 1; height: 16px; background: var(--border, #30363d); border-radius: 4px; overflow: hidden; }
+.chart-fill { height: 100%; background: var(--accent, #58a6ff); border-radius: 4px; transition: width 0.3s; }
+.chart-value { min-width: 60px; font-size: 0.85em; text-align: right; }
   position: absolute;
   top: -40px;
   left: 0;
