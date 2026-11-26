@@ -1,6 +1,8 @@
 // src/profiler.js
 // Built-in performance profiler for agent runs. Tracks tool call durations,
 // token usage over time, and identifies bottlenecks.
+let currentRun = null;
+let runStart = 0;
 function startRun(label) {
   runStart = Date.now();
   currentRun = { label: label || 'run', start: runStart, tools: [], tokens: 0, iterations: 0, spans: [], toolStats: new Map() };

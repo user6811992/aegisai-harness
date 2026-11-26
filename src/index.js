@@ -317,6 +317,7 @@ async function main() {
           const stream = parsed.stream === true;
           const autoApprove = process.env.AEGISAI_WEB_AUTO_APPROVE === 'true';
           const __msg = String(parsed.message || '').trim();
+          if (__msg.length > 32768) { sendJson(res, 413, { error: 'message too large (max 32768 chars)' }); return; }
           // Deterministic chat commands.
           let __cmdReply = null;
           const mBackend = __msg.match(/^\/backend\s+(.+?)\s*$/i) || __msg.match(/^change the backend to\s+(.+?)\s*$/i);
@@ -503,7 +504,8 @@ async function main() {
           const sid = parsed.sessionId || 'default';
           const history = getSessionMessages(sid);
           if (!history || history.length === 0) { sendJson(res, 404, { error: 'session not found or empty' }); return; }
-          const format = parsed.format || 'markdown';
+          const format = parsed.format;
+          if (format !== 'markdown' && format !== 'json' && format !== 'pdf') { sendJson(res, 400, { error: 'format must be markdown, json, or pdf' }); return; }
           const meta = { title: parsed.title, model: process.env.AEGISAI_MODEL || 'llama3.2:3b', date: new Date().toISOString() };
           let outPath = parsed.outputPath;
           if (outPath) {
@@ -564,6 +566,8 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/pentest-eval') {
           const parsed = await readJson(req);
+          if (!Array.isArray(parsed.ids)) { sendJson(res, 400, { error: 'ids must be an array' }); return; }
+          if (!parsed.ids.every((i) => typeof i === 'string')) { sendJson(res, 400, { error: 'ids must be an array of strings' }); return; }
           const r = await require('./pentest_eval').run({ ids: parsed.ids });
           sendJson(res, 200, r);
           return;
@@ -753,7 +757,8 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/doc-convert') {
           const parsed = await readJson(req);
-          if (!parsed.path) { sendJson(res, 400, { error: 'path required' }); return; }
+          if (typeof parsed.path !== 'string') { sendJson(res, 400, { error: 'path must be a string' }); return; }
+          if (!parsed.path.trim()) { sendJson(res, 400, { error: 'path must not be empty' }); return; }
           const r = require('./doc_convert').toMarkdown(assertAllowedPath(parsed.path));
           sendJson(res, 200, { format: r.format, markdown: r.markdown.slice(0, 200000), bytes: r.markdown.length });
           return;
@@ -865,7 +870,11 @@ async function main() {
       }
       if (req.method === 'POST' && req.url.split('?')[0] === '/api/snippets') {
         const parsed = await readJson(req);
-        if (!parsed.code && !parsed.name) { sendJson(res, 400, { error: 'code or name required' }); return; }
+        if (typeof parsed.name !== 'string') { sendJson(res, 400, { error: 'name must be a string' }); return; }
+        if (parsed.name.length > 128) { sendJson(res, 400, { error: 'name too long' }); return; }
+        if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(parsed.name)) { sendJson(res, 400, { error: 'name must match ^[a-z0-9][a-z0-9-]{0,127}$' }); return; }
+        if (typeof parsed.code !== 'string') { sendJson(res, 400, { error: 'code must be a string' }); return; }
+        if (parsed.code.length > 65536) { sendJson(res, 400, { error: 'code too long' }); return; }
         const r = require('./snippets').save(parsed);
         sendJson(res, 200, r);
         return;
@@ -883,13 +892,18 @@ async function main() {
         if (!parsed.session || !parsed.session.id) { sendJson(res, 400, { error: 'session with id required' }); return; }
         const s = parsed.session;
         if (typeof s.id !== 'string' || !s.id.trim()) { sendJson(res, 400, { error: 'session id must be a non-empty string' }); return; }
+        if (s.id.length > 128) { sendJson(res, 400, { error: 'session id too long' }); return; }
         if (s.title !== undefined && typeof s.title !== 'string') { sendJson(res, 400, { error: 'title must be a string' }); return; }
+        if (s.title !== undefined && s.title.length > 200) { sendJson(res, 400, { error: 'title too long' }); return; }
         if (s.tags !== undefined && (!Array.isArray(s.tags) || !s.tags.every((t) => typeof t === 'string'))) { sendJson(res, 400, { error: 'tags must be an array of strings' }); return; }
-        if (parsed.overwrite !== undefined && typeof parsed.overwrite !== 'boolean') { sendJson(res, 400, { error: 'overwrite must be a boolean' }); return; }
+        if (s.tags !== undefined) { if (s.tags.length > 100) { sendJson(res, 400, { error: 'too many tags' }); return; } s.tags.forEach((t, i) => { if (t.length > 200) { sendJson(res, 400, { error: 'tag ' + i + ' too long' }); return; } }); }
         if (!Array.isArray(s.messages)) { sendJson(res, 400, { error: 'messages must be an array' }); return; }
+        if (s.messages.length > 500) { sendJson(res, 400, { error: 'too many messages' }); return; }
         for (const m of s.messages) {
           if (!m || typeof m !== 'object' || Array.isArray(m)) { sendJson(res, 400, { error: 'each message must be an object' }); return; }
           if (typeof m.role !== 'string' || typeof m.content !== 'string') { sendJson(res, 400, { error: 'message must have string role and content' }); return; }
+          if (m.role.length > 100) { sendJson(res, 400, { error: 'message role too long' }); return; }
+          if (m.content.length > 10000) { sendJson(res, 400, { error: 'message content too long' }); return; }
         }
         const existing = sessions.get(s.id);
         let dbExists = false;
@@ -942,7 +956,10 @@ async function main() {
       }
       if (req.method === 'POST' && req.url.split('?')[0] === '/api/scheduled-tasks') {
         const parsed = await readJson(req);
-        if (!parsed.prompt && !parsed.name) { sendJson(res, 400, { error: 'prompt or name required' }); return; }
+        if (typeof parsed.prompt !== 'string' || !parsed.prompt.trim()) { sendJson(res, 400, { error: 'prompt must be a non-empty string' }); return; }
+        if (parsed.prompt.length > 500) { sendJson(res, 400, { error: 'prompt too long' }); return; }
+        if (typeof parsed.cron !== 'string') { sendJson(res, 400, { error: 'cron must be a string' }); return; }
+        if (!/^[\w\s\d,\-\*\/]+$/.test(parsed.cron)) { sendJson(res, 400, { error: 'cron must be a valid cron expression' }); return; }
         const r = require('./scheduled_tasks').create(parsed);
         sendJson(res, 200, r);
         return;
@@ -1035,7 +1052,7 @@ async function main() {
             size: e.isFile() ? (fs.statSync(path.join(dir, e.name)).size) : 0,
             path: path.join(dir, e.name),
           })).sort((a, b) => (a.type === b.type ? a.name.localeCompare(b.name) : (a.type === 'dir' ? -1 : 1)));
-        } catch (e) {}
+        } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); }
         sendJson(res, 200, { dir, entries });
         return;
       }
@@ -1062,11 +1079,15 @@ async function main() {
         return;
       }
       if (req.method === 'POST' && req.url.split('?')[0] === '/api/projects') {
-        const parsed = await readJson(req);
-        const p = require('./projects').create(parsed.name, parsed.instructions);
-        sendJson(res, 200, { project: p });
-        return;
-      }
+          const parsed = await readJson(req);
+          if (typeof parsed.name !== 'string') { sendJson(res, 400, { error: 'name must be a string' }); return; }
+          if (parsed.name.length > 128) { sendJson(res, 400, { error: 'name too long' }); return; }
+          if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(parsed.name)) { sendJson(res, 400, { error: 'name must match ^[a-z0-9][a-z0-9-]{0,127}$' }); return; }
+          if (typeof parsed.instructions !== 'string') { sendJson(res, 400, { error: 'instructions must be a string' }); return; }
+          const p = require('./projects').create(parsed.name, parsed.instructions);
+          sendJson(res, 200, { project: p });
+          return;
+        }
       if (req.method === 'GET' && req.url.split('?')[0] === '/api/token-dashboard') {
         sendJson(res, 200, require('./token_dashboard').summary());
         return;
@@ -1144,12 +1165,19 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/skills') {
           const parsed = await readJson(req);
+          if (typeof parsed.name !== 'string') { sendJson(res, 400, { error: 'name must be a string' }); return; }
+          if (parsed.name.length > 128) { sendJson(res, 400, { error: 'name too long' }); return; }
+          if (!/^[a-z0-9][a-z0-9-]{0,127}$/.test(parsed.name)) { sendJson(res, 400, { error: 'name must match ^[a-z0-9][a-z0-9-]{0,127}$' }); return; }
+          if (typeof parsed.description !== 'string') { sendJson(res, 400, { error: 'description must be a string' }); return; }
+          if (parsed.description.length > 500) { sendJson(res, 400, { error: 'description too long' }); return; }
+          if (typeof parsed.code !== 'string') { sendJson(res, 400, { error: 'code must be a string' }); return; }
+          if (parsed.code.length > 65536) { sendJson(res, 400, { error: 'code too long' }); return; }
           let ok = false;
           try {
             db.get().prepare('INSERT OR REPLACE INTO skills (name, description, code, created, updated) VALUES (?,?,?,?,?)')
               .run(parsed.name, parsed.description || '', parsed.code || '', new Date().toISOString(), new Date().toISOString());
             ok = true;
-          } catch (e) {}
+          } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
           sendJson(res, 200, { ok });
           return;
         }
@@ -1161,8 +1189,14 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/memories') {
           const parsed = await readJson(req);
+          if (typeof parsed.text !== 'string') { sendJson(res, 400, { error: 'text must be a string' }); return; }
+          if (parsed.text.length > 10000) { sendJson(res, 400, { error: 'text too long' }); return; }
+          const tags = parsed.tags || [];
+          if (!Array.isArray(tags)) { sendJson(res, 400, { error: 'tags must be an array' }); return; }
+          if (tags.length > 100) { sendJson(res, 400, { error: 'too many tags' }); return; }
+          tags.forEach((t, i) => { if (typeof t !== 'string' || t.length > 200) { sendJson(res, 400, { error: 'tag ' + i + ' invalid' }); return; } });
           let ok = false;
-          try { db.saveMemory({ text: parsed.text, tags: parsed.tags || [] }); ok = true; } catch (e) {}
+          try { db.saveMemory({ text: parsed.text, tags }); ok = true; } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
           sendJson(res, 200, { ok });
           return;
         }
@@ -1218,9 +1252,21 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/config') {
           const parsed = await readJson(req);
-          if (parsed.projectRootAllowlist !== undefined) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
-          if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
-          if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;
+          if (parsed.projectRootAllowlist !== undefined) {
+            if (typeof parsed.projectRootAllowlist !== 'string') { sendJson(res, 400, { error: 'projectRootAllowlist must be a string' }); return; }
+            if (parsed.projectRootAllowlist.length > 1000) { sendJson(res, 400, { error: 'projectRootAllowlist too long' }); return; }
+            process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
+          }
+          if (parsed.sttUrl !== undefined) {
+            if (typeof parsed.sttUrl !== 'string') { sendJson(res, 400, { error: 'sttUrl must be a string' }); return; }
+            if (parsed.sttUrl.length > 500) { sendJson(res, 400, { error: 'sttUrl too long' }); return; }
+            process.env.STT_URL = parsed.sttUrl;
+          }
+          if (parsed.ttsUrl !== undefined) {
+            if (typeof parsed.ttsUrl !== 'string') { sendJson(res, 400, { error: 'ttsUrl must be a string' }); return; }
+            if (parsed.ttsUrl.length > 500) { sendJson(res, 400, { error: 'ttsUrl too long' }); return; }
+            process.env.TTS_URL = parsed.ttsUrl;
+          }
           for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'AEGISAI_TOKEN', 'AEGISAI_WEB_AUTO_APPROVE', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
             if (parsed[k] !== undefined) {
               if (typeof parsed[k] !== 'string') { sendJson(res, 400, { error: k + ' must be a string' }); return; }
@@ -1228,6 +1274,18 @@ async function main() {
                 const b = require('./backends');
                 if (!b.isSupportedBackend(parsed[k])) { sendJson(res, 400, { error: 'unsupported backend type' }); return; }
                 process.env[k] = b.normalizeBackendType(parsed[k]);
+              } else if (k === 'BACKEND_URL' && parsed[k].length > 2000) {
+                sendJson(res, 400, { error: 'BACKEND_URL too long' }); return;
+              } else if (k === 'AEGISAI_MODEL' && parsed[k].length > 200) {
+                sendJson(res, 400, { error: 'AEGISAI_MODEL too long' }); return;
+              } else if (k === 'AEGISAI_TOKEN' && parsed[k].length > 200) {
+                sendJson(res, 400, { error: 'AEGISAI_TOKEN too long' }); return;
+              } else if (k === 'REA_BIN' && parsed[k].length > 200) {
+                sendJson(res, 400, { error: 'REA_BIN too long' }); return;
+              } else if (k === 'GHIDRA_MCP_URL' && parsed[k].length > 200) {
+                sendJson(res, 400, { error: 'GHIDRA_MCP_URL too long' }); return;
+              } else if (k === 'CRAFT_BIN' && parsed[k].length > 200) {
+                sendJson(res, 400, { error: 'CRAFT_BIN too long' }); return;
               } else {
                 process.env[k] = parsed[k];
               }
