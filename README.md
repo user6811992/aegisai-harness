@@ -10,7 +10,7 @@ A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, ~275 modules,
 257 tests, CI green.
 
-> Status: v1.0.2 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.3 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -55,23 +55,6 @@ Requires **Node.js 22.13+** (`node -v` to check) and a local backend (Ollama rec
 npm start -- --web
 # Open http://127.0.0.1:8080
 ```
-
-### Split GGUF models
-
-Some GGUF models ship as multiple shards, for example:
-
-```text
-model-00001-of-00002.gguf
-model-00002-of-00002.gguf
-```
-
-Point llama.cpp at the **first shard**; it loads the remaining shards automatically:
-
-```bash
-llama-server -m /models/model-00001-of-00002.gguf --host 127.0.0.1 --port 8081
-```
-
-The harness groups the shards into one entry in **Settings → Discover** and marks it `[gguf split 1/2]`. Do not select the `00002` shard directly. If you need a single file for Ollama, merge the shards first with `llama-gguf-split --merge`.
 
 ### Terminal UI
 

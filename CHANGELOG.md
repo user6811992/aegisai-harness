@@ -2,6 +2,11 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.3] - 2026-11-26
+
+### Added
+- Model discovery: detect and group split GGUF shards (`-NNNNN-of-NNNNN.gguf`) into a single model entry with summed size and `split` metadata; UI shows `[gguf split 1/2]`. README documents split GGUF usage.
+
 ## [1.0.2] - 2026-11-26
 
 ### Fixed
