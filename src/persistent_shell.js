@@ -80,6 +80,7 @@ function clearState(sessionId) {
 }
 
 function start(sessionId) {
+  sessionId = sessionId || 'default';
   // If shell already running for this session, return it
   if (shell && currentSessionId === sessionId) return shell;
 
