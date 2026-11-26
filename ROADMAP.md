@@ -4,7 +4,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
 - **Shipped:** v0.1â€“v1.0.8. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.12
+- **Current version:** v1.0.13
 - **Roadmap is edited as work lands** â€” each item is checked off in the Active backlog below when implemented.
 - **All complete** — v1.0.12 delivered with 12 of 12 roadmap items implemented.
 - [x] Persistent shell state — SQLite-backed state persistence implemented (buffer, exit code, session tracking); cross-call survival via .aegisai/ shell-state.db
@@ -99,4 +99,4 @@ These items need native toolchains or a concrete integration need before they ca
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.12
+- **Current version:** v1.0.13

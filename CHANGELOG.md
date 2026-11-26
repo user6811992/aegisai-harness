@@ -2,6 +2,12 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.13] - 2026-11-26
+
+### Fixed
+- Restored test compatibility in `src/persistent_shell.js`: `start()` now defaults the session ID to `'default'` so `ps.start()` / `ps.isRunning()` work when no session ID is supplied (commit 883113d).
+- Stopped tracking runtime state (`.aegisai/a2a-broker/state.json`); added `.aegisai/` to `.gitignore` so runtime/session state is never committed.
+
 ## [1.0.12] - 2026-11-26
 
 ### Fixed
