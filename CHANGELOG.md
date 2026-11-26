@@ -2,6 +2,12 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.14] - 2026-11-26
+
+### Fixed
+- Corrected mojibake/encoding corruption in ROADMAP.md and README.md (dashes rendered as "â€”"/"G??").
+- Updated stale documentation: README test count (257 -> 358), shipped-version range, and "Remaining / blocked" section now reflects all items complete.
+
 ## [1.0.13] - 2026-11-26
 
 ### Fixed

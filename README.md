@@ -6,12 +6,12 @@
 [![GitHub release](https://img.shields.io/github/v/release/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/releases)
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
-A **feature-rich, local-only AI agent harness** G�� OpenCode-class runtime, but
+A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, ~275 modules,
-257 tests, CI green.
+358 tests, CI green.
 
-> Status: v1.0.13 (see [ROADMAP.md](./ROADMAP.md)).
-> **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** G�� that project is deprecated; all features have been ported here.
+> Status: v1.0.14 (see [ROADMAP.md](./ROADMAP.md)).
+> **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
 ## What a harness is here
@@ -47,7 +47,7 @@ npm install
 npm start
 ```
 
-Requires **Node.js 22.13+** (`node -v` to check) and a local backend (Ollama recommended). The Windows installer does **not** bundle Node.js G�� install the LTS from [nodejs.org](https://nodejs.org) first and reopen your terminal so `node` is on PATH.
+Requires **Node.js 22.13+** (`node -v` to check) and a local backend (Ollama recommended). The Windows installer does **not** bundle Node.js — install the LTS from [nodejs.org](https://nodejs.org) first and reopen your terminal so `node` is on PATH.
 
 ### Web UI
 
@@ -71,7 +71,7 @@ Point llama.cpp at the **first shard**; it loads the remaining shards automatica
 llama-server -m /models/model-00001-of-00002.gguf --host 127.0.0.1 --port 8081
 ```
 
-The harness groups the shards into one entry in **Settings G�� Discover** and marks it `[gguf split 1/2]`. Do not select the `00002` shard directly. If you need a single file for Ollama, merge the shards first with `llama-gguf-split --merge`.
+The harness groups the shards into one entry in **Settings — Discover** and marks it `[gguf split 1/2]`. Do not select the `00002` shard directly. If you need a single file for Ollama, merge the shards first with `llama-gguf-split --merge`.
 
 ### Terminal UI
 
@@ -105,7 +105,7 @@ node src/index.js --json "your prompt here"
 bash packaging/build-binary.sh
 ```
 
-CI enforces `npm run check:version` so `package.json`, the installer filename, docs, and release tag always agree. Release assets include a `.sha256` checksum file G�� verify it before running an installer:
+CI enforces `npm run check:version` so `package.json`, the installer filename, docs, and release tag always agree. Release assets include a `.sha256` checksum file — verify it before running an installer:
 
 ```bash
 # PowerShell (in the download folder)
@@ -131,17 +131,17 @@ See [ROADMAP.md](./ROADMAP.md) for the full list. Key ones:
 
 See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick fixes:
 
-- **`.js` files open in Notepad / `node` is not recognized** G�� Node.js isn't installed or isn't on PATH. Install Node 22.13+ LTS from https://nodejs.org, reopen the terminal, verify `node -v`, then reinstall/retry. Double-clicking a `.js` file is not how the harness starts.
-- **Stale version after uninstalling** G�� the old runtime `node_modules` survives an Inno uninstall in older builds. Delete `%LOCALAPPDATA%\Programs\AegisAiHarness` (or `%LOCALAPPDATA%\AegisAiHarness`) before reinstalling. For npm: `npm uninstall -g aegisai-harness && npm cache clean --force`.
-- **Web UI is blank offline** G�� v0.68.0 vendors Preact/Tailwind locally; clear the browser cache if an older service worker is still serving stale assets.
-- **Web chat sends empty prompts** G�� fixed in v0.68.0; the browser now posts `message`, matching the server API.
+- **`.js` files open in Notepad / `node` is not recognized** — Node.js isn't installed or isn't on PATH. Install Node 22.13+ LTS from https://nodejs.org, reopen the terminal, verify `node -v`, then reinstall/retry. Double-clicking a `.js` file is not how the harness starts.
+- **Stale version after uninstalling** — the old runtime `node_modules` survives an Inno uninstall in older builds. Delete `%LOCALAPPDATA%\Programs\AegisAiHarness` (or `%LOCALAPPDATA%\AegisAiHarness`) before reinstalling. For npm: `npm uninstall -g aegisai-harness && npm cache clean --force`.
+- **Web UI is blank offline** — v0.68.0 vendors Preact/Tailwind locally; clear the browser cache if an older service worker is still serving stale assets.
+- **Web chat sends empty prompts** — fixed in v0.68.0; the browser now posts `message`, matching the server API.
 
 ## Layout
 
 ```
 src/              150+ modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            257 tests (node:test)
+tests/            358 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page (GitHub Pages)
 ```
@@ -155,10 +155,10 @@ MIT
 Built with inspiration from the open-source community. See [ROADMAP.md](./ROADMAP.md) for the full list of explored projects and patterns.
 
 ### Prior art & inspiration
-- **Agent harnesses** G�� OpenCode, Claude Code, Aider, Cline, OpenHands, Goose, Codex, DeerFlow, Symphony, diggerhq
-- **MCP** G�� Model Context Protocol (modelcontextprotocol/servers, registry, extensions)
-- **Reverse engineering** G�� REA, Ghidra, Craft Anything, awesome-reverse-engineered, netvein
-- **Memory & learning** G�� bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
-- **Security** G�� Microsoft agent-governance-toolkit, spec-kitty
-- **Observability** G�� OpenTelemetry, SARIF, LangSmith, Langfuse
+- **Agent harnesses** — OpenCode, Claude Code, Aider, Cline, OpenHands, Goose, Codex, DeerFlow, Symphony, diggerhq
+- **MCP** — Model Context Protocol (modelcontextprotocol/servers, registry, extensions)
+- **Reverse engineering** — REA, Ghidra, Craft Anything, awesome-reverse-engineered, netvein
+- **Memory & learning** — bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
+- **Security** — Microsoft agent-governance-toolkit, spec-kitty
+- **Observability** — OpenTelemetry, SARIF, LangSmith, Langfuse
 ```
