@@ -377,6 +377,26 @@ function SessionSidebar({ open, onClose, onSelect }) {
     <div class="sidebar">
       <div class="sidebar-header">
         <h3>Sessions</h3>
+        <label class="btn-sm" style="cursor:pointer;margin-right:4px">
+          Import
+          <input type="file" accept=".json" style="display:none" onChange=${async (e) => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (ev) => {
+              try {
+                const data = JSON.parse(String(ev.target.result || '{}'));
+                const sess = data.session || data;
+                if (!sess.id) { toast('Invalid session file', 'error'); return; }
+                await API('/api/sessions/import', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ session: sess }) });
+                toast('Session imported: ' + sess.id, 'success');
+                load();
+              } catch (err) { toast('Import failed: ' + err.message, 'error'); }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+          }} />
+        </label>
         <button class="sidebar-close" onClick=${onClose}>×</button>
       </div>
       <input class="sidebar-search" value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="Search sessions..." />
@@ -668,6 +688,7 @@ function App() {
   const [webhookEvent, setWebhookEvent] = useState('push');
   const [webhookPayload, setWebhookPayload] = useState('{}');
   const [webhookResult, setWebhookResult] = useState(null);
+  const [webhookUrl, setWebhookUrl] = useState('');
   const [showScheduled, setShowScheduled] = useState(false);
   const [scheduledTasks, setScheduledTasks] = useState([]);
   const [schedForm, setSchedForm] = useState({ name: '', cron: 'every 5m', prompt: '', model: '' });
@@ -1026,7 +1047,8 @@ function App() {
         <div class="modal-backdrop" onClick=${() => setShowWebhooks(false)}>
           <div class="modal" style="max-width: 600px" onClick=${(e) => e.stopPropagation()}>
             <h2>Webhook Triggers</h2>
-            <p class="hint">POST to <code>/api/webhook?event=push</code> with a JSON payload. Set <code>AEGISAI_WEBHOOK_SECRET</code> for HMAC verification.</p>
+            <p class="hint">Webhook URL: <code>${window.location.origin}/api/webhook?event=push</code></p>
+            <p class="hint">Set <code>AEGISAI_WEBHOOK_SECRET</code> for HMAC verification. Events: push, pull_request, issues.</p>
             <label>Event
               <select value=${webhookEvent} onChange=${(e) => setWebhookEvent(e.target.value)} style="padding:6px;margin:4px 0;border:1px solid var(--border);border-radius:4px;background:var(--input);color:var(--fg)">
                 <option value="push">push</option><option value="pull_request">pull_request</option><option value="issues">issues</option>
@@ -1040,6 +1062,33 @@ function App() {
               <button onClick=${() => setShowWebhooks(false)}>Close</button>
             </div>
             ${webhookResult ? html`<pre class="sandbox-output">${JSON.stringify(webhookResult, null, 2).slice(0, 2000)}</pre>` : null}
+          </div>
+        </div>
+      ` : null}
+      ${showPerf ? html`
+        <div class="modal-backdrop" onClick=${() => setShowPerf(false)}>
+          <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
+            <h2>Performance Dashboard</h2>
+            ${perfReport ? html`
+              <div class="perf-summary" style="display:flex;gap:12px;flex-wrap:wrap;margin:8px 0">
+                <span class="hint">Total: ${perfReport.totalMs}ms</span>
+                <span class="hint">Iterations: ${perfReport.iterations}</span>
+                <span class="hint">Tokens: ${perfReport.tokens}</span>
+                <span class="hint">Tool calls: ${perfReport.toolCalls}</span>
+                <span class="hint">Unique tools: ${perfReport.uniqueTools}</span>
+                ${perfReport.topBottleneck ? html`<span class="hint">Top bottleneck: ${perfReport.topBottleneck.name} (${perfReport.topBottleneck.totalMs}ms)</span>` : null}
+              </div>
+              <table class="md-table">
+                <thead><tr><th>Tool</th><th>Count</th><th>Total ms</th><th>Avg ms</th><th>Errors</th><th>%</th></tr></thead>
+                <tbody>
+                  ${(perfReport.tools || []).map((t) => html`<tr><td>${t.name}</td><td>${t.count}</td><td>${t.totalMs}</td><td>${t.avgMs}</td><td>${t.errors}</td><td>${t.pctOfTotal}%</td></tr>`)}
+                </tbody>
+              </table>
+            ` : html`<p class="hint">No profiling data yet. Run an agent task first.</p>`}
+            <div class="modal-actions">
+              <button onClick=${() => loadPerf()}>Refresh</button>
+              <button onClick=${() => setShowPerf(false)}>Close</button>
+            </div>
           </div>
         </div>
       ` : null}
@@ -1122,7 +1171,7 @@ function App() {
         <button onClick=${() => { setShowWebhooks(true); }} title="Webhooks" aria-label="Webhooks">🔗</button>
         <button onClick=${() => { setShowScheduled(true); loadScheduled(); }} title="Scheduled tasks" aria-label="Scheduled tasks">⏰</button>
         <button onClick=${() => { setShowPerf(true); loadPerf(); }} title="Performance" aria-label="Performance dashboard">📊</button>
-        <button onClick=${() => setShowSandbox(true)} title="Code sandbox" aria-label="Open code sandbox">🧪</button>
+        <button onClick=${() => setShowPerf(true) || loadPerf()} title="Performance" aria-label="Performance dashboard">📊</button>
         <button onClick=${() => setShowSearch(true)} title="Search conversations" aria-label="Search conversations">🔍</button>
         <button onClick=${() => exportChat('markdown')} title="Export chat as Markdown" aria-label="Export chat as Markdown">📤</button>
         <button onClick=${() => setShowSnippets(true) || loadSnippets()} title="Snippets" aria-label="Open snippets">📝</button>

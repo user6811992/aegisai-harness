@@ -4,13 +4,13 @@
 [Setup]
 AppId={{8F3D1B2A-6C4E-4B9A-9D21-AE615A010001}}
 AppName=AegisAi Harness
-AppVersion=0.95.2
+AppVersion=0.96.0
 AppPublisher=AegisAi
 AppPublisherURL=https://github.com/user6811992/aegisai-harness
 DefaultDirName={autopf}\AegisAiHarness
 DefaultGroupName=AegisAi Harness
 OutputDir=..\..\dist
-OutputBaseFilename=AegisAi-Harness-0.95.2-Setup
+OutputBaseFilename=AegisAi-Harness-0.96.0-Setup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
