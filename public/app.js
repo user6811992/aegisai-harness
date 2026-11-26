@@ -311,7 +311,7 @@ function ConfigModal({ cfg, setCfg, onClose }) {
                 ${scanResults.slice(0, 30).map((m) => html`
                   <div class="scan-item">
                     <span class="model-name">${m.name}</span>
-                    <span class="hint">${m.sizeGB > 0 ? m.sizeGB + ' GB' : ''} ${m.type ? '[' + m.type + (m.split ? ' split ' + m.split.index + '/' + m.split.total : '') + ']' : ''}</span>
+                    <span class="hint">${m.sizeGB > 0 ? m.sizeGB + ' GB' : ''} ${m.type ? '[' + m.type + ']' : ''}</span>
                     ${m.type !== 'ollama' && m.path && !m.path.startsWith('ollama://') ? html`<button class="btn-sm" onClick=${() => { setLocal({ ...local, AEGISAI_MODEL: m.path }); toast('Selected ' + m.name, 'info'); }}>Use</button>` : null}
                   </div>
                 `)}
