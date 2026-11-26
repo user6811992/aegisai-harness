@@ -2,6 +2,11 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.5] - 2026-11-26
+
+### Fixed
+- Backend: normalize aliases (llama.cpp, llama-cpp, etc.) in chat commands, /api/backend, and /api/config; validate supported types.
+
 ## [1.0.4] - 2026-11-26
 
 ### Fixed

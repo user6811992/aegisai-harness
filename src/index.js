@@ -319,10 +319,16 @@ async function main() {
           const __msg = String(parsed.message || '').trim();
           // Deterministic chat commands.
           let __cmdReply = null;
-          const mBackend = __msg.match(/^\/backend\s+(\S+)\s*$/i) || __msg.match(/^change the backend to\s+(\S+)\s*$/i);
+          const mBackend = __msg.match(/^\/backend\s+(.+?)\s*$/i) || __msg.match(/^change the backend to\s+(.+?)\s*$/i);
           if (mBackend) {
             const b = require('./backends');
-            b.setBackend(mBackend[1], undefined);
+            const raw = mBackend[1].trim();
+            if (!b.isSupportedBackend(raw)) {
+              const reply = 'Unknown backend: ' + raw;
+              sendJson(res, 200, { reply, toolLog: [] });
+              return;
+            }
+            b.setBackend(b.normalizeBackendType(raw), undefined);
             process.env.BACKEND_TYPE = b.getType();
             process.env.BACKEND_URL = b.getUrl();
             try { const s = require('./settings').load(); s.BACKEND_TYPE = b.getType(); s.BACKEND_URL = b.getUrl(); if (process.env.AEGISAI_MODEL) s.AEGISAI_MODEL = process.env.AEGISAI_MODEL; require('./settings').save(s); } catch (e) {}
@@ -436,9 +442,11 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/backend') {
           const parsed = await readJson(req);
-          const type = (parsed && parsed.type) ? String(parsed.type).trim() : '';
-          if (!type) { sendJson(res, 400, { error: 'type required' }); return; }
+          const rawType = (parsed && parsed.type) ? String(parsed.type).trim() : '';
+          if (!rawType) { sendJson(res, 400, { error: 'type required' }); return; }
           const b = require('./backends');
+          if (!b.isSupportedBackend(rawType)) { sendJson(res, 400, { error: 'unsupported backend type' }); return; }
+          const type = b.normalizeBackendType(rawType);
           b.setBackend(type, parsed.url ? String(parsed.url) : undefined);
           process.env.BACKEND_TYPE = b.getType();
           process.env.BACKEND_URL = b.getUrl();
@@ -1202,7 +1210,13 @@ async function main() {
           for (const k of ['BACKEND_TYPE', 'BACKEND_URL', 'AEGISAI_MODEL', 'AEGISAI_TOKEN', 'AEGISAI_WEB_AUTO_APPROVE', 'REA_BIN', 'GHIDRA_MCP_URL', 'CRAFT_BIN']) {
             if (parsed[k] !== undefined) {
               if (typeof parsed[k] !== 'string') { sendJson(res, 400, { error: k + ' must be a string' }); return; }
-              process.env[k] = parsed[k];
+              if (k === 'BACKEND_TYPE') {
+                const b = require('./backends');
+                if (!b.isSupportedBackend(parsed[k])) { sendJson(res, 400, { error: 'unsupported backend type' }); return; }
+                process.env[k] = b.normalizeBackendType(parsed[k]);
+              } else {
+                process.env[k] = parsed[k];
+              }
             }
           }
           if (parsed.BACKEND_TYPE !== undefined || parsed.BACKEND_URL !== undefined) {
