@@ -9,6 +9,7 @@ const DEFAULT_URLS = {
   robin: 'http://127.0.0.1:8000',
   hyperqwen: 'http://127.0.0.1:8000',
   exllamav3: 'http://127.0.0.1:8000',
+  inproc: null, // ggml/llama.cpp in-process binding (no URL; uses GGMLBinding)
 };
 const state = {
   type: (process.env.BACKEND_TYPE || '').toLowerCase(),
@@ -87,7 +88,7 @@ const BACKEND_ALIASES = {
   'open-ai': 'openai',
   'open ai': 'openai',
 };
-const SUPPORTED_BACKENDS = ['ollama', 'llamacpp', 'lmstudio', 'openai', 'router', 'strata', 'robin', 'hyperqwen', 'exllamav3'];
+const SUPPORTED_BACKENDS = ['ollama', 'llamacpp', 'lmstudio', 'openai', 'router', 'strata', 'robin', 'hyperqwen', 'exllamav3', 'inproc'];
 
 function normalizeBackendType(type) {
   const t = String(type || '').trim().toLowerCase();
@@ -110,6 +111,8 @@ function setBackend(type, url) {
     if (url) state.url = url;
     else if (changed && DEFAULT_URLS[newType]) state.url = DEFAULT_URLS[newType];
     else if (!state.url && DEFAULT_URLS[newType]) state.url = DEFAULT_URLS[newType];
+    // Special: inproc has no URL
+    if (newType === 'inproc') state.url = 'inproc://ggml-binding';
   } else if (url) {
     state.url = url;
   }
@@ -126,6 +129,13 @@ async function detectBackend() {
   if (state.explicit) {
     if (!state.type) state.type = 'ollama';
     if (!state.url) state.url = 'http://127.0.0.1:11434';
+    return;
+  }
+  // Check for explicit inproc binding (ggml/llama.cpp in-process)
+  if (process.env.AEGISAI_BACKEND_TYPE === 'inproc') {
+    state.type = 'inproc';
+    state.url = 'inproc://ggml-binding';
+    state.explicit = true;
     return;
   }
   const probes = [
@@ -160,6 +170,19 @@ async function detectBackend() {
 }
 
 async function backendChatImpl(bodyObj, onChunk, signal) {
+  // In-process ggml/llama.cpp binding — use native model loading
+  if (state.type === 'inproc') {
+    const GGMLBinding = require('../ggml-binding');
+    const binding = new GGMLBinding({
+      modelPath: process.env.AEGISAI_MODEL || bodyObj.model || '',
+    });
+    await binding.load();
+    return await binding.generate(bodyObj.messages?.[bodyObj.messages.length - 1]?.content || '', {
+      maxTokens: bodyObj.maxTokens,
+      temperature: bodyObj.options?.temperature,
+    });
+  }
+
   if (state.type === 'router') {
     if (state.routerStrategy === 'capability') {
       const msgs = bodyObj.messages || [];
@@ -275,6 +298,8 @@ async function backendChatImpl(bodyObj, onChunk, signal) {
 }
 
 async function backendListModels() {
+  // In-process binding: return empty model list (models loaded via GGUF files)
+  if (state.type === 'inproc') { return { models: [] }; }
   if (!isOpenaiCompat()) {
     const r = await fetch(state.url + '/api/tags');
     if (!r.ok) throw new Error('Failed to list models: ' + r.status);
@@ -333,6 +358,8 @@ async function backendChat(bodyObj, onChunk, signal) {
 }
 
 async function healthCheck() {
+  // In-process binding always "healthy" once loaded
+  if (state.type === 'inproc') { return true; }
   try {
     const r = await fetch(state.url + (isOpenaiCompat() ? '/v1/models' : '/api/version'), { signal: AbortSignal.timeout(3000) });
     return r.ok;

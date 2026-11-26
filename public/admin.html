@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8" /><title>Admin — AegisAi Harness</title><link rel="stylesheet" href="/style.css" /></head><body>
+<div id="app">
+  <header class="topbar">
+    <h1>Admin Panel</h1>
+    <button onclick="location.href='/'>Back to Chat</button>
+    <button onclick="location.href='./plugins.html'">Plugins</button>
+  </header>
+
+  <div class="ctx-meter">Admin — AegisAi Harness v1.0.12</div>
+
+  <main class="chat">
+    <div id="admin-content">Loading admin...</div>
+  </main>
+
+  <footer class="composer">
+    <button onclick="location.href='/api/config'">Configuration</button>
+    <button onclick="location.href='/api/sessions'">Sessions</button>
+    <button onclick="location.href='/api/tenants'">Tenants</button>
+  </footer>
+</div>
+
+<script>
+async function load() {
+  // Fetch admin data from API endpoints
+  try {
+    // Sessions overview
+    const sR = await fetch('/api/sessions'); const sData = await sR.json();
+    const sessions = sData.sessions || [];
+
+    // Tenants overview
+    const tR = await fetch('/api/tenants'); const tData = await tR.json();
+    const tenants = tData.tenants || [];
+
+    // Render sessions
+    const content = document.getElementById('admin-content');
+    content.innerHTML = '';
+
+    if (sessions.length === 0 && tenants.length === 0) {
+      content.innerHTML = '<p>No active sessions or tenants.</p>';
+      return;
+    }
+
+    // Sessions section
+    const sSection = document.createElement('details');
+    sSection.className = 'think';
+    const sSummary = document.createElement('summary');
+    sSummary.textContent = `Sessions (${sessions.length})`;
+    sSection.appendChild(sSummary);
+
+    const sList = document.createElement('div');
+    sList.style.padding = '8px 12px';
+    sList.style.fontSize = '12px';
+    sList.style.opacity = '0.8';
+
+    if (sessions.length === 0) {
+      sList.textContent = 'No active sessions';
+    } else {
+      sessions.forEach(s => {
+        const sEl = document.createElement('div');
+        sEl.textContent = `Session: ${s.id || 'unknown'} — ${s.status || 'unknown'} — ${s.agent || 'unknown'}`;
+        sList.appendChild(sEl);
+      });
+    }
+    sSection.appendChild(sList);
+    content.appendChild(sSection);
+
+    // Tenants section
+    const tSection = document.createElement('details');
+    tSection.className = 'think';
+    const tSummary = document.createElement('summary');
+    tSummary.textContent = `Tenants (${tenants.length})`;
+    tSection.appendChild(tSummary);
+
+    const tList = document.createElement('div');
+    tList.style.padding = '8px 12px';
+    tList.style.fontSize = '12px';
+    tList.style.opacity = '0.8';
+
+    if (tenants.length === 0) {
+      tList.textContent = 'No tenants defined';
+    } else {
+      tenants.forEach(t => {
+        const tEl = document.createElement('div');
+        tEl.textContent = `Tenant: ${t.id} — ${t.name || 'unnamed'} — Quota: ${t.usage?.maxConcurrentTools || 0}/${t.quota?.maxConcurrentTools || 5}`;
+        tList.appendChild(tEl);
+      });
+    }
+    tSection.appendChild(tList);
+    content.appendChild(tSection);
+
+  } catch (e) {
+    const content = document.getElementById('admin-content');
+    content.innerHTML = '<p class="bubble error">Error loading admin data: ' + (e.message || e) + '</p>';
+    console.error('Admin panel error:', e);
+  }
+}
+
+load();
+
+// Live updates via EventSource
+const es = new EventSource('/api/admin-events');
+es.onmessage = (e) => {
+  const content = document.getElementById('admin-content');
+  const newEl = document.createElement('div');
+  newEl.className = 'bubble';
+  newEl.style.marginTop = '8px';
+  newEl.style.fontSize = '12px';
+  newEl.style.opacity = '0.7';
+  newEl.textContent = 'Live: ' + e.data;
+  content.appendChild(newEl);
+  content.scrollTop = content.scrollHeight;
+};
+es.onerror = () => { /* reconnect or silently fail */ };
+</script>
+</body></html>

@@ -267,6 +267,8 @@ async function runAgent(opts) {
     }
     iterations += 1;
     onEvent({ type: 'status', message: 'calling model' });
+    require('../profiler').recordIteration();
+    require('../profiler').recordTokens(data?.prompt_eval_count || 0 + data?.eval_count || 0);
     const iterSpan = tracer ? tracer.startSpan('iteration', { iteration: iterations }) : null;
     if (iterations === 1) await hooks.run('SessionStart', { hasTools: tools.length > 0, hasApproval: !!approvalHandler });
     await hooks.run('beforeModel', { messages: msgs, tools, iteration: iterations });
@@ -305,6 +307,7 @@ async function runAgent(opts) {
     let toolCalls = msg.tool_calls;
     const thinking = msg.thinking || msg.reasoning_content || '';
     totalTokens += (data.prompt_eval_count || 0) + (data.eval_count || 0);
+    require('../profiler').recordTokens(data.prompt_eval_count || 0 + data.eval_count || 0);
     totalTokensRef = totalTokens;
     if (iterSpan) tracer.endSpan(iterSpan, { tokens: data.eval_count || 0 });
 
