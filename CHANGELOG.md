@@ -2,6 +2,11 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.7] - 2026-11-26
+
+### Added
+- Web search: pluggable engines (DuckDuckGo, Brave, Searx) selectable via AEGISAI_SEARCH_ENGINE or env keys; multi_search includes configured engines.
+
 ## [1.0.6] - 2026-11-26
 
 ### Fixed
