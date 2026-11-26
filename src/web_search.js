@@ -7,7 +7,7 @@ const ENGINES = {
     if (process.env.AEGISAI_ALLOW_PRIVATE_URLS !== 'true' && !require('./url_validate').validate('https://duckduckgo.com').ok) return { results: [], error: 'search endpoint blocked' };
     const url = 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(query || '');
     try {
-      const r = await fetch(url, { signal: AbortSignal.timeout(12000), headers: { 'User-Agent': 'Mozilla/5.0 (AegisAiHarness/1.0)' } });
+      const r = await require('./tor_proxy').fetch(url, { signal: AbortSignal.timeout(12000), headers: { 'User-Agent': 'Mozilla/5.0 (AegisAiHarness/1.0)' } });
       if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
       const html = await r.text();
       const results = [];
@@ -25,7 +25,7 @@ const ENGINES = {
     const key = process.env.BRAVE_API_KEY;
     if (!key) return { results: [], error: 'BRAVE_API_KEY not set' };
     try {
-      const r = await fetch('https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(query || '') + '&count=' + limit, { signal: AbortSignal.timeout(12000), headers: { 'X-Subscription-Token': key, 'Accept': 'application/json' } });
+      const r = await require('./tor_proxy').fetch('https://api.search.brave.com/res/v1/web/search?q=' + encodeURIComponent(query || '') + '&count=' + limit, { signal: AbortSignal.timeout(12000), headers: { 'X-Subscription-Token': key, 'Accept': 'application/json' } });
       if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
       const d = await r.json();
       const results = (d.web && d.web.results || []).slice(0, limit).map((x) => ({ title: x.title, url: x.url, snippet: x.description }));
@@ -36,7 +36,7 @@ const ENGINES = {
     const url = process.env.SEARX_URL;
     if (!url) return { results: [], error: 'SEARX_URL not set' };
     try {
-      const r = await fetch(url + '/search?q=' + encodeURIComponent(query || '') + '&format=json', { signal: AbortSignal.timeout(12000) });
+      const r = await require('./tor_proxy').fetch(url + '/search?q=' + encodeURIComponent(query || '') + '&format=json', { signal: AbortSignal.timeout(12000) });
       if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
       const d = await r.json();
       const results = (d.results || []).slice(0, limit).map((x) => ({ title: x.title, url: x.url, snippet: x.content }));
@@ -45,7 +45,7 @@ const ENGINES = {
   },
   startpage: async (query, limit) => {
     try {
-      const r = await fetch('https://www.startpage.com/sp/search?query=' + encodeURIComponent(query || ''), { signal: AbortSignal.timeout(12000), headers: { 'User-Agent': 'Mozilla/5.0 (AegisAiHarness/1.0)' } });
+      const r = await require('./tor_proxy').fetch('https://www.startpage.com/sp/search?query=' + encodeURIComponent(query || ''), { signal: AbortSignal.timeout(12000), headers: { 'User-Agent': 'Mozilla/5.0 (AegisAiHarness/1.0)' } });
       if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
       const html = await r.text();
       const results = [];
@@ -69,7 +69,7 @@ const ENGINES = {
     const key = process.env.FIRECRAWL_API_KEY;
     if (!key) return { results: [], error: 'FIRECRAWL_API_KEY not set' };
     try {
-      const r = await fetch('https://api.firecrawl.dev/v1/search', { method: 'POST', signal: AbortSignal.timeout(15000), headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ query, limit }) });
+      const r = await require('./tor_proxy').fetch('https://api.firecrawl.dev/v1/search', { method: 'POST', signal: AbortSignal.timeout(15000), headers: { 'Authorization': 'Bearer ' + key, 'Content-Type': 'application/json' }, body: JSON.stringify({ query, limit }) });
       if (!r.ok) return { results: [], error: 'HTTP ' + r.status };
       const d = await r.json();
       const results = (d.data || d.results || []).slice(0, limit).map((x) => ({ title: x.title || x.metadata && x.metadata.title, url: x.url, snippet: x.description || x.markdown && x.markdown.slice(0, 200) }));

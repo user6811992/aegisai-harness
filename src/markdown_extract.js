@@ -24,7 +24,7 @@ async function fromUrl(url) {
   const v = require('./url_validate').validate(url);
   if (!v.ok) return 'error: URL blocked (' + v.reason + ')';
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'AegisAiHarness/1.0' } });
+    const r = await require('./tor_proxy').fetch(url, { signal: AbortSignal.timeout(10000), headers: { 'User-Agent': 'AegisAiHarness/1.0' } });
     if (!r.ok) return 'error: HTTP ' + r.status;
     return fromHTML(await r.text(), url);
   } catch (e) { return 'error: ' + String(e.message || e); }

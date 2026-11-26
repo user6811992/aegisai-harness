@@ -9,7 +9,7 @@ if (process.env.BRAVE_API_KEY) ENGINES.push({ name: 'brave', fn: (q) => ws.searc
 if (process.env.FIRECRAWL_API_KEY) ENGINES.push({ name: 'firecrawl', fn: (q) => ws.search(q, 8, 'firecrawl') });
 if (process.env.SEARX_URL) ENGINES.push({ name: 'searx', fn: async (q) => {
   try {
-    const r = await fetch(process.env.SEARX_URL + '/search?q=' + encodeURIComponent(q) + '&format=json', { signal: AbortSignal.timeout(12000) });
+    const r = await require('./tor_proxy').fetch(process.env.SEARX_URL + '/search?q=' + encodeURIComponent(q) + '&format=json', { signal: AbortSignal.timeout(12000) });
     const d = await r.json();
     return { results: (d.results || []).map((x) => ({ title: x.title, url: x.url, snippet: x.content })) };
   } catch (e) { return { results: [], error: String(e.message || e) }; }
