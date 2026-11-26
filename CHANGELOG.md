@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.2] - 2026-11-26
+
+### Fixed
+- Web UI: restored stylesheet link and theme selectors; removed duplicate Performance Dashboard; conversation search highlighting; context meter and export use current session; default session history no longer reused silently.
+- Agent: `get_time` and structured tools return previews with `ok`; small-talk/identity guards prevent spurious tool calls; web chat deterministic backend/model commands and system prompt.
+- Backends: OpenAI-compatible backends now receive tool definitions; backend type switch uses default URLs and persists; `/api/config` activates the selected backend.
+- Markdown: placeholder restore uses exact nonces; inline code in table cells renders; math with pipes stays in one cell.
+- Scheduled tasks: cron evaluation honors day/month/weekday and scans 5 years for leap days.
+- Security: snippet delete rejects traversal ids; session import validates id/title/tags/overwrite.
+- Test isolation: `npm test` no longer overwrites real `data/`.
+
 ## [1.0.1] - 2026-11-25
 
 ### Fixed
