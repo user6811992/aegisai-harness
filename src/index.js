@@ -897,8 +897,14 @@ async function main() {
         const seen = new Set();
         const scan = (sid, msgs) => {
           for (const m of msgs || []) {
-            if ((m.content || '').toLowerCase().includes(q)) {
-              results.push({ sessionId: sid, role: m.role, snippet: (m.content || '').slice(0, 140), match: true });
+            const content = (typeof m.content === 'string' ? m.content : '');
+            const lower = content.toLowerCase();
+            const idx = lower.indexOf(q);
+            if (idx >= 0) {
+              const start = Math.max(0, idx - 40);
+              const end = Math.min(content.length, idx + q.length + 40);
+              const snippet = (start > 0 ? '...' : '') + content.slice(start, end) + (end < content.length ? '...' : '');
+              results.push({ sessionId: sid, role: m.role, snippet, match: true, title: sid });
               return;
             }
           }

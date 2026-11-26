@@ -73,7 +73,7 @@ function CommandPalette({ open, onClose, commands }) {
   if (!open) return null;
   const filtered = commands.filter((c) => !q || c.label.toLowerCase().includes(q.toLowerCase()) || (c.keywords || '').toLowerCase().includes(q.toLowerCase()));
   return html`
-    <div class="modal-backdrop" onClick=${onClose}>
+    <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${onClose}>
       <div class="palette" onClick=${(e) => e.stopPropagation()}>
         <input ref=${inputRef} value=${q} onInput=${(e) => setQ(e.target.value)} placeholder="Type a command..." class="palette-input" />
         <div class="palette-list">
@@ -172,7 +172,7 @@ function HelpPanel({ onClose }) {
     { title: 'Tips', items: ['Drag & drop files to attach', 'Use /squeeze <url>|<question> to extract answers', 'Type /providers to see available backends'] },
   ];
   return html`
-    <div class="modal-backdrop" onClick=${onClose}>
+    <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${onClose}>
       <div class="modal help-modal" onClick=${(e) => e.stopPropagation()}>
         <h2>Help & Shortcuts</h2>
         ${sections.map((s) => html`
@@ -256,7 +256,7 @@ function ConfigModal({ cfg, setCfg, onClose }) {
   }
 
   return html`
-    <div class="modal-backdrop" onClick=${onClose}>
+    <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${onClose}>
       <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
         <h2>Configuration & Models</h2>
         <div class="tab-bar">
@@ -863,7 +863,7 @@ function App() {
           </div>
         </div>
       ` : null}
-      ${showShortcuts ? html`        <div class="modal-backdrop" onClick=${() => setShowShortcuts(false)}>
+      ${showShortcuts ? html`        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowShortcuts(false)}>
           <div class="modal" onClick=${(e) => e.stopPropagation()}>
             <h2>Keyboard Shortcuts</h2>
             <div class="shortcuts-list">
@@ -887,7 +887,7 @@ function App() {
         </div>
       ` : null}
       ${showSearch ? html`
-        <div class="modal-backdrop" onClick=${() => setShowSearch(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowSearch(false)}>
           <div class="modal" style="max-width: 600px" onClick=${(e) => e.stopPropagation()}>
             <h2>Search Conversations</h2>
             <div class="search-bar">
@@ -897,9 +897,18 @@ function App() {
             ${searchResults.length > 0 ? html`
               <div class="search-results">
                 ${searchResults.map((r) => html`
-                  <div class="search-result-item">
+                  <div class="search-result-item" onClick=${async () => {
+                    try {
+                      const d = await API('/api/sessions?id=' + encodeURIComponent(r.sessionId));
+                      setCurrentSession(r.sessionId);
+                      setMessages((d.messages || []).map((m) => ({ role: m.role, content: m.content })));
+                      setShowSearch(false);
+                      toast('Loaded session: ' + r.sessionId, 'success');
+                    } catch (e) { toast('Load failed: ' + e.message, 'error'); }
+                  }}>
                     <span class="search-role">${r.role}</span>
                     <span class="search-snippet">${r.snippet}</span>
+                    <span class="search-session">${r.sessionId}</span>
                   </div>
                 `)}
               </div>
@@ -911,7 +920,7 @@ function App() {
         </div>
       ` : null}
       ${showFiles ? html`
-        <div class="modal-backdrop" onClick=${() => setShowFiles(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowFiles(false)}>
           <div class="modal" style="max-width: 800px; max-height: 80vh" onClick=${(e) => e.stopPropagation()}>
             <h2>File Browser</h2>
             <p class="hint">${fileDir}</p>
@@ -942,7 +951,7 @@ function App() {
         </div>
       ` : null}
       ${showCompare ? html`
-        <div class="modal-backdrop" onClick=${() => setShowCompare(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowCompare(false)}>
           <div class="modal" style="max-width: 800px" onClick=${(e) => e.stopPropagation()}>
             <h2>Compare Models</h2>
             <label>Prompt
@@ -985,7 +994,7 @@ function App() {
         </div>
       ` : null}
       ${showSnippets ? html`
-        <div class="modal-backdrop" onClick=${() => setShowSnippets(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowSnippets(false)}>
           <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
             <h2>Code Snippets</h2>
             <div class="snippet-form">
@@ -1020,7 +1029,7 @@ function App() {
         </div>
       ` : null}
       ${showSandbox ? html`
-        <div class="modal-backdrop" onClick=${() => setShowSandbox(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowSandbox(false)}>
           <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
             <h2>Code Sandbox</h2>
             <label>Language
@@ -1044,7 +1053,7 @@ function App() {
         </div>
       ` : null}
       ${showWebhooks ? html`
-        <div class="modal-backdrop" onClick=${() => setShowWebhooks(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowWebhooks(false)}>
           <div class="modal" style="max-width: 600px" onClick=${(e) => e.stopPropagation()}>
             <h2>Webhook Triggers</h2>
             <p class="hint">Webhook URL: <code>${window.location.origin}/api/webhook?event=push</code></p>
@@ -1066,7 +1075,7 @@ function App() {
         </div>
       ` : null}
       ${showPerf ? html`
-        <div class="modal-backdrop" onClick=${() => setShowPerf(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowPerf(false)}>
           <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
             <h2>Performance Dashboard</h2>
             ${perfReport ? html`
@@ -1093,7 +1102,7 @@ function App() {
         </div>
       ` : null}
       ${showScheduled ? html`
-        <div class="modal-backdrop" onClick=${() => setShowScheduled(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowScheduled(false)}>
           <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
             <h2>Scheduled Tasks</h2>
             <div class="sched-form">
@@ -1120,7 +1129,7 @@ function App() {
         </div>
       ` : null}
       ${showPerf ? html`
-        <div class="modal-backdrop" onClick=${() => setShowPerf(false)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setShowPerf(false)}>
           <div class="modal" style="max-width: 700px" onClick=${(e) => e.stopPropagation()}>
             <h2>Performance Dashboard</h2>
             ${perfReport ? html`
@@ -1178,7 +1187,7 @@ function App() {
         <button onClick=${() => setShowHelp(true)} title="Help (Ctrl+/)" aria-label="Open help">?</button>
       </header>
       <div class=${'main-layout' + (fileEditor ? ' split' : '')}>
-        <main class="chat ${dragOver ? 'drag-over' : ''}" role="main" aria-label="Chat messages">
+        <main id="main-content" class="chat ${dragOver ? 'drag-over' : ''}" role="main" aria-label="Chat messages">
           ${dragOver ? html`<div class="drag-overlay">Drop files here to attach</div>` : null}
           ${messages.length === 0 ? html`
             <div class="empty-state">
@@ -1264,7 +1273,7 @@ function App() {
         <button onClick=${send} disabled=${loading || (!input.trim() && attachments.length === 0)}>Send</button>
       </footer>
       ${attachPreview ? html`
-        <div class="modal-backdrop" onClick=${() => setAttachPreview(null)}>
+        <div class="modal-backdrop" role="dialog" aria-modal="true" onClick=${() => setAttachPreview(null)}>
           <div class="modal" style="max-width: 720px" onClick=${(e) => e.stopPropagation()}>
             <h2>${attachPreview.name}</h2>
             <pre class="file-content">${attachPreview.content}</pre>
