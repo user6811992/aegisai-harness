@@ -10,8 +10,28 @@ const DEFAULT_URLS = {
   hyperqwen: 'http://127.0.0.1:8000',
   exllamav3: 'http://127.0.0.1:8000',
 };
+const BACKEND_TYPES = Object.keys(DEFAULT_URLS).concat(['router']);
+function normalizeBackendType(type) {
+  const raw = String(type || '').trim().toLowerCase().replace(/[.,!?;:]+$/g, '');
+  const compact = raw.replace(/[.\-_\s]/g, '');
+  const aliases = {
+    ollama: 'ollama',
+    llamacpp: 'llamacpp',
+    lmstudio: 'lmstudio',
+    openai: 'openai',
+    router: 'router',
+    strata: 'strata',
+    robin: 'robin',
+    hyperqwen: 'hyperqwen',
+    exllamav3: 'exllamav3',
+  };
+  return aliases[compact] || raw;
+}
+function isKnownBackend(type) {
+  return BACKEND_TYPES.includes(normalizeBackendType(type));
+}
 const state = {
-  type: (process.env.BACKEND_TYPE || '').toLowerCase(),
+  type: normalizeBackendType(process.env.BACKEND_TYPE || ''),
   url: process.env.BACKEND_URL || process.env.OLLAMA_URL || 'http://127.0.0.1:11434',
   apiKey: process.env.BACKEND_API_KEY || '',
   explicit: !!(process.env.BACKEND_TYPE || process.env.BACKEND_URL || process.env.OLLAMA_URL),
@@ -77,7 +97,7 @@ function isOpenaiCompat() {
 }
 function setBackend(type, url) {
   if (type) {
-    const newType = String(type).toLowerCase();
+    const newType = normalizeBackendType(type);
     const changed = newType !== state.type;
     state.type = newType;
     if (url) state.url = url;
@@ -312,4 +332,4 @@ async function healthCheck() {
   } catch (e) { return false; }
 }
 
-module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen, DEFAULT_URLS };
+module.exports = { state, getType, getUrl, getApiKey, isOpenaiCompat, setBackend, detectBackend, backendChat, backendListModels, healthCheck, isCircuitOpen, DEFAULT_URLS, BACKEND_TYPES, normalizeBackendType, isKnownBackend };

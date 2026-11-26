@@ -641,8 +641,9 @@ function App() {
               throw new Error(data.message || 'stream error');
             } else if (data.type === 'done') {
               if (data.toolLog) setToolLog(data.toolLog);
-              // Fall back to the authoritative reply if no token frames arrived.
-              if (!fullReply && data.reply) {
+              // Use the authoritative reply even when token frames arrived;
+              // it has chat-template tokens stripped and is trimmed.
+              if (data.reply) {
                 fullReply = data.reply;
                 setMessages((m) => {
                   const updated = [...m];

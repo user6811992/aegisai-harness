@@ -4,7 +4,7 @@ const { VERSION } = require('./version');
 const { resolvePublicPath, tokenMatches } = require('./http_utils');
 const { detectBackend, getType, getUrl } = require('./backends');
 const db = require('./storage/db');
-const { runAgent } = require('./agent/run');
+const { runAgent, stripSpecialTokens } = require('./agent/run');
 const mcp = require('./integrations/mcp');
 const path = require('path');
 const fs = require('fs');
@@ -322,11 +322,17 @@ async function main() {
           const mBackend = __msg.match(/^\/backend\s+(\S+)\s*$/i) || __msg.match(/^change the backend to\s+(\S+)\s*$/i);
           if (mBackend) {
             const b = require('./backends');
-            b.setBackend(mBackend[1], undefined);
-            process.env.BACKEND_TYPE = b.getType();
-            process.env.BACKEND_URL = b.getUrl();
-            try { const s = require('./settings').load(); s.BACKEND_TYPE = b.getType(); s.BACKEND_URL = b.getUrl(); if (process.env.AEGISAI_MODEL) s.AEGISAI_MODEL = process.env.AEGISAI_MODEL; require('./settings').save(s); } catch (e) {}
-            __cmdReply = 'Backend changed to ' + b.getType() + ' (' + b.getUrl() + ')';
+            const requested = mBackend[1];
+            const type = b.normalizeBackendType(requested);
+            if (!b.isKnownBackend(type)) {
+              __cmdReply = 'Unknown backend "' + requested + '". Available backends: ' + b.BACKEND_TYPES.join(', ') + '.';
+            } else {
+              b.setBackend(type, undefined);
+              process.env.BACKEND_TYPE = b.getType();
+              process.env.BACKEND_URL = b.getUrl();
+              try { const s = require('./settings').load(); s.BACKEND_TYPE = b.getType(); s.BACKEND_URL = b.getUrl(); if (process.env.AEGISAI_MODEL) s.AEGISAI_MODEL = process.env.AEGISAI_MODEL; require('./settings').save(s); } catch (e) {}
+              __cmdReply = 'Backend changed to ' + b.getType() + ' (' + b.getUrl() + ')';
+            }
           }
           const mModel = __msg.match(/^\/model\s+(.+)$/i) || __msg.match(/^change the model to\s+(.+)$/i);
           if (!__cmdReply && mModel) {
@@ -339,20 +345,46 @@ async function main() {
             const updated = (Array.isArray(history) ? history : []).concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: __cmdReply }]);
             try { rememberSession(sid, updated); } catch (e) {}
             try { sessionToolLogs.set(sid, []); } catch (e) {}
-            sendJson(res, 200, { reply: __cmdReply, toolLog: [] });
+            if (stream) {
+              res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+              try { res.write('data: ' + JSON.stringify({ type: 'done', reply: __cmdReply, toolLog: [] }) + '\n\n'); } catch (e) {}
+              try { if (!res.writableEnded) res.end(); } catch (e) {}
+            } else {
+              sendJson(res, 200, { reply: __cmdReply, toolLog: [] });
+            }
             return;
           }
           if (stream) {
             res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
             let fullReply = '';
+            let tokenBuf = '';
             const writeEvent = (obj) => { try { if (!res.writableEnded && !res.destroyed) res.write('data: ' + JSON.stringify(obj) + '\n\n'); } catch (e) {} };
+            const flushTokens = (final) => {
+              tokenBuf = stripSpecialTokens(tokenBuf, false);
+              if (final) {
+                tokenBuf = tokenBuf.replace(/<\|[^>]*$/, '').replace(/<(?:end_of_turn|start_of_turn|eos|bos)[^>]*$/i, '');
+                if (tokenBuf) { fullReply += tokenBuf; writeEvent({ type: 'token', content: tokenBuf }); tokenBuf = ''; }
+                return;
+              }
+              // Hold back a small tail so a special token split across chunks
+              // is never emitted to the browser.
+              const keep = 32;
+              if (tokenBuf.length > keep) {
+                const emit = tokenBuf.slice(0, -keep);
+                tokenBuf = tokenBuf.slice(-keep);
+                if (emit) { fullReply += emit; writeEvent({ type: 'token', content: emit }); }
+              }
+            };
             try {
               const result = await runAgent({
                 model: parsed.model || process.env.AEGISAI_MODEL || 'llama3.2:3b',
                 messages: ((history || []).some((m) => m && m.role === 'system') ? history : [{ role: 'system', content: 'You are the AegisAi Harness assistant. Answer conversationally and helpfully. Only call a tool when the user explicitly asks for an action. Never print tool calls or JSON as text.' }].concat(history || [])).concat([{ role: 'user', content: parsed.message || '' }]),
                 projectRoot: process.cwd(),
                 onEvent: (e) => {
-                  if (e.type === 'token') { fullReply += (e.content || ''); writeEvent({ type: 'token', content: e.content || '' }); }
+                  if (e.type === 'token') {
+                    tokenBuf += e.content || '';
+                    flushTokens(false);
+                  }
                   else if (e.type === 'tool_call') { writeEvent({ type: 'tool_call', name: e.name, args: e.args }); }
                   else if (e.type === 'tool_result') { writeEvent({ type: 'tool_result', preview: (e.preview || '').slice(0, 200) }); }
                   else if (e.type === 'status') { writeEvent({ type: 'status', message: e.message }); }
@@ -360,6 +392,7 @@ async function main() {
                 autoApprove,
                 approvalHandler: async () => false,
               });
+              flushTokens(true);
               const reply = (result.final && result.final.final) || fullReply;
               const updated = history.concat([{ role: 'user', content: parsed.message || '' }, { role: 'assistant', content: reply }]);
               rememberSession(sid, updated);
@@ -416,9 +449,14 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/backend') {
           const parsed = await readJson(req);
-          const type = (parsed && parsed.type) ? String(parsed.type).trim() : '';
-          if (!type) { sendJson(res, 400, { error: 'type required' }); return; }
+          const requested = (parsed && parsed.type) ? String(parsed.type).trim() : '';
+          if (!requested) { sendJson(res, 400, { error: 'type required' }); return; }
           const b = require('./backends');
+          const type = b.normalizeBackendType(requested);
+          if (!b.isKnownBackend(type)) {
+            sendJson(res, 400, { error: 'unknown backend: ' + requested, backends: b.BACKEND_TYPES });
+            return;
+          }
           b.setBackend(type, parsed.url ? String(parsed.url) : undefined);
           process.env.BACKEND_TYPE = b.getType();
           process.env.BACKEND_URL = b.getUrl();
@@ -1176,6 +1214,18 @@ async function main() {
         }
         if (req.method === 'POST' && req.url.split('?')[0] === '/api/config') {
           const parsed = await readJson(req);
+          if (parsed.BACKEND_TYPE !== undefined) {
+            if (typeof parsed.BACKEND_TYPE !== 'string') { sendJson(res, 400, { error: 'BACKEND_TYPE must be a string' }); return; }
+            if (parsed.BACKEND_TYPE.trim()) {
+              const b = require('./backends');
+              const type = b.normalizeBackendType(parsed.BACKEND_TYPE);
+              if (!b.isKnownBackend(type)) {
+                sendJson(res, 400, { error: 'unknown backend: ' + parsed.BACKEND_TYPE, backends: b.BACKEND_TYPES });
+                return;
+              }
+              parsed.BACKEND_TYPE = type;
+            }
+          }
           if (parsed.projectRootAllowlist !== undefined) process.env.AEGISAI_PROJECT_ROOT_ALLOWLIST = parsed.projectRootAllowlist;
           if (parsed.sttUrl !== undefined) process.env.STT_URL = parsed.sttUrl;
           if (parsed.ttsUrl !== undefined) process.env.TTS_URL = parsed.ttsUrl;

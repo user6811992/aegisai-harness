@@ -38,6 +38,12 @@ function isIdentityQuestion(input) {
   if (/^(who are you|what can you do|what do you do|what is your name|who am i talking to)$/.test(t)) return true;
   return false;
 }
+
+const SPECIAL_TOKEN_RE = /<\|(?:im_end|im_start|endoftext|eot_id|start_header_id|end_header_id|eom_id)\|>|<(?:end_of_turn|start_of_turn|eos|bos)>/gi;
+function stripSpecialTokens(text, trim) {
+  const out = String(text || '').replace(SPECIAL_TOKEN_RE, '');
+  return trim === false ? out : out.trim();
+}
 const dbModule = require('../storage/db');
 const path = require('path');
 
@@ -303,7 +309,7 @@ async function runAgent(opts) {
       if (parsed.length) toolCalls = parsed.map((c, i) => ({ id: 'lenient_' + i, type: 'function', function: { name: c.name, arguments: JSON.stringify(c.arguments || {}) } }));
     }
     if (!toolCalls || (Array.isArray(toolCalls) && toolCalls.length === 0)) {
-      let finalText = msg.content || '';
+      let finalText = stripSpecialTokens(msg.content || '');
       if (verifyWork) {
         const vr = require('../verifier').verify(finalText, toolLog);
         finalText += '\n\n[verification] ' + (vr.verified ? 'verified' : 'UNVERIFIED: ' + vr.issues.join('; '));
@@ -328,7 +334,7 @@ async function runAgent(opts) {
       return { final: { type: 'done', final: '(token budget exceeded)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
     }
 
-    msgs.push({ role: 'assistant', content: msg.content || '', tool_calls: toolCalls });
+    msgs.push({ role: 'assistant', content: stripSpecialTokens(msg.content || ''), tool_calls: toolCalls });
 
     // parallel tool execution
     const results = await Promise.all(toolCalls.map(async (tc) => {
@@ -642,4 +648,4 @@ async function runAgent(opts) {
   return { final: { type: 'done', final: '(max iterations reached)', toolLog, tokenStats: { total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
 }
 
-module.exports = { runAgent, isSmallTalk, isIdentityQuestion };
+module.exports = { runAgent, isSmallTalk, isIdentityQuestion, stripSpecialTokens };
