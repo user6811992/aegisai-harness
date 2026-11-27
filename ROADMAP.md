@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.53. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.53
+- **Shipped:** v0.1–v1.0.54. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.54
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.53
+- **Current version:** v1.0.54
 
 ---
 
@@ -438,10 +438,15 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 
 ### 🌱 Phase 6 — Community / Ecosystem (opportunistic)
 
-- [ ] **Model interoperability standard** — contribute the dedup/registry layer as a shared spec.
-- [ ] **Optional-research-module marketplace** — lazy submodule discovery generalized to community modules.
-- [ ] **Hardware profile contributions** — community-submitted profiles beyond DGX Spark/Apple Silicon/Blackwell.
-- [ ] **Offline-first verification network** — peers exchange verification certificates without a central service.
+> **Feasibility at v1.0.54:** items 1 and 3 are locally feasible now (the registry,
+> dedup and hardware-probe layers already exist). Items 2 and 4 need a community
+> protocol/transport decision before real implementation — contract-level work is
+> possible, but adoption cannot be validated locally.
+
+- [ ] **Model interoperability standard** — publish the dedup/registry layer as a shared spec. **Feasible now** (local spec/export via `model_registry.js`, `model_store.js`); wider adoption needs community review.
+- [ ] **Optional-research-module marketplace** — generalize lazy submodule discovery to community modules. **Needs research**: module manifest format, trust/signing, and version resolution.
+- [ ] **Hardware profile contributions** — community-submitted profiles beyond DGX Spark/Apple Silicon/Blackwell. **Feasible now** (`hardware_probe.js`, `hardware.js`); submission workflow needs a source-trust policy.
+- [ ] **Offline-first verification network** — peers exchange verification certificates without a central service. **Needs research**: transport choice (QUIC/WebSocket), peer discovery without a central service, and replay protection; local contracts exist in `p2p_messaging.js` and `ed25519_signing.js`.
 
 ---
 
@@ -498,7 +503,7 @@ than hand-edited, preventing stale counts.
 ### Decision Principles (apply to every phase)
 
 1. **Local-only by default** — no telemetry, no phone-home; network tools disabled in offline mode.
-2. **Opt-in heavy tools** — research modules discovered lazily, never bundled.
+2. **Opt-in heavy tools** — research *contracts* ship as local adapters; external backends and toolchains are never bundled or auto-activated.
 3. **Provenance** — all adapted patterns attributed in `THIRD_PARTY_NOTICES.md`.
 4. **Measured, not claimed** — bounded evidence with hardware context, not universal claims.
 5. **No completion without evidence** — governance gates apply to harness development itself.

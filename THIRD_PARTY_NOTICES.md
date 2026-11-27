@@ -48,9 +48,10 @@ The following projects by Eric Elbaz inspired features adapted into AegisAi Harn
 - **Rule30PrizeKit** (MIT) — https://github.com/eelbaz/Rule30PrizeKit
   - Optional Lean 4 verification wrapper in `src/lean_verify.js`, documented in `docs/LEAN_VERIFY.md`
 
-## Research patterns (not bundled)
-The following research projects inspired pure-JS policy layers in AegisAi Harness.
-They are opt-in and never bundled:
+## Research patterns (contracts bundled, external implementations not)
+The following research projects inspired pure-JS policy layers that now ship as
+opt-in, offline contract modules. Their external neural/training backends are
+**not** bundled:
 - **Recursive-Self-Improving-Loopers** (MIT) — https://github.com/eelbaz/Recursive-Self-Improving-Loopers
   - Fixed-point convergence detection adapted into `src/convergence.js`
 - **olmo3-miras** (MIT) — https://github.com/eelbaz/olmo3-miras

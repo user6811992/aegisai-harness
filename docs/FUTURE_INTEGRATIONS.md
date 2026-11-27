@@ -318,7 +318,7 @@ termpeek are MIT — ideas can be adapted with attribution.
 ## Decision Principles
 
 1. **Local-only by default** — no telemetry, no phone-home; network tools disabled in offline mode.
-2. **Opt-in heavy tools** — research modules discovered lazily, never bundled.
+2. **Opt-in heavy tools** — research *contracts* ship as local adapters; external backends and toolchains are never bundled or auto-activated.
 3. **Provenance** — all adapted patterns attributed in `THIRD_PARTY_NOTICES.md`.
 4. **Measured, not claimed** — bounded evidence with hardware context, not universal claims.
 5. **No completion without evidence** — governance gates apply to harness development itself.

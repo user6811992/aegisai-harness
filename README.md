@@ -7,10 +7,10 @@
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
-offline-first: no cloud dependencies, no telemetry. 85 milestones, 384 modules,
-710 tests, CI green.
+offline-first: no cloud dependencies, no telemetry. Phases 1–5 complete
+(92/96 roadmap items), 384 modules, 710 tests, CI green.
 
-> Status: v1.0.53 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.54 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -38,7 +38,7 @@ The harness is the runtime that hosts an agent loop around a local LLM:
 - **Hardware-aware auto-tuning** (`--autotune`: DGX Spark GB10, Blackwell, Apple Silicon MLX, CUDA profiles → backend/quantization/context settings).
 - **Unified model registry** (deduplicated model catalog bridging Ollama ↔ LM Studio and all other local providers).
 - **Verification certificates** (signed, hash-verifiable completion certificates built on evidence bundles; optional Lean 4 formal check).
-- **Optional research modules** (lazy discovery of mLattice, JIT LoRA, MIRAS, MoE predictor — never bundled).
+- **Research contracts** (mLattice, JIT LoRA, MIRAS, expert prefetch, peerhive, fixed-point detection) ship as opt-in offline adapters; heavy neural/training backends are never bundled.
 - **Quality gates** (skill eval, harness lint, adversarial stress, comprehension benchmarks, convergence detection, CI template, conformance testing).
 - **Git-aware editing** (status, diff, commit, blame, branch, stash, log, multi-file diff review, auto-commit).
 - **Model providers** (18: Ollama, LM Studio, llama.cpp, vLLM, OpenAI, Anthropic, Groq, Mistral, DeepSeek, Together, Fireworks, Cohere, OpenRouter, Gemini, etc.).
@@ -141,7 +141,7 @@ CI enforces `node scripts/check-version-consistency.js` so `package.json`, the i
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.53-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.54-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
@@ -182,22 +182,22 @@ vendor/aegis      Aegis Method Pack (git submodule, 22 skills)
 ## Future & Research Integrations
 
 The harness stays **local-only**. Heavier or network-dependent features are opt-in
-and never bundled. Research-grade ideas that are tracked but not yet implemented:
+and never bundled. The table shows what now ships as a local contract and what still needs an external toolchain or community protocol:
 
 | Area | Idea | Source | Status |
 |---|---|---|---|
-| Long context | mLattice linear-memory kernel | eelbaz/mLattice | Planned (needs PyTorch/CUDA) |
-| Continuous learning | JIT LoRA weight updates | eelbaz/jit-lora | Policy adapted; full training planned |
-| Memory | MIRAS / Titans neural memory | eelbaz/olmo3-miras | Scoring policy adapted; neural module planned |
-| MoE throughput | Expert prefetch predictor | eelbaz/tensorbend-predictor | Planned (needs vLLM/ggml) |
-| Multi-agent transport | p2p pubsub over QUIC | eelbaz/peerhive | Planned |
+| Long context | mLattice linear-memory kernel | eelbaz/mLattice | Contract bundled; full kernel needs PyTorch/CUDA |
+| Continuous learning | JIT LoRA weight updates | eelbaz/jit-lora | Quality guard bundled; training backend needs research |
+| Memory | MIRAS / Titans neural memory | eelbaz/olmo3-miras | Surprise policy bundled; neural module needs PyTorch |
+| MoE throughput | Expert prefetch predictor | eelbaz/tensorbend-predictor | Predictor bundled; runtime prefetch needs ggml/vLLM hook |
+| Multi-agent transport | p2p pubsub over QUIC | eelbaz/peerhive | Pubsub contract bundled; QUIC needs external library |
 | Self-improvement | Loop-dynamics weight editing | Recursive-Self-Improving-Loopers | Convergence detection adapted |
-| Trust | Ed25519-signed certificates | — | Planned (currently content-hash only) |
-| UX | Dashboard Web UI panel | — | Planned (data layer ready) |
+| Trust | Ed25519-signed certificates | — | Implemented (`src/ed25519_signing.js`) |
+| UX | Dashboard Web UI panel | — | Implemented (`src/admin_panel_metrics.js`) |
 
 See [docs/FUTURE_INTEGRATIONS.md](./docs/FUTURE_INTEGRATIONS.md) for the full
-detail matrix, feasibility ratings, and decision principles. Planned items are
-**not committed** — the roadmap is edited as work lands.
+detail matrix, feasibility ratings, and decision principles. Contract modules ship
+with the harness; external backends and community protocols remain research items.
 
 ## License
 

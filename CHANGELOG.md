@@ -2,6 +2,21 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.54] - 2026-11-27
+
+### Documentation & roadmap cleanup
+- Removed vague "85 milestones" claims from README and wiki; replaced with accurate "Phases 1–5 complete (92/96 roadmap items)".
+- README research table now distinguishes shipped local contracts from work that still needs an external toolchain or community protocol.
+- Fixed stale "never bundled" / "Planned" claims for mLattice, JIT LoRA, MIRAS, expert prefetch, peerhive, Ed25519 signing and the dashboard panel.
+- `THIRD_PARTY_NOTICES.md` research section now points to the actual bundled contract modules.
+- Decision principle updated in `ROADMAP.md` and `docs/FUTURE_INTEGRATIONS.md`: contracts ship; external backends never bundle.
+- Phase 6 rewritten with feasibility labels: interoperability and hardware profiles are feasible now; module marketplace and offline verification network need protocol research.
+- Removed stale untracked `test_output.txt`; refreshed the duplicate re-evaluation block in `ROADMAP.md`.
+- No open GitHub issues or PRs at this point.
+
+### Verification
+- 710 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.53] - 2026-11-27
 
 ### Fixed (reported issues)
