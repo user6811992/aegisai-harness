@@ -7,6 +7,9 @@ const VARIANTS = {
   llamafile: { cli: 'llamafile', quants: ['Q4_K_M'], singleFile: true, abi: 'ggml-upstream' },
   vllm: { cli: 'vllm', serve: 'serve', quant: ['FP8','NVFP4','AWQ'], abi: 'python' },
   node_inference: { cli: 'node', entry: 'inferenceable', abi: 'napi', note: 'Node.js pluggable inference server pattern' },
+  sd_cpp: { cli: 'sd-server', abi: 'cpp', note: 'stable-diffusion.cpp adapter — pure C/C++, opt-in runtime, not bundled' },
+  mlx: { cli: 'mlx-lm', abi: 'mlx', platform: 'darwin', quants: ['IQ2_K','IQ3_K','IQ4_K'], note: 'MLX IQ_K codecs — Apple Silicon only; adapter only' },
+  memex: { cli: 'memex', abi: 'cpp', moe: true, note: 'MoE engine for weak hardware — adapter only, opt-in' },
 };
 function resolve(name, opts) {
   const v = VARIANTS[String(name||'').toLowerCase()];

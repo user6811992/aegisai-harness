@@ -83,6 +83,7 @@ function toolsList() {
   out.push(...require('./classroom').tools());
   out.push(...require('./asr_pipeline').tools());
   out.push(...require('./osint_aggregator').tools());
+  for (const m of ['native_bindings','multimodal_tools','parallel_loader','phishing_filter','portable_dist','quant_advisor','grammar_constraints','terminal_preview','credential_seal','aws_emulator_target','paillier','thumb2_symbols','decompiler_bridge','rl_harness','moe_engine']) out.push(...require('./' + m).tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -159,6 +160,9 @@ async function callTool(name, args) {
   const p3c = { mcp_registry_: './mcp_registry', classroom_: './classroom', asr_: './asr_pipeline', osint_: './osint_aggregator' };
   const p3ckey = Object.keys(p3c).find((k) => name.startsWith(k));
   if (p3ckey) { const r = require(p3c[p3ckey]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
+  const p4mods = { native_: './native_bindings', multimodal_: './multimodal_tools', parallel_: './parallel_loader', phishing_: './phishing_filter', portable_: './portable_dist', quant_: './quant_advisor', grammar_: './grammar_constraints', term_: './terminal_preview', credential_: './credential_seal', aws_: './aws_emulator_target', paillier_: './paillier', thumb2_: './thumb2_symbols', decompile_: './decompiler_bridge', rl_: './rl_harness', moe_: './moe_engine' };
+  const p4key = Object.keys(p4mods).find((k) => name.startsWith(k));
+  if (p4key) { const r = require(p4mods[p4key]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

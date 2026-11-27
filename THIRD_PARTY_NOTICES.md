@@ -175,4 +175,21 @@ opt-in where network or heavy toolchains are involved.
 | togg53192-cmd/recon | MIT | OSINT aggregator contract → `src/osint_aggregator.js` |
 | nolly-studio/components-build-skill, obsidianmd/obsidian-skills, morluto/rea, hardbyte/obsidian-llm-plugin | MIT/Apache-2.0 | Clean-room skills (no source vendored) → `data/skills/` |
 
+## Phase 4
+| Source project | License | What was adapted |
+|---|---|---|
+| replikeit/ik-llama-cpp-rs | MIT | Native FFI binding contract → `src/native_bindings.js` |
+| LostRuins/koboldcpp + stable-diffusion.cpp | AGPL-3.0 / MIT | Clean-room multi-modal + sd_cpp adapter patterns (no source vendored) |
+| sergey-automation/parallel-gpu-weight-loading | MIT | Parallel shard placement → `src/parallel_loader.js` |
+| adambenhassen/llama-swap-ik | MIT | ik_llama Docker profile → `packaging/docker/docker-compose.ik_llama.yml` |
+| LostRuins/phishing-database | MIT | Phishing domain patterns → `src/phishing_filter.js` |
+| mozilla-ai/llamafile + llamafile-builder | Apache-2.0 | Portable executable manifest → `src/portable_dist.js` |
+| steadfastgaze/mlx-iqk, wepromen/pxq_llama, PhilAnderson1/minicpm-pi5 | MIT | MLX/low-bit quant heuristics → `src/backend_variants.js`, `src/quant_advisor.js` |
+| ambassadorOfCplusPlus/memex-engine-public | MIT | MoE offload planner → `src/moe_engine.js` |
+| HyperMink/inferenceable | Apache-2.0 | GBNF grammar constraints → `src/grammar_constraints.js` |
+| 0xNyk/termpeek | MIT | Terminal preview → `src/terminal_preview.js` |
+| aws/credential-daemon + aws/aws-emulator | Apache-2.0 | Credential sealing + emulator target contracts |
+| hardbyte/paillier.js | MIT | Pure-JS Paillier (rewritten with BigInt) → `src/paillier.js` |
+| collin80/symgrate2-ghidra-plugin, morluto/kuna, morluto/reef + verifiers | MIT | Ghidra/decompiler/RL contracts (clean-room) |
+
 All third-party components retain their respective licenses. See each project for full license text.

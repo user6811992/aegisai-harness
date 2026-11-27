@@ -1,0 +1,19 @@
+# ik_llama Docker profile — opt-in, no image is built or pulled here.
+# Based on the llama-swap-ik pattern (adambenhassen/llama-swap-ik, clean-room).
+services:
+  ik-llama:
+    image: ${IK_LLAMA_IMAGE:-local/ik_llama:latest}
+    container_name: aegisai-ik-llama
+    ports:
+      - "${IK_LLAMA_PORT:-8080}:8080"
+    volumes:
+      - ${MODEL_DIR:-./models}:/models:ro
+    command: ["--host", "0.0.0.0", "--port", "8080", "--model", "/models/${MODEL_FILE:-model.gguf}"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    profiles: ["ik-llama"]

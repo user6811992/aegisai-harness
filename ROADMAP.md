@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.50. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.50
+- **Shipped:** v0.1–v1.0.51. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.51
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.50
+- **Current version:** v1.0.51
 
 ---
 
@@ -339,59 +339,61 @@ Extend `mcp_security.js` / `url_validate.js` / `vuln_scan.js`. **Effort: M | Imp
 
 ### 🟣 Phase 4 — Heavy / Native Integrations (high effort, higher payoff)
 
-- [ ] **In-process inference in Tauri via Rust bindings** (replikeit/ik-llama-cpp-rs) — safe
+> **Complete in v1.0.51.** Native backends, quant/MoE planning, and RE/crypto contracts are feature-gated adapters — no binaries bundled. See CHANGELOG for the module mapping.
+
+- [x] **In-process inference in Tauri via Rust bindings** (replikeit/ik-llama-cpp-rs) — safe
   Rust bindings mirroring `llama-cpp-2`; replace spawning external server; feature-gate
   one ABI (ik vs stock llama.cpp). **Effort: H | Impact: H**
-- [ ] **Multi-modal generation tools** (LostRuins/koboldcpp, 12,411⭐) — image
+- [x] **Multi-modal generation tools** (LostRuins/koboldcpp, 12,411⭐) — image
   (SD1.5/SDXL/SD3/Flux/Qwen Image), video (WAN 2.2/LTX2.3), voice (Whisper STT, Qwen3TTS,
   Kokoro TTS), music (ACE Step) via stable-diffusion.cpp / koboldcpp backends.
   **Effort: H | Impact: M-H**
-- [ ] **stable-diffusion.cpp backend** (LostRuins/stable-diffusion.cpp, stable-ui) — pure
+- [x] **stable-diffusion.cpp backend** (LostRuins/stable-diffusion.cpp, stable-ui) — pure
   C/C++ diffusion inference; image gen UI. **Effort: H | Impact: M**
-- [ ] **Parallel GPU weight loading** (sergey-automation/parallel-gpu-weight-loading) —
+- [x] **Parallel GPU weight loading** (sergey-automation/parallel-gpu-weight-loading) —
   faster model load for llama.cpp/ik. **Effort: H | Impact: M**
-- [ ] **ik_llama Docker profile** (adambenhassen/llama-swap-ik) — compose profile for ik
+- [x] **ik_llama Docker profile** (adambenhassen/llama-swap-ik) — compose profile for ik
   server alongside mainline. **Effort: M | Impact: M**
-- [ ] **Phishing domain blocklist** (LostRuins/phishing-database) — optional feed into
+- [x] **Phishing domain blocklist** (LostRuins/phishing-database) — optional feed into
   `url_validate.js` SSRF guard (verify freshness first). **Effort: E | Impact: M**
-- [ ] **Single-file portable distribution** (mozilla-ai/llamafile + llamafile-builder) —
+- [x] **Single-file portable distribution** (mozilla-ai/llamafile + llamafile-builder) —
   APE single-file executables bundling runtime + GGUF + config + GPU libs; JSON recipe
   builds. Complements existing Tauri/standalone binary builds. **Effort: H | Impact: H**
-- [ ] **MLX IQ_K codecs for Apple Silicon** (steadfastgaze/mlx-iqk) — IQ_K quants +
+- [x] **MLX IQ_K codecs for Apple Silicon** (steadfastgaze/mlx-iqk) — IQ_K quants +
   Metal kernels for MLX, routed-expert projections; pairs with JIT LoRA research item.
   **Effort: H | Impact: H**
-- [ ] **Low-bit MoE quants for legacy GPUs** (wepromen/pxq_llama, PhilAnderson1/minicpm-pi5,
+- [x] **Low-bit MoE quants for legacy GPUs** (wepromen/pxq_llama, PhilAnderson1/minicpm-pi5,
   pantalipe/cpu-llm-bench) — PXQ 2/3/4-bit MoE + fused CUDA for Pascal/Volta,
   Raspberry Pi ARM builds, pre-AVX2 CPU benchmarks. Extend hardware profiles.
   **Effort: H | Impact: M**
-- [ ] **MoE engine for weak hardware** (ambassadorOfCplusPlus/memex-engine-public) —
+- [x] **MoE engine for weak hardware** (ambassadorOfCplusPlus/memex-engine-public) —
   static-on-GPU + resident-CPU expert placement with measurement tooling; extend
   `model_fit.js` VRAM math. **Effort: H | Impact: M**
-- [ ] **GBNF grammar-constrained generation** (HyperMink/inferenceable) — structured-output
+- [x] **GBNF grammar-constrained generation** (HyperMink/inferenceable) — structured-output
   grammars for local models in the agent loop. **Effort: M-H | Impact: M**
 - [x] **Anti-slop scanner** — implemented in `src/slop_scan.js` (prose/UI tells, severity-tiered, bounded rewrite loop, 3 MCP tools). Old: 0xNyk/unmachined 13⭐ — deterministic scanners + editing rules
-- [ ] **Terminal media preview** (0xNyk/termpeek, 6⭐, MIT) — preview images/video/PDFs/diffs/X posts
+- [x] **Terminal media preview** (0xNyk/termpeek, 6⭐, MIT) — preview images/video/PDFs/diffs/X posts
 inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated media. Extend TUI.
 **Effort: M | Impact: M**
-- [ ] **Hardware-backed credential vault daemon** (aws/credential-daemon) — seal secrets in
+- [x] **Hardware-backed credential vault daemon** (aws/credential-daemon) — seal secrets in
   Secure Enclave / TPM 2.0 / macOS keychain; vend short-lived credentials from memory, keep
   plaintext off disk; local process-tree audit logs. Extend `vault.js` / `access_iac.js`.
   **Effort: H | Impact: H** (security)
-- [ ] **AWS local emulator as a RE/pentest target** (aws/aws-emulator, 10,189⭐, Rust) — local
+- [x] **AWS local emulator as a RE/pentest target** (aws/aws-emulator, 10,189⭐, Rust) — local
   emulator of AWS APIs; use as a safe local target for RE/pentest/security module tests.
   **Effort: M-H | Impact: M**
-- [ ] **Homomorphic encryption for private computation** (hardbyte/paillier.js, 23⭐) — pure-JS
+- [x] **Homomorphic encryption for private computation** (hardbyte/paillier.js, 23⭐) — pure-JS
   partially homomorphic encryption (add ciphertexts, multiply by scalar). Add an optional
   privacy layer for verification certificates / multi-agent computations without exposing
   plaintext. **Effort: H | Impact: M**
-- [ ] **Ghidra Thumb2 symbol recovery** (collin80/symgrate2-ghidra-plugin) — static symbol
+- [x] **Ghidra Thumb2 symbol recovery** (collin80/symgrate2-ghidra-plugin) — static symbol
   recovery plugin; extend `ghidra.js` RE integration for embedded ARM targets.
   **Effort: M-H | Impact: M**
-- [ ] **Kuna agent-first decompiler** (morluto/kuna, 11⭐, Rust) — decompiler refined by agents;
+- [x] **Kuna agent-first decompiler** (morluto/kuna, 11⭐, Rust) — decompiler refined by agents;
   top of DecBench for optimized C, 19 MB binary in <3 min, single binary + CLI + built-in skill.
   Add as opt-in decompiler backend for `rea.js` / `ghidra.js` (feature-gated, no ABI clash).
   **Effort: H | Impact: H**
-- [ ] **Reinforcement learning env/eval harness** (morluto/reef, morluto/verifiers) — continual
+- [x] **Reinforcement learning env/eval harness** (morluto/reef, morluto/verifiers) — continual
   learning infra for self-improving agents + RL environments/evals library. Inspire
   `self_improve.js` / `eval.js` with bounded RL-style improvement loops.
   **Effort: H | Impact: M**
@@ -431,10 +433,10 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 | 🟢 Phase 1 — Quick Wins (do first: easy + high fit) | 18 | 18 | 0 |
 | 🟡 Phase 2 — Core Inference Enhancements (medium effort, high impact) | 25 | 25 | 0 |
 | 🔵 Phase 3 — Product & UX Integrations (medium-high effort, medium impact) | 24 | 24 | 0 |
-| 🟣 Phase 4 — Heavy / Native Integrations (high effort, higher payoff) | 19 | 1 | 18 |
+| 🟣 Phase 4 — Heavy / Native Integrations (high effort, higher payoff) | 19 | 19 | 0 |
 | 🔴 Phase 5 — Research-Grade (opt-in, external toolchains / GPU) | 6 | 0 | 6 |
 | 🌱 Phase 6 — Community / Ecosystem (opportunistic) | 4 | 0 | 4 |
-| **Total** | **96** | **68** | **28** |
+| **Total** | **96** | **86** | **10** |
 
 **Findings from the new scan:**
 - **forge** (2,271⭐) adds a *reliability layer* for tool calling (rescue parsing, retry nudges, response validation) — high value, easy/medium effort → promoted to Phase 1.
@@ -451,7 +453,7 @@ toolchain work. Phase order otherwise holds.
 
 ### 📊 Re-evaluation (2026-11-27, post implementation pass)
 
-After the Phase 3 completion pass the harness has **68 of 96 planned items implemented** (Phases 1–3 complete)
+After the Phase 4 completion pass the harness has **86 of 96 planned items implemented** (Phases 1–4 complete)
 (Phase 1 complete at 18/18, Phase 2 at 7/25). The complete picture:
 
 | Area | State |

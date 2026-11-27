@@ -2,6 +2,31 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.51] - 2026-11-27
+
+### Added (Phase 4 complete — 19/19)
+- **Native FFI contract** (`src/native_bindings.js`) — opt-in in-process Tauri/Rust inference bindings (2 MCP tools)
+- **Multi-modal adapter** (`src/multimodal_tools.js`) — text/image/audio/video planning, offline-gated (2 MCP tools)
+- **Parallel loader** (`src/parallel_loader.js`) — greedy GPU shard placement (1 MCP tool)
+- **Phishing filter** (`src/phishing_filter.js`) — built-in domain blocklist (2 MCP tools)
+- **Portable distribution** (`src/portable_dist.js`) — single-file executable manifest (1 MCP tool)
+- **Quant advisor** (`src/quant_advisor.js`) — universal low-bit/MoE quant heuristic (1 MCP tool)
+- **GBNF grammars** (`src/grammar_constraints.js`) — enum + JSON structured-output grammars (2 MCP tools)
+- **Terminal preview** (`src/terminal_preview.js`) — text-only image/diff preview (1 MCP tool)
+- **Credential seal** (`src/credential_seal.js`) — AES-GCM secret sealing contract (3 MCP tools)
+- **AWS emulator target** (`src/aws_emulator_target.js`) — authorized local pentest target plan (1 MCP tool)
+- **Paillier homomorphic encryption** (`src/paillier.js`) — pure-BigInt additively homomorphic crypto with Miller-Rabin (4 MCP tools)
+- **Thumb2 symbols** (`src/thumb2_symbols.js`) — Ghidra recovery plan, external toolchain (2 MCP tools)
+- **Decompiler bridge** (`src/decompiler_bridge.js`) — agent-first hypothesis scoring (2 MCP tools)
+- **RL harness** (`src/rl_harness.js`) — tabletop env/step/eval loop (3 MCP tools)
+- **MoE engine** (`src/moe_engine.js`) — expert offload planner for weak hardware (1 MCP tool)
+- **Backend variants** (`src/backend_variants.js`) — added sd_cpp, mlx (IQ_K), memex adapters
+- **ik_llama Docker profile** (`packaging/docker/docker-compose.ik_llama.yml`) — opt-in compose profile
+- New `tests/phase4.test.js` with 17 tests
+
+### Verification
+- 693 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.50] - 2026-11-27
 
 ### Added (Phase 3 complete — 24/24)
