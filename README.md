@@ -8,7 +8,7 @@
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, 307 modules,
-383 tests, CI green.
+399 tests, CI green.
 
 > Status: v1.0.20 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
@@ -30,8 +30,11 @@ The harness is the runtime that hosts an agent loop around a local LLM:
 - **Reverse engineering** (REA, Ghidra, Craft, 30+ index, awesome-re 17k, pentest pipeline, vuln scanner, security KB).
 - **Observability** (run capture, harness score, reliability attribution, OTel export, SARIF, Merkle ledger, evidence bundles).
 - **Always-on layer** (events, timers, approvals, outbox, scheduler, cron, mailbox).
-- **Multi-agent** (DAG orchestration, swarm, teams, multi-critic, task phases, async/background tools).
-- **Quality gates** (skill eval, harness lint, adversarial stress, CI template, conformance testing).
+- **Multi-agent** (DAG orchestration, swarm, teams, multi-critic, task phases, async/background tools, Tauri group/broadcast IPC for parallel coordination).
+- **Project scaffolding** (`aegisai --init` generates AGENTS.md, SOUL.md, TOOLS.md, MEMORY.md, PATH_RULES.md, MCP recommendations, plus Aegis governance blueprints).
+- **Governance** (baseline-first, evidence-verified, drift-checked; verification gate before claiming completion; Aegis skill pack with 22 skills bundled).
+- **Native Windows desktop shell** (Tauri v2: managed Node backend, system tray, governance status, group coordination, MSI/NSIS bundles).
+- **Quality gates** (skill eval, harness lint, adversarial stress, comprehension benchmarks, CI template, conformance testing).
 - **Git-aware editing** (status, diff, commit, blame, branch, stash, log, multi-file diff review, auto-commit).
 - **Model providers** (18: Ollama, LM Studio, llama.cpp, vLLM, OpenAI, Anthropic, Groq, Mistral, DeepSeek, Together, Fireworks, Cohere, OpenRouter, Gemini, etc.).
 - **Plugin marketplace** (search, install, uninstall, enable/disable, categories, ratings).
@@ -48,6 +51,19 @@ npm start
 ```
 
 Requires **Node.js 22.13+** (`node -v` to check) and a local backend (Ollama recommended). The Windows installer does **not** bundle Node.js — install the LTS from [nodejs.org](https://nodejs.org) first and reopen your terminal so `node` is on PATH.
+
+### Scaffold your own project
+
+Run `aegisai --init` in any project directory to generate agent-ready scaffolding:
+
+```bash
+cd /path/to/your/project
+aegisai --init
+# Creates: AGENTS.md, SOUL.md, TOOLS.md, MEMORY.md, PATH_RULES.md,
+#          MCP_RECOMMENDATIONS.json, .mcp.json, .aegisai/project.json
+```
+
+The command auto-detects the project type (Node, Python, Rust, Go, Java, .NET, generic) and writes a matching test command, lint command, MCP server recommendations, and forbidden-path rules.
 
 ### Web UI
 
@@ -148,7 +164,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ```
 src/              307 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            383 tests (node:test)
+tests/            399 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page (GitHub Pages)
 ```

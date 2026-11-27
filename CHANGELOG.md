@@ -5,6 +5,22 @@ All notable changes to AegisAi Harness are documented here.
 ## [1.0.20] - 2026-11-27
 
 ### Added
+- **Harnessforge-style blueprints** (`src/project_init.js`): `aegisai --init` now generates `SOUL.md` (system architecture overview), `TOOLS.md` (64+ tool catalog with security guidelines), `MEMORY.md` (memory hierarchy & Aegis integration), `PATH_RULES.md` (forbidden-path security protections), and `MCP_RECOMMENDATIONS.json` (per-project-type MCP server recommendations). Inspired by `jcaiagent7143-ui/harnessforge`.
+- **Tauri group/broadcast IPC** (`packaging/tauri/src/lib.rs`): new commands `backend_broadcast(objective, output_format, tool_guidance, boundaries)`, `backend_group_spawn(profiles)`, and `backend_group_status()` plus five system-tray menu items for parallel multi-agent coordination (adapted from `apiad/aegis` group patterns). Frontend events: `group-broadcast`, `group-spawn`, `group-status`.
+- **Comprehension benchmarks** (`tests/comprehension.test.js`): 18 new tests covering project-type detection, test commands, governance patterns (baseline/evidence/drift/verification gate), and MCP recommendations.
+- Tauri tray menu gains a "Governance Status" item that emits a `governance-status` event to the WebView.
+
+### Fixed
+- CI: version strings now consistent at v1.0.20 across all 15+ files (`installer.iss`, `README.md`, `llms.txt`, `tauri.conf.json`, `Cargo.toml`, etc.).
+- CI: escaped backticks in `src/project_init.js` template literals that caused a JS `SyntaxError` and broke four tests.
+- CI: Tauri v2 `AppHandle.emit_to()` now imports the `tauri::Emitter` trait; `backend_group_spawn()` receives a `String`.
+
+### Verification
+- 399 tests pass, 0 failures, 1 skipped. All 9 CI checks green. npm published 1.0.20. GitHub release includes 4 installer bundles.
+
+## [1.0.19] - 2026-11-27
+
+### Added
 - Governance module (src/governance.js): baseline-first, evidence-verified, drift-checked patterns from GanyuanRan/Aegis. Verification gate runs before claiming task completion.
 - Project init command (`aegisai --init`): auto-generates AGENTS.md, .mcp.json, .aegisai/project.json for any project type (Node, Python, Rust, Go, Java, .NET, generic).
 - Aegis skill pack bundled as git submodule (vendor/aegis): 22 high-value skills (first-principles-review, verification-before-completion, systematic-debugging, etc.) now available as bundled defaults.
@@ -13,7 +29,7 @@ All notable changes to AegisAi Harness are documented here.
 
 ### Changed
 - Agent loop (src/agent/run.js) now records governance evidence for tool executions and runs verification gate before returning final response.
-- default_skills.js now includes 21 Aegis skills as bundled defaults (383 tests).
+- default_skills.js now includes 21 Aegis skills as bundled defaults (383 tests at the time).
 - mcp_presets.js adds linkdigest preset.
 
 ### Verification
