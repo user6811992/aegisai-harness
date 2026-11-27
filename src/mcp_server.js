@@ -40,6 +40,12 @@ function toolsList() {
   out.push(...require('./content_extract').tools());
   out.push(...require('./vault_curator').tools());
   out.push(...require('./slop_scan').tools());
+  out.push(...require('./safe_config').tools());
+  out.push(...require('./council').tools());
+  out.push(...require('./skill_sync').tools());
+  out.push(...require('./memory_bridge').tools());
+  out.push(...require('./model_recipes').tools());
+  out.push(...require('./reliability_skills').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -81,6 +87,12 @@ async function callTool(name, args) {
   if (name.startsWith('content_extract')) return { content: [{ type: 'text', text: JSON.stringify(require('./content_extract').dispatch(name, args)) }] };
   if (name.startsWith('vault_curator')) return { content: [{ type: 'text', text: JSON.stringify(require('./vault_curator').dispatch(name, args)) }] };
   if (name.startsWith('slop_')) return { content: [{ type: 'text', text: JSON.stringify(require('./slop_scan').dispatch(name, args)) }] };
+  if (name.startsWith('config_')) return { content: [{ type: 'text', text: JSON.stringify(require('./safe_config').dispatch(name, args)) }] };
+  if (name.startsWith('council_')) return { content: [{ type: 'text', text: JSON.stringify(require('./council').dispatch(name, args)) }] };
+  if (name.startsWith('skill_sync')) return { content: [{ type: 'text', text: JSON.stringify(require('./skill_sync').dispatch(name, args)) }] };
+  if (name.startsWith('memory_bridge')) return { content: [{ type: 'text', text: JSON.stringify(require('./memory_bridge').dispatch(name, args)) }] };
+  if (name.startsWith('recipe_')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_recipes').dispatch(name, args)) }] };
+  if (name.startsWith('reliability_skills')) return { content: [{ type: 'text', text: JSON.stringify(require('./reliability_skills').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

@@ -109,4 +109,17 @@ opt-in where network or heavy toolchains are involved.
 | 0xNyk/unmachined | MIT | Anti-slop scanner → `src/slop_scan.js` |
 | 0xNyk/council-of-high-intelligence | MIT | Multi-perspective deliberation → roadmap (planned) |
 
+## Phase 1 completion additions and ix-infrastructure
+| Source project | License | What was adapted |
+|---|---|---|
+| Martossien/dashboard-llm | MIT | Config hardening (field whitelist, atomic writes, locking) → `src/safe_config.js` |
+| mozilla-ai/llamafile-builder | Apache-2.0 | JSON model recipes → `src/model_recipes.js` |
+| aicodeking/deepseek-stack | MIT | 9 cheap-model reliability loops → `src/reliability_skills.js` |
+| alesha-pro/claude-memory-bridge | MIT | Harness-agnostic memory files → `src/memory_bridge.js` |
+| 0xNyk/council-of-high-intelligence | MIT | Multi-perspective deliberation → `src/council.js` |
+| Panniantong/skillshare | MIT | Multi-harness skill sync → `src/skill_sync.js` |
+| replikeit/ik-llama-cpp-rs | MIT | Weekly submodule bump workflow pattern → `.github/workflows/submodule-bump.yml` |
+| ix-infrastructure/Ix | Apache-2.0 | Persistent code graph / bounded structural retrieval → roadmap (planned) |
+| ix-infrastructure/Peer2Peer | Apache-2.0 | E2E-encrypted agent P2P coordination → roadmap (planned) |
+
 All third-party components retain their respective licenses. See each project for full license text.

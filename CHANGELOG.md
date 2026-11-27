@@ -2,6 +2,25 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.46] - 2026-11-27
+
+### Added (Phase 1 complete — 18/18)
+- **Config hardening** (`src/safe_config.js`) — field whitelist, validation, atomic writes with backup + file locking (2 MCP tools)
+- **Council of High Intelligence** (`src/council.js`) — multi-perspective deliberation with independent positions, forced disagreement, verdict preserving dissent/kill criteria (2 MCP tools)
+- **Skill sync** (`src/skill_sync.js`) — one source of truth synced to Claude/Codex/OpenCode/Cursor/Copilot/Hermes skill dirs (2 MCP tools)
+- **Shared memory bridge** (`src/memory_bridge.js`) — harness-agnostic live memory files, 25 KB/200-line index cap (4 MCP tools)
+- **Model recipes** (`src/model_recipes.js`) — JSON recipes for reproducible builds, save/reuse/share (2 MCP tools)
+- **DeepSeek reliability skills** (`src/reliability_skills.js`) — 9 cheap-model short-loop skills
+- **Weekly submodule bump** — `.github/workflows/submodule-bump.yml` for vendor/aegis
+- New `tests/phase1_finish.test.js` with 10 tests
+
+### Documentation
+- ROADMAP: Phase 1 now 18/18 complete; added ix-infrastructure findings (Ix graph 1,211⭐, Peer2Peer E2E agent P2P); re-evaluation updated to 21/91 implemented.
+- `THIRD_PARTY_NOTICES.md`: added Phase 1 completion additions and ix-infrastructure matrix.
+
+### Verification
+- 607 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.45] - 2026-11-27
 
 ### Added (Phase 1/4 — curator + anti-slop)
