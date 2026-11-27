@@ -30,6 +30,7 @@ function toolsList() {
   out.push(...require('./verification_cert').tools());
   out.push(...require('./dataset').tools());
   out.push(...require('./tool_guardrails').tools());
+  out.push(...require('./leanrea_skill').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -55,6 +56,7 @@ async function callTool(name, args) {
     return { content: [{ type: 'text', text: JSON.stringify(r) }] };
   }
   if (name.startsWith('tool_guard_')) return { content: [{ type: 'text', text: JSON.stringify(require('./tool_guardrails').dispatch(name, args)) }] };
+  if (name.startsWith('leanrea_')) return { content: [{ type: 'text', text: JSON.stringify(require('./leanrea_skill').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

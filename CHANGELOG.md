@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.34] - 2026-11-27
+
+### Added (Phase 1 — lean-rea skill)
+- **Lean REA skill** (`src/leanrea_skill.js`): clean-room adaptation of aicodeking/leanrea (8 KB SKILL.md idea). Zero new tools — teaches the agent which real CLI tools to run directly (asar, otool, nm, go version -m, jadx, apktool, Ghidra, tshark, binwalk, sqlite3) instead of a 207-tool MCP layer. Fast recon commands by target type (electron/macho/go/pe/apk/elf/archive/network), known traps, target detection, and installed-tool detection.
+- Bundled as a default skill (`lean-rea`) in `default_skills.js`; installable as `SKILL.md` via `leanrea.install()`.
+- 2 new MCP tools: `leanrea_recon`, `leanrea_skill`.
+- New `tests/leanrea_skill.test.js` with 10 tests.
+
+### Verification
+- 513 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.33] - 2026-11-27
 
 ### Documentation

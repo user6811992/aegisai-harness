@@ -1,6 +1,7 @@
 // src/default_skills.js
 // Bundled default skill pack (mirrors aegisai-next default skills + Aegis method pack).
 const aegisSkills = require('./aegis_skills');
+const leanrea = require('./leanrea_skill');
 
 const SKILLS = {
   search_before_re: {
@@ -37,6 +38,11 @@ const SKILLS = {
     name: 'ui-review',
     description: 'Review UI implementation against a reference.',
     body: 'Compare the implemented UI against the reference. Report layout, spacing, color, and interaction differences.',
+  },
+  lean_rea: {
+    name: leanrea.SKILL_NAME,
+    description: leanrea.SKILL_DESCRIPTION,
+    body: leanrea.BODY,
   },
 };
 
