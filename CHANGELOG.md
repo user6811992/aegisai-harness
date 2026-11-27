@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.25] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added a comprehensive "Future / Planned Integrations" section covering research-grade items (mLattice, JIT LoRA, MIRAS, MoE expert prefetch, peerhive, loop-dynamics editing) and feasible product enhancements (broader model bridging, Ed25519 certificate signing, Lean release gate, dashboard Web UI panel). All items explicitly marked planned, not committed.
+- New `docs/FUTURE_INTEGRATIONS.md`: full detail matrix with sources, current state, remaining work, feasibility/impact ratings, cross-project patterns, and decision principles (local-only by default, opt-in heavy tools, provenance, measured-not-claimed, evidence-gated completion).
+- README.md: expanded feature list (Performance Dashboard 2.0, hardware auto-tuning, unified model registry, verification certificates, optional research modules, convergence detection); new "Future & Research Integrations" table; expanded acknowledgments crediting eelbaz, harnessforge, apiad/aegis, and GanyuanRan/Aegis.
+- Updated Layout section and module count.
+
+### Verification
+- 444 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.24] - 2026-11-27
 
 ### Added (cross-cutting + research)

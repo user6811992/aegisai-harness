@@ -10,7 +10,7 @@ A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, 307 modules,
 444 tests, CI green.
 
-> Status: v1.0.24 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.25 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -34,7 +34,12 @@ The harness is the runtime that hosts an agent loop around a local LLM:
 - **Project scaffolding** (`aegisai --init` generates AGENTS.md, SOUL.md, TOOLS.md, MEMORY.md, PATH_RULES.md, MCP recommendations, plus Aegis governance blueprints).
 - **Governance** (baseline-first, evidence-verified, drift-checked; verification gate before claiming completion; Aegis skill pack with 22 skills bundled).
 - **Native Windows desktop shell** (Tauri v2: managed Node backend, system tray, governance status, group coordination, MSI/NSIS bundles).
-- **Quality gates** (skill eval, harness lint, adversarial stress, comprehension benchmarks, CI template, conformance testing).
+- **Performance Dashboard 2.0** (unified model/tool/network latency view; DNS/TCP/TLS/server/transfer phases recorded locally).
+- **Hardware-aware auto-tuning** (`--autotune`: DGX Spark GB10, Blackwell, Apple Silicon MLX, CUDA profiles → backend/quantization/context settings).
+- **Unified model registry** (deduplicated model catalog bridging Ollama ↔ LM Studio and all other local providers).
+- **Verification certificates** (signed, hash-verifiable completion certificates built on evidence bundles; optional Lean 4 formal check).
+- **Optional research modules** (lazy discovery of mLattice, JIT LoRA, MIRAS, MoE predictor — never bundled).
+- **Quality gates** (skill eval, harness lint, adversarial stress, comprehension benchmarks, convergence detection, CI template, conformance testing).
 - **Git-aware editing** (status, diff, commit, blame, branch, stash, log, multi-file diff review, auto-commit).
 - **Model providers** (18: Ollama, LM Studio, llama.cpp, vLLM, OpenAI, Anthropic, Groq, Mistral, DeepSeek, Together, Fireworks, Cohere, OpenRouter, Gemini, etc.).
 - **Plugin marketplace** (search, install, uninstall, enable/disable, categories, ratings).
@@ -132,7 +137,7 @@ CI enforces `node scripts/check-version-consistency.js` so `package.json`, the i
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.24-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.25-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
@@ -162,12 +167,33 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ## Layout
 
 ```
-src/              307 modules (agent, tools, backends, storage, integrations, ...)
+src/              320+ modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
 tests/            444 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
-docs/             landing page (GitHub Pages)
+docs/             landing page, setup guides, future integrations matrix
+vendor/aegis      Aegis Method Pack (git submodule, 22 skills)
 ```
+
+## Future & Research Integrations
+
+The harness stays **local-only**. Heavier or network-dependent features are opt-in
+and never bundled. Research-grade ideas that are tracked but not yet implemented:
+
+| Area | Idea | Source | Status |
+|---|---|---|---|
+| Long context | mLattice linear-memory kernel | eelbaz/mLattice | Planned (needs PyTorch/CUDA) |
+| Continuous learning | JIT LoRA weight updates | eelbaz/jit-lora | Policy adapted; full training planned |
+| Memory | MIRAS / Titans neural memory | eelbaz/olmo3-miras | Scoring policy adapted; neural module planned |
+| MoE throughput | Expert prefetch predictor | eelbaz/tensorbend-predictor | Planned (needs vLLM/ggml) |
+| Multi-agent transport | p2p pubsub over QUIC | eelbaz/peerhive | Planned |
+| Self-improvement | Loop-dynamics weight editing | Recursive-Self-Improving-Loopers | Convergence detection adapted |
+| Trust | Ed25519-signed certificates | — | Planned (currently content-hash only) |
+| UX | Dashboard Web UI panel | — | Planned (data layer ready) |
+
+See [docs/FUTURE_INTEGRATIONS.md](./docs/FUTURE_INTEGRATIONS.md) for the full
+detail matrix, feasibility ratings, and decision principles. Planned items are
+**not committed** — the roadmap is edited as work lands.
 
 ## License
 
@@ -182,5 +208,9 @@ Built with inspiration from the open-source community.
 - **MCP** — Model Context Protocol (modelcontextprotocol/servers, registry, extensions)
 - **Reverse engineering** — REA, Ghidra, Craft Anything, awesome-reverse-engineered, netvein
 - **Memory & learning** — bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
-- **Security** — Microsoft agent-governance-toolkit, spec-kitty
+- **Security & governance** — Microsoft agent-governance-toolkit, spec-kitty, GanyuanRan/Aegis
 - **Observability** — OpenTelemetry, SARIF, LangSmith, Langfuse
+- **Scaffolding & coordination** — harnessforge, apiad/aegis, linkdigest-mcp
+- **Local inference research (@eelbaz)** — mLattice, JIT LoRA, olmo3-miras, Recursive-Self-Improving-Loopers, lyra, ollama-lmstudio-bridge, dgx-spark-vllm-setup, cdnshare, tensorbend-predictor, Rule30PrizeKit, peerhive
+
+All adapted patterns are attributed in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).
