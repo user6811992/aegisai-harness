@@ -11,8 +11,11 @@ function plan(opts) {
   return {
     ok: true, vramGB: vram, experts, activeExperts: active,
     offloadToCpu: offload, strategy: offload ? 'cpu-expert-offload' : 'gpu-resident',
-    flags: offload ? ['--n-cpu-moe', '-rtr'] : [],
-    note: 'adapter contract only; requires an installed MoE-capable runtime',
+    // Never add -rtr here: it repacks RAM-resident tensors row-interleaved,
+    // forcing CPU matmul for k-quants and slowing prompt processing.
+    flags: offload ? ['--n-cpu-moe ' + offload, '--fit'] : ['--fit'],
+    caveats: offload ? ['do not use -rtr with hybrid CPU/GPU MoE', 'check system RAM and swap, not just VRAM', 'use the smallest offload that fits'] : [],
+    note: 'adapter contract only; requires an installed MoE-capable runtime (ik_llama.cpp/llama.cpp)',
   };
 }
 function tools() {

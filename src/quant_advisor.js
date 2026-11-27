@@ -13,7 +13,8 @@ function recommend(opts) {
   const caveats = [];
   if (vram < 6) caveats.push('very limited VRAM: expect quality loss or CPU offload');
   if (moe) caveats.push('MoE experts need CPU offload on legacy GPUs — use --n-cpu-moe');
-  return { ok: true, vramGB: vram, moe, bits, quant, caveats, note: 'universal heuristic; measure on your own hardware' };
+  if (bits <= 2) caveats.push('below Q4 MoE degrades faster than dense — only use IQ_K with an imatrix-calibrated file');
+  return { ok: true, vramGB: vram, moe, bits, quant, caveats, note: 'universal heuristic; measure on your own hardware. Q4_K_M is the community quality/size consensus; do not chase Q2 blindly' };
 }
 function tools() {
   return [{ name: 'quant_recommend', description: 'Recommend a low-bit quant for a VRAM budget and MoE shape.', inputSchema: { type: 'object', properties: { vramGB: { type: 'number' }, moe: { type: 'boolean' } } } }];

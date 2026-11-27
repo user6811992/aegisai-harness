@@ -192,4 +192,15 @@ opt-in where network or heavy toolchains are involved.
 | hardbyte/paillier.js | MIT | Pure-JS Paillier (rewritten with BigInt) → `src/paillier.js` |
 | collin80/symgrate2-ghidra-plugin, morluto/kuna, morluto/reef + verifiers | MIT | Ghidra/decompiler/RL contracts (clean-room) |
 
+## Phase 5 + research scan 2026-11-27
+| Source project | License | What was adapted / noted |
+|---|---|---|
+| eelbaz/mLattice, jit-lora, olmo3-miras, tensorbend-predictor, peerhive | MIT | Research contracts → `src/mlattice.js`, `jit_lora.js`, `miras_memory.js`, `expert_prefetch.js`, `peerhive.js` |
+| DietrichGebert/ponytail | MIT | Shortcut debt ledger → `src/shortcut_debt.js` |
+| steadfastgaze/mlx-iqk, MoEspresso, mlx-kquant | MIT | IQ_K codec correction in `src/backend_variants.js` |
+| ikawrakow/ik_llama.cpp | MIT | MoE offload correction in `src/moe_engine.js`, `quant_advisor.js` |
+| tleyden/tauri2-local-llm, janhq/jan | MIT/Apache-2.0 | Tauri FFI strategy correction in `src/native_bindings.js` |
+| travisgoodspeed/symgrate2-ida-plugin, Ghidra BSim | MIT/Apache-2.0 | Thumb2 research note (roadmap) |
+| BaaRai/ARTEX, aidenybai/react-scan | MIT | Optional research notes (roadmap) |
+
 All third-party components retain their respective licenses. See each project for full license text.

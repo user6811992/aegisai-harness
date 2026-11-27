@@ -2,6 +2,33 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.52] - 2026-11-27
+
+### Added (Phase 5 complete — 6/6)
+- **mLattice** (`src/mlattice.js`) — 9-cell flat linear-memory encoding and recall (2 MCP tools)
+- **JIT LoRA** (`src/jit_lora.js`) — ≥33% quality guard before applying continuous updates (2 MCP tools)
+- **MIRAS/Titans memory** (`src/miras_memory.js`) — surprise-scored long-term writes (2 MCP tools)
+- **Expert prefetch** (`src/expert_prefetch.js`) — router-history-based next-expert prediction (1 MCP tool)
+- **Fixed-point detection** (`src/fixed_point.js`) — hash-based convergence for self-improvement loops (1 MCP tool)
+- **peerhive** (`src/peerhive.js`) — opt-in p2p pubsub topic contract, offline-gated (3 MCP tools)
+- **Shortcut debt ledger** (`src/shortcut_debt.js`) — read-only scan of deferred `shortcut:` comments
+- New `tests/phase5.test.js` with 9 tests
+
+### Fixed (research-verified corrections to Phase 4)
+- `backend_variants.js`: MLX IQ_K codec set corrected to IQ1_S_R4 / IQ2_KS / IQ2_K (IQ3_K/IQ4_K belong to mlx-kquant).
+- `moe_engine.js`: removed `-rtr` from CPU-offload flags (it forces CPU matmul for k-quants); added caveats about RAM/swap and smallest fitting offload.
+- `quant_advisor.js`: warn that sub-Q4 MoE degrades faster and should only use imatrix-calibrated IQ_K files.
+- `native_bindings.js`: recommend supervised worker process over in-process FFI, pin upstream commit/tag, feature-gate native compilation.
+- `src/mcp_server.js`: restored merge safety — verified prefix maps do not collide.
+
+### Documentation / research scan
+- Account sweep: `DietrichGebert` (ponytail 200,020★), GitHub "rea" search pages 1–2 (mostly React noise; ARTEX and react-scan noted), hardware verification (mlx-iqk/MoEspresso, ik_llama offload, Tauri FFI, Ghidra BSim).
+- ROADMAP: Phases 1–5 complete (92/96); Phase 6 remains (4 community items). New research-scan section added.
+- `docs/FUTURE_INTEGRATIONS.md`, `THIRD_PARTY_NOTICES.md`, README acknowledgements updated.
+
+### Verification
+- 702 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.51] - 2026-11-27
 
 ### Added (Phase 4 complete — 19/19)

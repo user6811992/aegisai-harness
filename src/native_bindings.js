@@ -18,7 +18,16 @@ function plan(op, args) {
   if (!available().enabled) return { ok: false, error: 'native inference disabled (opt-in)', note: 'use an out-of-process backend by default' };
   const missing = b.args.filter((a) => args && args[a] === undefined);
   if (missing.length) return { ok: false, error: 'missing args: ' + missing.join(', ') };
-  return { ok: true, op, contract: b, args: args, note: 'caller invokes the Rust plugin with this JSON payload' };
+  return {
+    ok: true, op, contract: b, args: args,
+    strategy: (args && args.worker) ? 'worker-process' : 'in-process-ffi',
+    notes: [
+      'prefer a supervised worker process: a model-load crash then takes down the worker, not the host app',
+      'pin the native runtime to an exact upstream commit/tag to keep the C ABI stable',
+      'gate native compilation behind a feature flag so cargo check needs no C++ toolchain',
+      'in-process FFI is faster but can crash the host process',
+    ],
+  };
 }
 function tools() {
   return [

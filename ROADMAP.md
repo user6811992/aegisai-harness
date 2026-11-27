@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.51. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.51
+- **Shipped:** v0.1–v1.0.52. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.52
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.51
+- **Current version:** v1.0.52
 
 ---
 
@@ -402,20 +402,31 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 
 ### 🔴 Phase 5 — Research-Grade (opt-in, external toolchains / GPU)
 
-- [ ] **mLattice — linear-memory architecture** (eelbaz/mLattice) — 9 cells/token, flat
+> **Complete in v1.0.52.** All six items are opt-in research contracts (mlattice, jit_lora, miras_memory, expert_prefetch, fixed_point, peerhive). No external toolchain is bundled.
+
+- [x] **mLattice — linear-memory architecture** (eelbaz/mLattice) — 9 cells/token, flat
   cost at 131K; PyTorch + CUDA kernel as opt-in long-context backend. **Effort: H | Impact: H**
-- [ ] **JIT LoRA — continuous in-conversation learning** (eelbaz/jit-lora) — ≥33% guard
+- [x] **JIT LoRA — continuous in-conversation learning** (eelbaz/jit-lora) — ≥33% guard
   already in `memory_policy.js`; full MLX/Apple Silicon training loop remains. **Effort: H | Impact: H**
-- [ ] **MIRAS / Titans neural long-term memory** (eelbaz/olmo3-miras) — surprise scoring
+- [x] **MIRAS / Titans neural long-term memory** (eelbaz/olmo3-miras) — surprise scoring
   already in `memory_policy.js`; neural module with gradient updates remains. **Effort: H | Impact: H**
-- [ ] **MoE expert prefetch predictor** (eelbaz/tensorbend-predictor) — router prediction +
+- [x] **MoE expert prefetch predictor** (eelbaz/tensorbend-predictor) — router prediction +
   NVMe/DRAM prefetch; needs low-level vLLM/ggml. **Effort: H | Impact: M**
-- [ ] **Recursive-Self-Improving-Loopers** — fixed-point detection already in
+- [x] **Recursive-Self-Improving-Loopers** — fixed-point detection already in
   `convergence.js`; loop-control weight editing remains. **Effort: H | Impact: M**
-- [ ] **peerhive — p2p pubsub over QUIC** — extend A2A/ACP adapters with p2p transport.
+- [x] **peerhive — p2p pubsub over QUIC** — extend A2A/ACP adapters with p2p transport.
   **Effort: H | Impact: M**
 
 ---
+
+
+### Research scan 2026-11-27 — hardware verification + account sweep
+- **Verified / corrected Phase 4 contracts:** MLX IQ_K codec set is IQ1_S_R4 / IQ2_KS / IQ2_K (mlx-iqk, MIT); IQ3_K/IQ4_K belong to mlx-kquant. MoE offload must **not** use `-rtr` with hybrid CPU/GPU (forces CPU matmul for k-quants); prefer smallest `--n-cpu-moe` that fits plus `--fit` with a 1024 MiB margin. In-process Tauri FFI can crash the host — prefer a supervised worker process, pin the upstream commit/tag, and feature-gate native compilation. Implemented as corrections in `backend_variants.js`, `moe_engine.js`, `quant_advisor.js`, `native_bindings.js`.
+- **DietrichGebert/ponytail** (200,020⭐, MIT) — lazy-senior-dev methodology, benchmarked -53% code / -41% time / -26% cost / -45% tokens with 98% of risky logic tested. Clean-room **shortcut debt ledger** adapted as `src/shortcut_debt.js`. Skill suite already available in OpenCode (ponytail, -audit, -debt, -gain, -review).
+- **steadfastgaze/mlx-iqk + MoEspresso** — IQ_K Metal kernels, SSD-streamed expert/PLE memory, REAP expert pruning; 125B MoE at 12–15 tok/s on a 32 GB M1 Max. Roadmap: Apple Silicon expert-streaming adapter (opt-in). **Effort: H | Impact: M**
+- **ik_llama.cpp offload guidance** — `--fit` default, `--n-cpu-moe N`, KV-cache quantization + Hadamard; RAM/swap are the new constraints, not just VRAM. Roadmap: VRAM/RAM/swap preflight using real GGUF tensor sizes. **Effort: M | Impact: H**
+- **GitHub "rea" search** — dominated by "react" matches; only `morluto/rea` is relevant (already attributed). **BaaRai/ARTEX** (23,403⭐) self-hosted model-agnostic autonomous pentest system and **aidenybai/react-scan** (21,879⭐) React performance scanner noted as optional research. **Effort: M | Impact: M**
+- **Ghidra Thumb2** — symgrate2 is an IDA Pro plugin; Ghidra BSim does fuzzy function matching against known libraries. Roadmap: BSim-based symbol recovery adapter (opt-in). **Effort: M | Impact: M**
 
 ### 🌱 Phase 6 — Community / Ecosystem (opportunistic)
 
@@ -434,9 +445,9 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 | 🟡 Phase 2 — Core Inference Enhancements (medium effort, high impact) | 25 | 25 | 0 |
 | 🔵 Phase 3 — Product & UX Integrations (medium-high effort, medium impact) | 24 | 24 | 0 |
 | 🟣 Phase 4 — Heavy / Native Integrations (high effort, higher payoff) | 19 | 19 | 0 |
-| 🔴 Phase 5 — Research-Grade (opt-in, external toolchains / GPU) | 6 | 0 | 6 |
+| 🔴 Phase 5 — Research-Grade (opt-in, external toolchains / GPU) | 6 | 6 | 0 |
 | 🌱 Phase 6 — Community / Ecosystem (opportunistic) | 4 | 0 | 4 |
-| **Total** | **96** | **86** | **10** |
+| **Total** | **96** | **92** | **4** |
 
 **Findings from the new scan:**
 - **forge** (2,271⭐) adds a *reliability layer* for tool calling (rescue parsing, retry nudges, response validation) — high value, easy/medium effort → promoted to Phase 1.
@@ -453,7 +464,7 @@ toolchain work. Phase order otherwise holds.
 
 ### 📊 Re-evaluation (2026-11-27, post implementation pass)
 
-After the Phase 4 completion pass the harness has **86 of 96 planned items implemented** (Phases 1–4 complete)
+After the Phase 5 completion pass the harness has **92 of 96 planned items implemented** (Phases 1–5 complete)
 (Phase 1 complete at 18/18, Phase 2 at 7/25). The complete picture:
 
 | Area | State |

@@ -330,3 +330,18 @@ termpeek are MIT — ideas can be adapted with attribution.
 
 See also: `ROADMAP.md` (phased backlog), `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`,
 `docs/DGX_SPARK.md`, `docs/LEAN_VERIFY.md`.
+
+---
+
+## Research scan 2026-11-27 (account sweep + hardware verification)
+
+| Source | What it is | Status / plan | Effort / Impact |
+|---|---|---|---|
+| DietrichGebert/ponytail (200,020★, MIT) | Lazy-senior-dev agent methodology + audit/debt/review skills | Shortcut debt ledger adapted as `src/shortcut_debt.js`; skills already present in OpenCode | Done |
+| steadfastgaze/mlx-iqk + MoEspresso (MIT) | IQ_K Metal kernels; SSD-streamed MoE experts on Apple Silicon | Codec list corrected in `backend_variants.js`; expert-streaming adapter planned | H / M |
+| ikawrakow/ik_llama.cpp docs | `--fit`, `--n-cpu-moe N`, KV Hadamard; RAM/swap constraints | `moe_engine.js` corrected (no `-rtr`); GGUF-size preflight planned | M / H |
+| tleyden/tauri2-local-llm + janhq/jan | llama.cpp FFI vs supervised worker; pinned upstream commit; feature-gated engine | `native_bindings.js` now recommends worker process + pinning | M / H |
+| travisgoodspeed/symgrate2-ida-plugin + Ghidra BSim | Thumb2 static symbol recovery / fuzzy library matching | BSim adapter planned (opt-in, external toolchain) | M / M |
+| BaaRai/ARTEX (23,403★) | Self-hosted model-agnostic autonomous pentest system | Optional security research, opt-in only | M / M |
+| aidenybai/react-scan (21,879★) | React performance scanner | Optional UI review aid | M / M |
+| morluto/rea (480,991★) | Reverse engineer anything | Already attributed; no change | — |
