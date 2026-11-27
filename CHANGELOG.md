@@ -2,7 +2,7 @@
 
 All notable changes to AegisAi Harness are documented here.
 
-## [1.0.19] - 2026-11-27
+## [1.0.20] - 2026-11-27
 
 ### Added
 - Governance module (src/governance.js): baseline-first, evidence-verified, drift-checked patterns from GanyuanRan/Aegis. Verification gate runs before claiming task completion.

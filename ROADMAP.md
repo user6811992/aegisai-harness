@@ -4,7 +4,7 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
 - **Shipped:** v0.1–v1.0.19. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.19
+- **Current version:** v1.0.20
 - **New in v1.0.19:** Governance verification gates (baseline-first, evidence-verified, drift-checked), `aegisai --init` project setup command, Aegis skill pack (22 skills bundled), linkdigest-mcp preset for social media.
 - **Roadmap is edited as work lands** — each item is checked off in the Active backlog below when implemented.
 - **All complete** — v1.0.19 delivered with 12 of 12 roadmap items implemented.
@@ -100,4 +100,4 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.19
+- **Current version:** v1.0.20
