@@ -110,19 +110,19 @@ multi-model support, and extensible tool architecture.
 - **Multi-agent** (DAG orchestration, swarm, teams, multi-critic, task phases, async/background tools)
 
 ## 3. Project Structure
-```
+\`\`\`
 src/              307 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
 tests/            test suite (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page (GitHub Pages)
-```
+\`\`\`
 
 ## 4. Key Commands
-- `npm start` — start the harness (--web for UI, --tui for terminal, --mcp-server for MCP)
-- `node src/index.js --json "prompt"` — headless/CI mode
-- `cargo tauri build` — build native Windows desktop app (MSI/NSIS)
-- `npm test` — run 383 tests (0 failures)
+- \`npm start\` — start the harness (--web for UI, --tui for terminal, --mcp-server for MCP)
+- \`node src/index.js --json "prompt"\` — headless/CI mode
+- \`cargo tauri build\` — build native Windows desktop app (MSI/NSIS)
+- \`npm test\` — run 383 tests (0 failures)
 
 ## 5. Security Model
 - Capability-based: patterns of allowed/denied tools per session
@@ -132,7 +132,7 @@ docs/             landing page (GitHub Pages)
 - Auth gate: only guards /api and /mcp routes
 
 ## 6. Development Guidelines
-- Run tests before claiming completion (`npm test`)
+- Run tests before claiming completion (\`npm test\`)
 - Keep changes minimal and focused
 - Update documentation when code changes
 - Follow existing code style and patterns
@@ -197,14 +197,14 @@ function generateToolsMd(type) {
 ## Usage Guidelines
 
 ### Path Traversal Prevention
-All file operations must use `assertAllowedPath()` which:
+All file operations must use \`assertAllowedPath()\` which:
 - Resolves symlinks/junctions via realpath
 - Blocks traversal via symlink to parent directories
 - Rejects non-existent targets
 - Large files (>100MB) rejected with 413
 
 ### SQL Injection Prevention
-- Validate column names against `PRAGMA table_info`
+- Validate column names against \`PRAGMA table_info\`
 - Never interpolate raw strings in SQL queries
 - Use parameterized queries where possible
 
@@ -213,32 +213,32 @@ All file operations must use `assertAllowedPath()` which:
 - Never interpolate raw strings in command arguments
 
 ### Tool Approval
-- Web UI: `AEGISAI_WEB_AUTO_APPROVE` opt-in (`false` by default)
+- Web UI: \`AEGISAI_WEB_AUTO_APPROVE\` opt-in (\`false\` by default)
 - CLI: interactive approval required for destructive tools
-- CLI: `AEGISAI_TOKEN` enables open mode if unset
+- CLI: \`AEGISAI_TOKEN\` enables open mode if unset
 
 ### MCP Integration
-- All MCP servers bind to `127.0.0.1` by default
+- All MCP servers bind to \`127.0.0.1\` by default
 - LAN mode requires shared secret
-- Social media preset (`linkdigest`) available for content extraction
-- Skills can be registered via `src/mcp_skills.js`
+- Social media preset (\`linkdigest\`) available for content extraction
+- Skills can be registered via \`src/mcp_skills.js\`
 
 ## Project-Specific Tool Configuration
 
 ### Node.js Projects
 - filesystem MCP server scoped to project root
 - npm test as default test command
-- lint: `npm run lint`
+- lint: \`npm run lint\`
 
 ### Python Projects
 - filesystem MCP server scoped to project root
 - pytest as default test command
-- lint: `ruff check .`
+- lint: \`ruff check .\`
 
 ### Rust Projects
 - filesystem MCP server scoped to project root
 - cargo test as default test command
-- lint: `cargo clippy`
+- lint: \`cargo clippy\`
 
 ### Go Projects
 - filesystem MCP server scoped to project root
@@ -301,24 +301,24 @@ function generateMemoryMd(type) {
 ### Automatic Behavior
 - L0 cleared after each agent turn
 - L1 shrinks when exceeding turn cap
-- L2 persisted to `.aegisai/` directory
+- L2 persisted to \`.aegisai/\` directory
 - L3 persists across sessions
 
 ### Manual Operations
-- `/evidence-bundle` — create auditable artifact for current run
-- `/ledger-replay` — replay audit ledger for verification
-- `/ledger-rewind` — rewind to prior state
-- `/merkle-root` — compute Merkle root of audit ledger
-- `/journal-search` — search historical actions by day/words/path/session
-- `/journal-note` — add decision or blocker to historical record
+- \`/evidence-bundle\` — create auditable artifact for current run
+- \`/ledger-replay\` — replay audit ledger for verification
+- \`/ledger-rewind\` — rewind to prior state
+- \`/merkle-root\` — compute Merkle root of audit ledger
+- \`/journal-search\` — search historical actions by day/words/path/session
+- \`/journal-note\` — add decision or blocker to historical record
 
 ### Aegis Integration
 - Aegis method pack (vendor/aegis submodule) provides:
-  - `first-principles-review` skill for architecture analysis
-  - `systematic-debugging` for methodical problem-solving
-  - `verification-before-completion` for evidence-aware completion
-  - `goal-framing` for explicit goal specification
-  - `test-driven-development` for strict test-first workflows
+  - \`first-principles-review\` skill for architecture analysis
+  - \`systematic-debugging\` for methodical problem-solving
+  - \`verification-before-completion\` for evidence-aware completion
+  - \`goal-framing\` for explicit goal specification
+  - \`test-driven-development\` for strict test-first workflows
 
 ## Project-Type Memory Profiles
 
@@ -353,12 +353,12 @@ function generateMemoryMd(type) {
 - L3: Published assembly histories, NuGet records
 
 ## Memory Commands (CLI)
-- `evidence-bundle` — create auditable run artifact
-- `ledger-replay` — replay audit ledger
-- `ledger-rewind` — rewind state
-- `merkle-root` — compute ledger Merkle root
-- `journal-search` — search historical record
-- `journal-note` — add decision/blocker
+- \`evidence-bundle\` — create auditable run artifact
+- \`ledger-replay\` — replay audit ledger
+- \`ledger-rewind\` — rewind state
+- \`merkle-root\` — compute ledger Merkle root
+- \`journal-search\` — search historical record
+- \`journal-note\` — add decision/blocker
 `;
 }
 
@@ -377,71 +377,71 @@ Violations are rejected with an error and logged to the audit ledger.
 The following paths are always forbidden regardless of project type:
 
 1. **System Directories**
-   - `/etc/` and all subdirectories
-   - `/usr/` and all subdirectories
-   - `/var/` and all subdirectories
-   - Windows: `C:\\Windows\\` and `C:\\Program Files\\`
-   - Linux: `/bin/`, `/sbin/`, `/lib/`, `/lib64/`
+   - \`/etc/\` and all subdirectories
+   - \`/usr/\` and all subdirectories
+   - \`/var/\` and all subdirectories
+   - Windows: \`C:\\Windows\\\` and \`C:\\Program Files\\\`
+   - Linux: \`/bin/\`, \`/sbin/\`, \`/lib/\`, \`/lib64/\`
 
 2. **User Home Extensions**
-   - `~/.ssh/` and all subdirectories
-   - `~/.gnupg/` and all subdirectories
-   - `~/.aws/` and all subdirectories
-   - `~/.kubernetes/` and all subdirectories
+   - \`~/.ssh/\` and all subdirectories
+   - \`~/.gnupg/\` and all subdirectories
+   - \`~/.aws/\` and all subdirectories
+   - \`~/.kubernetes/\` and all subdirectories
 
 3. **Aegisai Installation**
-   - `%LOCALAPPDATA%\\Programs\\AegisAiHarness\\` (or `\\AegisAiHarness`)
-   - `%APPDATA%\\AegisAiHarness\\`
+   - \`%LOCALAPPDATA%\\Programs\\AegisAiHarness\\\` (or \`\\AegisAiHarness\`)
+   - \`%APPDATA%\\AegisAiHarness\\\`
    - These must never be written to by agent tools
 
 4. **Project Root Protections**
-   - `.git/` and all subdirectories — never modify git internals
-   - `.gitignore` — never overwrite without explicit approval
-   - `.gitmodules` — never modify without explicit approval
-   - `package-lock.json` / `yarn.lock` / `pnpm-lock.json` — never modify without explicit approval
-   - `composer.lock` / `Gemfile.lock` — never modify without explicit approval
+   - \`.git/\` and all subdirectories — never modify git internals
+   - \`.gitignore\` — never overwrite without explicit approval
+   - \`.gitmodules\` — never modify without explicit approval
+   - \`package-lock.json\` / \`yarn.lock\` / \`pnpm-lock.json\` — never modify without explicit approval
+   - \`composer.lock\` / \`Gemfile.lock\` — never modify without explicit approval
 
 ## Project-Type Specific Protections
 
 ### Node.js Projects
-- `node_modules/` — never delete or rewrite dependencies
-- `package.json` — never modify scripts or dependencies without explicit approval
-- `tsconfig.json` — never modify without explicit approval
-- `webpack.config.*` / `vite.config.*` — never modify without explicit approval
+- \`node_modules/\` — never delete or rewrite dependencies
+- \`package.json\` — never modify scripts or dependencies without explicit approval
+- \`tsconfig.json\` — never modify without explicit approval
+- \`webpack.config.*\` / \`vite.config.*\` — never modify without explicit approval
 
 ### Python Projects
-- `venv/` and `env/` — virtual environment directories, never delete
-- `pyproject.toml` — never modify dependencies without explicit approval
-- `requirements.txt` — never modify without explicit approval
-- `.env` — never overwrite without explicit approval
+- \`venv/\` and \`env/\` — virtual environment directories, never delete
+- \`pyproject.toml\` — never modify dependencies without explicit approval
+- \`requirements.txt\` — never modify without explicit approval
+- \`.env\` — never overwrite without explicit approval
 
 ### Rust Projects
-- `Cargo.toml` — never modify dependencies without explicit approval
-- `Cargo.lock` — never modify without explicit approval
-- `target/` — build artifacts directory, never delete manually
-- `.rust-toolchain` — never modify without explicit approval
+- \`Cargo.toml\` — never modify dependencies without explicit approval
+- \`Cargo.lock\` — never modify without explicit approval
+- \`target/\` — build artifacts directory, never delete manually
+- \`.rust-toolchain\` — never modify without explicit approval
 
 ### Go Projects
-- `go.mod` and `go.sum` — never modify dependencies without explicit approval
-- `vendor/` — never delete or rewrite vendor directory
-- `Gopath/` — never modify GOPATH structure
+- \`go.mod\` and \`go.sum\` — never modify dependencies without explicit approval
+- \`vendor/\` — never delete or rewrite vendor directory
+- \`Gopath/\` — never modify GOPATH structure
 
 ### Java Projects
-- `pom.xml` and `pom.lock` — never modify dependencies without explicit approval
-- `mvnw` / `gradlew` — never modify wrapper scripts
-- `target/` — build artifacts, never delete manually
+- \`pom.xml\` and \`pom.lock\` — never modify dependencies without explicit approval
+- \`mvnw\` / \`gradlew\` — never modify wrapper scripts
+- \`target/\` — build artifacts, never delete manually
 
 ### .NET Projects
-- `*.csproj` — never modify PackageReference without explicit approval
-- `packages.config` — never modify without explicit approval
-- `obj/` and `bin/` — build artifact directories
-- `Web.config` — never modify without explicit approval
+- \`*.csproj\` — never modify PackageReference without explicit approval
+- \`packages.config\` — never modify without explicit approval
+- \`obj/\` and \`bin/\` — build artifact directories
+- \`Web.config\` — never modify without explicit approval
 
 ## Global Forbidden Patterns (Always Enforced)
 
-These patterns are enforced across ALL project types via `assertAllowedPath()`:
+These patterns are enforced across ALL project types via \`assertAllowedPath()\`:
 
-```
+\`\`\`
 1. /etc/
 2. /usr/
 3. /var/
@@ -455,17 +455,17 @@ These patterns are enforced across ALL project types via `assertAllowedPath()`:
 11. /sys/*
 12. /dev/*
 13. /run/*
-```
+\`\`\`
 
 ## assertAllowedPath Implementation Notes
 
-The `assertAllowedPath()` function (src/tools/) must:
+The \`assertAllowedPath()\` function (src/tools/) must:
 
-1. Resolve the target path via `require('path').realpath()` to follow symlinks/junctions
+1. Resolve the target path via \`require('path').realpath()\` to follow symlinks/junctions
 2. Check the resolved path against all forbidden patterns above
 3. Reject with a descriptive error if any pattern matches
 4. Also check the **project root allowlist** — only paths within the configured
-   project root are permitted (configurable via `AEGISAI_PROJECT_ROOT_ALLOWLIST`)
+   project root are permitted (configurable via \`AEGISAI_PROJECT_ROOT_ALLOWLIST\`)
 5. Log all rejection attempts to the audit ledger with timestamp and user context
 
 ## Violation Consequences

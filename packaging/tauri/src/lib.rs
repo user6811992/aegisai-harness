@@ -12,7 +12,7 @@ use std::{
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, State,
+    AppHandle, Emitter, Manager, State,
 };
 
 pub const DEFAULT_PORT: u16 = 8080;
@@ -278,7 +278,7 @@ pub fn run() {
                         ));
                     }
                     "group_spawn" => {
-                        let _ = app.emit_to("main", "group-spawn", backend_group_spawn("default,analyst,reviewer"));
+                        let _ = app.emit_to("main", "group-spawn", backend_group_spawn("default,analyst,reviewer".to_string()));
                     }
                     "group_status" => {
                         let _ = app.emit_to("main", "group-status", backend_group_status());
