@@ -228,6 +228,22 @@ local inference and RE workloads directly — useful for testing these additions
 
 ---
 
+## 6e. cantools / commai / morluto / lightpanda-io (added 2026-11-27)
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| lightpanda-io/browser | 42,657 | Headless browser in Zig, 16x lighter/9x faster than Chromium; MCP/CLI/CDP/WebDriver | 1 |
+| lightpanda-io/agent-skill | 121 | Browser skill for agents + PandaScript deterministic replay | 1 |
+| morluto/leantoken | 180 | Code intelligence, 20–37% fewer tokens than built-in exploration | 2 |
+| morluto/rea | 480,754 | Original REA MCP — reference catalog (we keep zero-tool lean approach) | 3 |
+| morluto/kuna | 11 | Agent-first Rust decompiler, top of DecBench, single binary + skill | 4 |
+| morluto/reef + verifiers | — | Continual learning infra + RL env/eval harness for self-improving agents | 4 |
+| cantools/cantools | 2,332 | DBC/KCD/ARXML parsing, CAN encode/decode (used by canbus-re skill) | done |
+
+**Note:** `commai` returned zero public repos at scan time.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |

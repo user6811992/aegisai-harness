@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.37] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added 6 items from cantools/commai/morluto/lightpanda-io scans — Lightpanda browser backend (42,657⭐), LeanToken code intelligence (180⭐, 20–37% fewer tokens), REA full MCP reference (480,754⭐), Kuna agent-first decompiler, RL/eval harness. `commai` had zero public repos.
+- Re-evaluation updated: 72 total items (5 done, 67 remaining).
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6e with the detail matrix.
+
+### Verification
+- 523 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.36] - 2026-11-27
 
 ### Added (Phase 1 — CAN bus RE skill)
