@@ -244,6 +244,25 @@ local inference and RE workloads directly — useful for testing these additions
 
 ---
 
+## 6f. alesha-pro / nolly-studio / m-bain / togg53192-cmd (added 2026-11-27)
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| alesha-pro/inference-optimization-playbook | 114 | 138 tested consumer-GPU MoE tuning hypotheses, published as agent skill | 1 |
+| alesha-pro/claude-memory-bridge | 2 | Harness-agnostic shared memory files, no DB/embeddings, Auto-Dream | 1 |
+| alesha-pro/vllm-cross-model-kv | 26 | Small→large model KV transfer, 2.22x faster 32K TTFT, fails closed | 2 |
+| m-bain/whisperX | 25,794 | 70x realtime ASR, word-level timestamps, diarization, <8 GB GPU | 3 |
+| togg53192-cmd/recon | 54 | Multi-source OSINT aggregator (50+ APIs, Maigret, Sherlock) | 3 |
+| nolly-studio/components-build-skill | 53 | 16-category accessible React component skill | 3 |
+| alesha-pro/ai-orbiter | 10 | Unified MCP registry & management tool | 3 |
+| alesha-pro/tools | 846 | Local-inference rig tools/benchmarks (4x RTX 3090) | reference |
+
+**Hardware note:** alesha-pro's 1–4x RTX 3090 cases are higher-end than your
+RX 5700 XT 8 GB + GTX 1660 Super 6 GB, but the *methodology* (tested hypotheses,
+expert offload, KV-in-VRAM, measured provenance) transfers directly.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |

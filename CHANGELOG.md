@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.39] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added 10 items from alesha-pro/nolly-studio/m-bain/togg53192-cmd scans — inference optimization playbook skill, shared memory-file bridge, cross-model KV cache transfer, word-level ASR+diarization (whisperX 25,794⭐), OSINT aggregator skill, React component build skill, universal MCP registry tool. Re-evaluation updated: 79 total items (6 done, 73 remaining).
+- Fixed malformed "- **New in v1.0.NN:**" lines in ROADMAP.md (missing closing bold) from earlier bump scripts.
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6f with the detail matrix and hardware note.
+
+### Verification
+- 533 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.38] - 2026-11-27
 
 ### Added (Phase 1 — Lightpanda browser backend)
