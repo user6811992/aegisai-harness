@@ -30,6 +30,13 @@ function askApproval(name, args) {
 }
 
 async function main() {
+  if (process.argv.includes('--init')) {
+    const rootIdx = process.argv.indexOf('--root');
+    const root = rootIdx >= 0 ? process.argv[rootIdx + 1] : process.cwd();
+    const result = require('./project_init').initProject(root);
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(0);
+  }
   if (process.argv.includes('--version') || process.argv.includes('-v')) {
     console.log(VERSION);
     process.exit(0);
@@ -50,6 +57,7 @@ async function main() {
       '  --model <name>        Override model',
       '  --root <path>         Project root',
       '  --version             Print version and exit',
+      '  --init                Initialize project for agent use (AGENTS.md, .mcp.json, .aegisai/)',
       '  --help                Show this help',
       '',
       'Docs: https://github.com/user6811992/aegisai-harness',

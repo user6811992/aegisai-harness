@@ -106,6 +106,7 @@ async function runAgent(opts) {
     rollback = false,
     debuggerInstance = null,
     lenientTools = false,
+    governance = false,
   } = opts;
 
   // project root allowlist
@@ -116,6 +117,9 @@ async function runAgent(opts) {
 
   const runStart = Date.now();
   let totalTokensRef = 0;
+  // Governance: set baseline and record evidence when enabled.
+  const gov = governance ? require('../governance') : null;
+  if (gov) { gov.reset(); gov.setBaseline({ model, messageCount: (messages || []).length, startTs: runStart }); }
   const capture = (finalText) => { try { require('../observability').captureRun({ model, prompt: (messages || []).map((m) => (typeof m.content === 'string' ? m.content : '')).join(' ').slice(0, 500), final: finalText || '', toolLog, tokenStats: { total: totalTokensRef }, durationMs: Date.now() - runStart }); } catch (e) {} };
   const effectiveAuto = (name) => {
     if (approvalMode === 'full-auto') return true;
@@ -325,6 +329,16 @@ async function runAgent(opts) {
         const gr = require('../guardrails');
         const check = gr.checkOutput(finalText, guardrails.output === true ? {} : guardrails.output);
         if (!check.safe) finalText = '(blocked by output guardrail: ' + check.hits.join(', ') + ')';
+      }
+      // Governance: verification gate before claiming completion.
+      if (gov) {
+        const vr = gov.verificationGate(finalText, toolLog);
+        if (!vr.verified) {
+          finalText += '\\n\\n[governance] UNVERIFIED: ' + vr.issues.join('; ');
+          onEvent({ type: 'governance', verified: false, issues: vr.issues });
+        } else {
+          onEvent({ type: 'governance', verified: true, evidenceCount: vr.evidenceCount });
+        }
       }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
       if (autoCommit && toolLog.length > 0) { try { const r = require('../git_integration').autoCommit(projectRoot, 'auto: agent changes'); if (r.ok && !r.skipped) finalText += '\n\n[auto-commit] ' + (r.output || 'committed'); } catch (e) {} }
@@ -540,6 +554,8 @@ async function runAgent(opts) {
       }
       // Record every tool (built-in and coding) so the profiler dashboard is accurate.
       try { require('../profiler').recordTool(name, Date.now() - toolStart, result && result.ok !== false); } catch (e) {}
+      // Governance: record evidence for tool execution.
+      if (gov) { gov.recordEvidence({ type: 'tool_result', name, ok: result && result.ok !== false, durationMs: Date.now() - toolStart }); }
       await hooks.run('afterTool', { name, args, result });
       if (toolSpan) {
         if (result && result.ok === false) tracer.failSpan(toolSpan, result.output);
