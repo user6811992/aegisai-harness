@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.40] - 2026-11-27
+
+### Added (Phase 1 — universal inference optimization playbook)
+- **Inference playbook skill** (`src/inference_playbook.js`): clean-room adaptation of alesha-pro's tested-hypotheses methodology. Deliberately **hardware-agnostic** — a measurement loop (baseline → one hypothesis → one variable → re-measure → keep/revert with provenance) that works on CPU-only, single/multi-GPU, Apple Silicon, AMD, NVIDIA, and DGX-class machines. Hypothesis catalog across placement/quantization/decoding/context/system with applicability tags; hardware examples are illustrative, never defaults. Bundled as default skill `tune-local-inference`.
+- 3 new MCP tools: `tune_playbook_skill`, `tune_playbook_hypotheses`, `tune_playbook_record`.
+- New `tests/inference_playbook.test.js` with 11 tests.
+
+### Verification
+- 544 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.39] - 2026-11-27
 
 ### Documentation

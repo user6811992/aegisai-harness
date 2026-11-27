@@ -4,6 +4,7 @@ const aegisSkills = require('./aegis_skills');
 const leanrea = require('./leanrea_skill');
 const canbus = require('./canbus_skill');
 const lightpanda = require('./lightpanda');
+const inferencePlaybook = require('./inference_playbook');
 
 const SKILLS = {
   search_before_re: {
@@ -55,6 +56,11 @@ const SKILLS = {
     name: lightpanda.SKILL_NAME,
     description: lightpanda.SKILL_DESCRIPTION,
     body: lightpanda.skill().body,
+  },
+  tune_local_inference: {
+    name: inferencePlaybook.SKILL_NAME,
+    description: inferencePlaybook.SKILL_DESCRIPTION,
+    body: inferencePlaybook.BODY,
   },
 };
 
