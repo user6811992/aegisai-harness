@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.33] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added 12 items from startrail-org, aicodeking, panniantong, and aws scans: leanrea skill (4,508⭐), deepseek-stack reliability skills, skillshare sync, LEANN compact RAG (13,839⭐), PandaOrchestrator cheapest-model router, PixelRAG visual retrieval (11,144⭐), Agent-Reach social/web adapter (115,269⭐), unified agent storage contract, ontology-backed context, hardware-backed credential vault, AWS local emulator, DevOps agent tools.
+- Re-evaluation updated: 60 total items (3 done, 57 remaining).
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6c with the full detail matrix and license notes.
+
+### Verification
+- 503 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.32] - 2026-11-27
 
 ### Added (Phase 1 — tool-call reliability guardrails)

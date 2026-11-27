@@ -182,6 +182,29 @@ inferenceable = Apache-2.0, red-alert-llm = MIT. All can be adapted with attribu
 
 ---
 
+## 6c. startrail-org / aicodeking / panniantong / aws (added 2026-11-27)
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| aicodeking/leanrea | 4,508 | 8 KB SKILL.md replacing 207-tool REA MCP; 38% faster/35% cheaper | 1 |
+| aicodeking/deepseek-stack | 356 | Reliability skills: plan/verify/unstick/context-reset/ledger/review/jury/best-of-n | 1 |
+| Panniantong/skillshare | 10 | One source of truth for skills/agents/rules across 50+ harnesses | 1 |
+| StarTrail-org/LEANN | 13,839 | 97% less RAG storage via graph selective recomputation; MIT | 2 |
+| aicodeking/PandaOrchestrator | 100 | Cheapest-model router + escalation ladder (31 MB ONNX profiler) | 2 |
+| StarTrail-org/PixelRAG | 11,144 | Pixel-native visual retrieval; Apache-2.0 | 2 |
+| Panniantong/Agent-Reach | 115,269 | Agent eyes on X/Reddit/YouTube/GitHub/Bilibili/XHS; MIT | 3 |
+| aws/strands-dynamodb-storage | 18 | Unified byte storage contract for sessions/memory/transcripts | 3 |
+| aws/context-ontology-accelerator | 1,326 | Ontology + knowledge graph + RBAC semantic context | 3 |
+| aws/credential-daemon | 26 | Hardware-backed credential vault, short-lived creds, process audit | 4 |
+| aws/aws-emulator | 10,189 | Local AWS API emulator as safe RE/pentest target | 4 |
+| aws/tools-for-devops-agent | 151 | Skills + custom agents + MCP servers patterns for incident response | future |
+
+**License note:** LEANN = MIT, PixelRAG = Apache-2.0, Agent-Reach = MIT,
+leanrea/deepseek-stack = skills (check individual licenses), aws repos =
+Apache-2.0/MIT. All ideas can be adapted with attribution.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |
