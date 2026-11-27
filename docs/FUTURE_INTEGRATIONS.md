@@ -263,6 +263,24 @@ expert offload, KV-in-VRAM, measured provenance) transfers directly.
 
 ---
 
+## 6g. kepano / obsidianmd / THU-MAIC / kelseyhightower / xerj-org / oxnyk (added 2026-11-27)
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| obsidianmd/obsidian-skills | 54,260 | Agent skills for Markdown, Bases, JSON Canvas, vault | 1 |
+| kepano/defuddle | 10,211 | Clean main-content extraction to Markdown; Readability replacement | 1 |
+| kepano/kepano-obsidian | 6,617 | Personal vault template, bottom-up note organization | 1 |
+| xerj-org/xerj | 21,951 | Rust search engine + MCP, BM25+kNN+hybrid, 2.7× fewer tokens, agent memory | 2 |
+| THU-MAIC/OpenMAIC | 44,865 | Multi-agent interactive classroom, Socratic teaching | 3 |
+| obsidianmd/jsoncanvas | 4,010 | Open infinite-canvas file format | 3 |
+| kelseyhightower/nocode | 66,223 | "Write nothing; deploy nowhere" — minimalism principle | reference |
+| kelseyhightower/kubernetes-the-hard-way | 50,841 | Learn-by-doing docs pattern | reference |
+| oxnyk | — | GitHub user not found (404) at scan time | — |
+
+**Note:** `commai` and `oxnyk` returned no public repos at scan time.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |

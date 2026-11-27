@@ -2,6 +2,15 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.41] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added 8 items from kepano/obsidianmd/THU-MAIC/kelseyhightower/xerj-org/oxnyk scans — Obsidian vault skills, Defuddle extraction, XERJ unified search/MCP, multi-agent classroom, JSON Canvas, minimalism/learn-by-doing references. Re-evaluation updated: 85 total items (7 done, 78 remaining). `oxnyk` returned 404 (user not found).
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6g with the detail matrix.
+
+### Verification
+- 544 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.40] - 2026-11-27
 
 ### Added (Phase 1 — universal inference optimization playbook)
