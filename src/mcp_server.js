@@ -36,6 +36,8 @@ function toolsList() {
   out.push(...require('./inference_playbook').tools());
   out.push(...require('./hybrid_search').tools());
   out.push(...require('./obsidian_skill').tools());
+  out.push(...require('./local_control').tools());
+  out.push(...require('./content_extract').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -73,6 +75,8 @@ async function callTool(name, args) {
   if (name.startsWith('vault_') || name.startsWith('canvas_') || name.startsWith('base_') || name.startsWith('note_') || name === 'obsidian_skill') {
     return { content: [{ type: 'text', text: JSON.stringify(require('./obsidian_skill').dispatch(name, args)) }] };
   }
+  if (name.startsWith('local_control_')) return { content: [{ type: 'text', text: JSON.stringify(require('./local_control').dispatch(name, args)) }] };
+  if (name.startsWith('content_extract')) return { content: [{ type: 'text', text: JSON.stringify(require('./content_extract').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

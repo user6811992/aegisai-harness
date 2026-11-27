@@ -2,6 +2,19 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.44] - 2026-11-27
+
+### Added (Phase 1/3 — control plane + content extraction)
+- **Local control plane** (`src/local_control.js`): clean-room adaptation of 0xNyk/lacp (MIT). Deterministic risk tiers (read/write/destructive/external), approval gates, evidence-based write checks, local-first policy (remote opt-in), execution records via the ledger, and rollback snapshots. Named `local_control.js` to coexist with the existing v0.33 `control_plane.js`. 4 MCP tools: `local_control_policy`, `local_control_gate`, `local_control_record`, `local_control_list`.
+- **Content extraction** (`src/content_extract.js`): clean-room Defuddle-style (kepano/defuddle, 10,211⭐) main-content extraction — removes nav/header/footer/aside/scripts, prefers `<main>`/`<article>`, extracts title/description/author + schema.org JSON-LD, outputs readable text/Markdown. 2 MCP tools: `content_extract`, `content_extract_file`.
+- New `tests/control_extract.test.js` with 16 tests.
+
+### Fixed
+- Restored `src/control_plane.js` (v0.33 govern/checkpoint/resume module) after it was accidentally overwritten during this work — full suite green again.
+
+### Verification
+- 584 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.43] - 2026-11-27
 
 ### Added (Phase 1 — Obsidian vault + open formats)
