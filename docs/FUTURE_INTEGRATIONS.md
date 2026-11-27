@@ -205,6 +205,29 @@ Apache-2.0/MIT. All ideas can be adapted with attribution.
 
 ---
 
+## 6d. linux-can / collin80 / hardbyte / cantools (added 2026-11-27)
+
+These accounts are dominated by CAN bus / automotive tooling plus cross-cutting utilities.
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| linux-can/can-utils | 2,975 | SocketCAN userspace tools (candump/cansend/canplayer) — CLI RE commands | 1 |
+| collin80/SavvyCAN | 1,951 | CAN frame visualization/RE, 12+ log formats (BusMaster/CRTD/Vector/PCAP) | 1 |
+| cantools/cantools | 2,332 | DBC/KCD/SYM/ARXML/CDD parsing, CAN encode/decode, candump decoder | 1 |
+| hardbyte/python-can | 1,627 | Python CAN support; CLI patterns | 1 |
+| hardbyte/qabot | 244 | NL queries on local CSV/sqlite/Excel via DuckDB; shows generated SQL | 2 |
+| hardbyte/netchecks | 166 | Declarative network condition assertions | 2 |
+| hardbyte/obsidian-llm-plugin | 34 | LLM CLI integration: open-files context, prompt-from-file, ACP mode | 3 |
+| hardbyte/python-common-expression-language | 43 | CEL-safe expressions for policy/governance rules | 3 |
+| hardbyte/paillier.js | 23 | Pure-JS partially homomorphic encryption | 4 |
+| collin80/symgrate2-ghidra-plugin | 0 | Ghidra Thumb2 symbol recovery for ARM | 4 |
+
+**Note:** CAN bus tools are hardware/network opt-in. Your local machine
+(Ryzen 5 5600X, 32 GB DDR4, RX 5700 XT 8 GB + GTX 1660 Super 6 GB) can run
+local inference and RE workloads directly — useful for testing these additions.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |

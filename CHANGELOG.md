@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.35] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added 10 items from linux-can/collin80/hardbyte/cantools scans — CAN bus RE skill (zero-tool leanrea-style), NL→SQL local data queries (qabot), network condition assertions (netchecks), vault/notes LLM integration (obsidian-llm-plugin), CEL policy expressions, homomorphic encryption (paillier.js), Ghidra Thumb2 symbol recovery. Note added about local hardware (Ryzen 5 5600X, 32 GB, RX 5700 XT 8 GB + GTX 1660 Super 6 GB) for running RE/inference workloads locally.
+- Re-evaluation updated: 67 total items (4 done, 63 remaining).
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6d with the full detail matrix.
+
+### Verification
+- 513 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.34] - 2026-11-27
 
 ### Added (Phase 1 — lean-rea skill)
