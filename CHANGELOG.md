@@ -2,6 +2,15 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.42] - 2026-11-27
+
+### Added (Phase 2 — XERJ-style hybrid search)
+- **Hybrid search engine** (`src/hybrid_search.js`): clean-room implementation of xerj-org/xerj (Apache-2.0) ideas. Zero dependencies, fully local. BM25 lexical scoring, feature-hash dense kNN, and reciprocal-rank fusion (RRF) for hybrid retrieval. Indexes markdown/txt/js/ts/json/jsonl/csv/log/yaml from a local directory (JSONL line-by-line, others in ~2KB passages). Returns top-k passages only — fewer output tokens. 2 new MCP tools: `hybrid_index_build`, `hybrid_search` (modes bm25/knn/hybrid).
+- New `tests/hybrid_search.test.js` with 12 tests.
+
+### Verification
+- 556 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.41] - 2026-11-27
 
 ### Documentation

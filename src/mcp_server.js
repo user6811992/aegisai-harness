@@ -34,6 +34,7 @@ function toolsList() {
   out.push(...require('./canbus_skill').tools());
   out.push(...require('./lightpanda').tools());
   out.push(...require('./inference_playbook').tools());
+  out.push(...require('./hybrid_search').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -67,6 +68,7 @@ async function callTool(name, args) {
     return { content: [{ type: 'text', text: JSON.stringify(r) }], isError: r.ok === false };
   }
   if (name.startsWith('tune_playbook_')) return { content: [{ type: 'text', text: JSON.stringify(require('./inference_playbook').dispatch(name, args)) }] };
+  if (name.startsWith('hybrid_')) return { content: [{ type: 'text', text: JSON.stringify(require('./hybrid_search').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);
