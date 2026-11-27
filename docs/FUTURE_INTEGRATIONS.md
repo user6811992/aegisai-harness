@@ -5,97 +5,186 @@ AegisAi Harness stays local-only; heavy or network-dependent features are
 opt-in and must be explicitly enabled. Each entry lists the source, what is
 already adapted, what remains, and feasibility.
 
----
-
-## 1. Research-Grade Integrations (require external toolchains / GPU)
-
-### mLattice — linear-memory architecture
-- **Source:** [eelbaz/mLattice](https://github.com/eelbaz/mLattice) (MIT)
-- **What it is:** 9 cells read/written per token on a 2D lattice; flat per-token cost at 131K tokens (7,280× fewer ops than attention).
-- **Already adapted:** nothing (architecture is research-grade).
-- **Remaining:** Python/PyTorch kernel as an optional long-context backend, exposed through `optional_modules` and called as a tool.
-- **Feasibility:** Low (research kernel + CUDA). **Impact:** High (unlimited context).
-
-### JIT LoRA — continuous in-conversation learning
-- **Source:** [eelbaz/jit-lora](https://github.com/eelbaz/jit-lora) (MIT)
-- **What it is:** Rewrites model weights mid-conversation via MLX-native LoRA; ≥33% regularization ratio prevents catastrophic forgetting.
-- **Already adapted:** the ≥33% regularization guard in `src/memory_policy.js`.
-- **Remaining:** full MLX/Apple Silicon training loop; not portable to Node.
-- **Feasibility:** Low (needs ML runtime). **Impact:** High (persistent knowledge).
-
-### MIRAS / Titans neural long-term memory
-- **Source:** [eelbaz/olmo3-miras](https://github.com/eelbaz/olmo3-miras) (MIT)
-- **What it is:** Surprise-driven associative memory with test-time learning and adaptive forget gates.
-- **Already adapted:** surprise scoring for consolidation in `src/memory_policy.js`.
-- **Remaining:** neural memory module with gradient-based updates (PyTorch).
-- **Feasibility:** Medium. **Impact:** High.
-
-### MoE expert prefetch predictor
-- **Source:** [eelbaz/tensorbend-predictor](https://github.com/eelbaz/tensorbend-predictor) (MIT)
-- **What it is:** Predicts router expert selection before the gate; prefetches weights from NVMe/DRAM (99.8% train / 96.9% live accuracy).
-- **Already adapted:** nothing.
-- **Remaining:** low-level vLLM/ggml integration for local MoE models.
-- **Feasibility:** Low. **Impact:** Medium (MoE throughput).
-
-### peerhive — p2p pubsub over QUIC
-- **Source:** [eelbaz/peerhive](https://github.com/eelbaz/peerhive) (MIT)
-- **What it is:** p2p pubsub media network over QUIC.
-- **Already adapted:** nothing.
-- **Remaining:** extend A2A/ACP adapters (`src/a2a.js`, `src/a2a_adapter.js`) with a p2p transport.
-- **Feasibility:** Low (distributed systems). **Impact:** Medium (distributed multi-agent).
-
-### Recursive-Self-Improving-Loopers — fixed-point self-improvement
-- **Source:** [eelbaz/Recursive-Self-Improving-Loopers](https://github.com/eelbaz/Recursive-Self-Improving-Loopers) (MIT)
-- **What it is:** SelfWrite + Banach fixed-point alignment for looped MoE transformers.
-- **Already adapted:** fixed-point convergence detection in `src/convergence.js`.
-- **Remaining:** loop-control weight editing (requires model-level access).
-- **Feasibility:** Low. **Impact:** Medium.
+For the **phased, prioritized execution plan**, see the "Phased Integration
+Backlog" section in `ROADMAP.md`. This document is the detail matrix.
 
 ---
 
-## 2. Product Enhancements (feasible, not scheduled)
+## 1. Phase 1 — Quick Wins (easy + high fit)
 
-| # | Idea | Current state | Remaining work | Impact |
-|---|---|---|---|---|
-| 1 | Broader model-store bridging | `src/model_bridge.js` (Ollama↔LM Studio) | Extend `src/model_registry.js` with copy/sync for llama.cpp, vLLM cache, HuggingFace cache | Medium |
-| 2 | Signed verification certificates | `src/verification_cert.js` (content hash) | Add optional Ed25519 signatures with a local key | Medium |
-| 3 | Lean 4 as a release gate | `src/lean_verify.js` (opt-in tool) | Wire into CI governance for formal claims | Medium |
-| 4 | Dashboard in Web UI | `src/performance_dashboard.js` (data layer) | Add panel to `public/admin.html` and docs landing page | Medium |
-| 5 | Per-subscription quota windows | not started | Usage analytics by Claude/OpenCode/Cursor windows (apiad/aegis pattern) | Medium |
-| 6 | Agent groups / broadcast in Web UI | Tauri tray IPC only | Add group coordination panel to the web UI | Medium |
+### Dataset tools — eelbaz/datasetexplorer (91⭐)
+- **Source:** https://github.com/LostRuins/datasetexplorer (MIT)
+- **What it is:** single-file, zero-dependency JSON/JSONL dataset viewer/editor for LLM training — Alpaca/ShareGPT/Text formats, regex search/filter, n-gram viewer + word cloud, split/merge/dedup, inline editor, handles ~400 MB.
+- **Plan:** `src/dataset.js` with `dataset_view`, `dataset_filter`, `dataset_dedupe`, `dataset_split`, `dataset_merge`, `dataset_ngram`; vendor `public/dataset-explorer.html`.
+- **Effort:** Easy. **Impact:** Medium–High (complements eval/comprehension work).
+
+### HF model downloader — thad0ctor/llama-server-launcher (133⭐)
+- **Source:** https://github.com/thad0ctor/llama-server-launcher (MIT)
+- **Current gap:** `src/model_discovery.huggingFacePull()` is a stub.
+- **Plan:** real streaming download with progress and checksum verification.
+- **Effort:** Easy. **Impact:** Medium.
+
+### Local-inference tuning skill — pmaeria/tune-ik-llama
+- **Source:** https://github.com/pmaeria/tune-ik-llama (MIT)
+- **What it is:** agent skill with a six-phase procedure (detect hardware → predict fit → baseline → diagnose regime → sweep `--n-cpu-moe` → push context to native max); measured ~95 tok/s on Qwen 3.6 35B-A3B / 16 GB 4060 Ti.
+- **Plan:** bundled `SKILL.md` + `tune_llama` tool recording evidence to `metrics_store.js`.
+- **Effort:** Easy–Medium. **Impact:** Medium (reproducible tuning).
+
+### Config API hardening — Martossien/dashboard-llm
+- **Source:** https://github.com/Martossien/dashboard-llm (MIT)
+- **Pattern:** field whitelist, input validation, atomic writes, file locking, CSRF.
+- **Plan:** extract reusable `src/safe_config.js`; harden `settings.js`.
+- **Effort:** Easy. **Impact:** Medium–High (governance + safety).
+
+### Weekly submodule bump automation — replikeit/ik-llama-cpp-rs
+- **Source:** https://github.com/replikeit/ik-llama-cpp-rs (MIT)
+- **Pattern:** workflow walks submodule to upstream, bumps patch version, builds, opens PR.
+- **Plan:** adapt for `vendor/aegis` updates.
+- **Effort:** Easy. **Impact:** Medium (keeps bundled method pack current).
 
 ---
 
-## 3. Cross-Project Patterns Worth Reusing
+## 2. Phase 2 — Core Inference Enhancements
 
-| Pattern | Source | Where it could apply |
+### VRAM fit predictor + launch dry-run — raketenkater/ggrun (284⭐)
+- **Source:** https://github.com/raketenkater/ggrun (MIT)
+- **What it is:** reads GGUF + hardware (CPU/RAM/GPU/PCIe), computes exact VRAM math, places models across mismatched multi-GPU rigs, emits `llama-server` command, checks fit, supports `--dry-run`, passes unknown flags through.
+- **Plan:** `src/model_fit.js` + backend launch `--dry-run`; extend `hardware_autotune`.
+- **Effort:** Medium. **Impact:** High (prevents failed loads, enables MoE on small GPUs).
+
+### ik_llama.cpp backend variant — ikawrakow/ik_llama.cpp (3,426⭐)
+- **Source:** https://github.com/ikawrakow/ik_llama.cpp (MIT)
+- **What it adds:** IQ*_K / IQ*_KT / R4/R8 quants, MLA, fused delta-net, tensor parallel, MTP (NextN), DFlash, MoE flags (`--n-cpu-moe`, `-rtr`, `-fmoe`), better CPU performance.
+- **Plan:** first-class backend variant with quant-aware discovery and MoE flags.
+- **Critical:** ik and stock llama.cpp export the same `llama_*`/`ggml_*` symbols with incompatible ABIs — **feature-gate one runtime per binary**, never link both.
+- **Effort:** Medium. **Impact:** High.
+
+### Exact-fit preflight as a universal pattern (cross-cutting)
+- Apply "will it fit and how to split it" preflight to all backends (vLLM, Ollama, llama.cpp, ik).
+- **Effort:** Medium. **Impact:** High.
+
+### Prometheus `/metrics` endpoint — Martossien/dashboard-llm
+- CPU/RAM/GPU/token rates; feeds `performance_dashboard.js` and InfluxDB export.
+- **Effort:** Medium. **Impact:** Medium–High.
+
+### Backend parameter sweeps — VykosX/Llama-Optimizer
+- **Source:** https://github.com/VykosX/Llama-Optimizer (MIT)
+- GP-Bayesian multi-phase optimization: topology, context ceiling, offload, MoE thread/expert sweeps, MTP draft, IK contrast, sortable HTML report.
+- **Plan:** `src/backend_optimizer.js`, time-boxed sweeps → `metrics_store.js` → dashboard.
+- **Effort:** Medium. **Impact:** Medium–High.
+
+### Performance Dashboard Web UI panel
+- Surface `performance_dashboard` data in `public/admin.html` + docs landing page.
+- **Effort:** Medium. **Impact:** Medium.
+
+---
+
+## 3. Phase 3 — Product & UX
+
+### Chat template editor with Jinja + reasoning controls — llama-server-launcher
+- Visual editor for `prompt_templates.js`; per-backend config import/export profiles.
+- **Effort:** Medium. **Impact:** Medium.
+
+### Single-file offline web UI — LostRuins/lite.koboldai.net (209⭐)
+- **Source:** https://github.com/LostRuins/lite.koboldai.net (MIT)
+- Zero-dependency single HTML UI; four modes (Story/Adventure/Chat/Instruct); Tavern cards; AI Horde; in-browser TTS.
+- **Plan:** `public/lite.html` runnable from `file://`.
+- **Effort:** Medium. **Impact:** Medium.
+
+### Tavern character cards / world info / author's notes — koboldcpp + lite
+- Roleplay prompt scaffolding in `prompt_templates.js` / `conversation_templates.js`.
+- **Effort:** Medium. **Impact:** Medium.
+
+### AI Horde as opt-in provider
+- Distributed generation network; network-dependent, disabled in offline mode.
+- **Effort:** Medium. **Impact:** Medium.
+
+### Verification certificate signing with Ed25519
+- Upgrade `verification_cert.js` from content-hash only to optional local-key signatures.
+- **Effort:** Medium. **Impact:** Medium (trust & audit).
+
+### Lean 4 verification as a release gate
+- Wire `lean_verify_project` into CI governance for formal claims.
+- **Effort:** Medium. **Impact:** Medium.
+
+### Unified model-store bridging beyond Ollama/LM Studio
+- Extend `model_registry.js` with copy/sync for llama.cpp, vLLM cache, HuggingFace cache.
+- **Effort:** Medium. **Impact:** Medium.
+
+---
+
+## 4. Phase 4 — Heavy / Native
+
+### In-process inference in Tauri via Rust bindings — replikeit/ik-llama-cpp-rs
+- **Source:** https://github.com/replikeit/ik-llama-cpp-rs (MIT)
+- Safe Rust bindings mirroring `llama-cpp-2`; weekly upstream bump workflow; ABI incompatibility warning.
+- **Plan:** optional Tauri feature flag; feature-gate one runtime.
+- **Effort:** High. **Impact:** High.
+
+### Multi-modal generation — LostRuins/koboldcpp (12,411⭐) + stable-ui + stable-diffusion.cpp
+- Image (SD1.5/SDXL/SD3/Flux/Qwen Image), video (WAN 2.2/LTX2.3), voice (Whisper STT, Qwen3TTS, Kokoro TTS), music (ACE Step) via one backend.
+- **Effort:** High. **Impact:** Medium–High.
+
+### Parallel GPU weight loading — sergey-automation/parallel-gpu-weight-loading
+- Faster model load for llama.cpp/ik. **Effort:** High. **Impact:** Medium.
+
+### ik_llama Docker profile — adambenhassen/llama-swap-ik
+- Compose profile for ik server alongside mainline. **Effort:** Medium. **Impact:** Medium.
+
+### Phishing domain blocklist — LostRuins/phishing-database
+- Optional feed into `url_validate.js` SSRF guard (verify freshness first). **Effort:** Easy. **Impact:** Medium.
+
+---
+
+## 5. Phase 5 — Research-Grade (opt-in, external toolchains / GPU)
+
+| Project | Source | Already adapted | Remaining | Effort | Impact |
+|---|---|---|---|---|---|
+| mLattice | eelbaz/mLattice | — | PyTorch/CUDA 9-cell memory kernel | H | H |
+| JIT LoRA | eelbaz/jit-lora | ≥33% guard in `memory_policy.js` | MLX training loop | H | H |
+| MIRAS / Titans | eelbaz/olmo3-miras | surprise scoring in `memory_policy.js` | gradient memory module | H | H |
+| MoE expert prefetch | eelbaz/tensorbend-predictor | — | router prediction + NVMe/DRAM prefetch | H | M |
+| Recursive-Self-Improving-Loopers | eelbaz/Recursive-Self-Improving-Loopers | `convergence.js` | loop-control weight editing | H | M |
+| peerhive p2p QUIC | eelbaz/peerhive | — | A2A/ACP p2p transport | H | M |
+
+---
+
+## 6. Phase 6 — Community / Ecosystem
+
+- Model interoperability standard — contribute the dedup/registry layer as a shared spec.
+- Optional-research-module marketplace — lazy submodule discovery generalized to community modules.
+- Hardware profile contributions — community-submitted profiles beyond DGX Spark/Apple Silicon/Blackwell.
+- Offline-first verification network — peers exchange verification certificates without a central service.
+
+---
+
+## 7. Cross-Project Patterns Worth Reusing
+
+| Pattern | Source | Where it applies |
 |---|---|---|
-| Hardware-specific setup scripts | `dgx-spark-vllm-setup`, `nvfp4-quantization` | More `docs/*_SETUP.md` profiles + `hardware.js` detection |
-| Per-phase HTTP timing + time-series export | `lyra` | Already in `http_advanced.js` + `influxdb.js`; extend with alerting |
-| Opt-in research submodule discovery | `vendor/aegis` + `optional_modules.js` | Generalize to a community module registry |
-| Formal verification certificates | `Rule30PrizeKit` + `evidence_bundle.js` | Signed, independently verifiable completion proofs |
-| Model-neutral scaffolding blueprints | `harnessforge` | Already in `project_init.js`; extend with more IDE adapters |
-
----
-
-## 4. Ideas Not Tied to a Specific Repo
-
-- **Unified model interoperability spec** — contribute the dedup/registry layer as a shared standard for local harnesses.
-- **Community hardware profiles** — user-submitted GPU/CPU profiles auto-selected in `hardware_autotune.js`.
-- **Research-module marketplace** — lazy, opt-in discovery of third-party method packs with provenance in `THIRD_PARTY_NOTICES.md`.
-- **Offline-first verification network** — peers exchange verification certificates without a central service.
+| Exact-fit preflight | ggrun | All backends before model load |
+| Skill-driven hardware tuning | tune-ik-llama | Aegis skill pack delivery |
+| Config API hardening | dashboard-llm | `settings.js` → `safe_config.js` |
+| Prometheus `/metrics` | dashboard-llm | Standard observability interface |
+| ABI-aware backend gating | ik-llama-cpp-rs | Native runtime isolation |
+| Weekly upstream bump | ik-llama-cpp-rs | `vendor/aegis` submodule updates |
+| Measured-evidence reporting | tune-ik-llama, Llama-Optimizer | Bounded claims with hardware context |
+| Single-file zero-dep UI | datasetexplorer, lite.koboldai | Offline-first fallback tools |
 
 ---
 
 ## Decision Principles
 
 1. **Local-only by default** — no telemetry, no phone-home; network tools disabled in offline mode.
-2. **Opt-in heavy tools** — research modules are discovered lazily, never bundled.
+2. **Opt-in heavy tools** — research modules discovered lazily, never bundled.
 3. **Provenance** — all adapted patterns attributed in `THIRD_PARTY_NOTICES.md`.
-4. **Measured, not claimed** — like Aegis/LinkDigest, report bounded evidence, not universal claims.
+4. **Measured, not claimed** — bounded evidence with hardware context, not universal claims.
 5. **No completion without evidence** — governance gates apply to harness development itself.
+6. **ABI-aware backend gating** — declare runtime ABI contracts; never load conflicting native runtimes.
+7. **Config safety** — whitelist fields, validate inputs, atomic writes, file locking.
+8. **Exact-fit preflight** — predict whether a model fits before attempting to load it.
 
 ---
 
-See also: `ROADMAP.md`, `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`,
+See also: `ROADMAP.md` (phased backlog), `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md`,
 `docs/DGX_SPARK.md`, `docs/LEAN_VERIFY.md`.

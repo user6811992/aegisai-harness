@@ -1,6 +1,6 @@
 [package]
 name = "aegisai-harness"
-version = "1.0.26"
+version = "1.0.27"
 edition = "2021"
 description = "AegisAi Harness native Windows desktop shell"
 

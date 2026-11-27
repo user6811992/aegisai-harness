@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.27] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: replaced ad-hoc "Future / Planned Integrations" with a **Phased Integration Backlog** — 6 phases ordered by value ÷ effort (quick wins → core inference → product/UX → heavy/native → research-grade → community). Incorporates everything from the LostRuins (koboldcpp, datasetexplorer, lite.koboldai, stable-ui, stable-diffusion.cpp, cuda-toolkit) and ik_llama.cpp ecosystem (ik_llama.cpp, ggrun, llama-server-launcher, tune-ik-llama, Llama-Optimizer, ik-llama-cpp-rs, dashboard-llm) scans, plus all cross-cutting ideas.
+- New detail matrix in `docs/FUTURE_INTEGRATIONS.md` organized by phase with sources, current state, remaining work, effort/impact, patterns worth reusing, and 8 decision principles.
+- Priority keys (E/M/H) and explicit "planned, not committed" status added.
+
+### Verification
+- 445 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.26] - 2026-11-27
 
 ### Fixed
