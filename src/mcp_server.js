@@ -38,6 +38,8 @@ function toolsList() {
   out.push(...require('./obsidian_skill').tools());
   out.push(...require('./local_control').tools());
   out.push(...require('./content_extract').tools());
+  out.push(...require('./vault_curator').tools());
+  out.push(...require('./slop_scan').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -77,6 +79,8 @@ async function callTool(name, args) {
   }
   if (name.startsWith('local_control_')) return { content: [{ type: 'text', text: JSON.stringify(require('./local_control').dispatch(name, args)) }] };
   if (name.startsWith('content_extract')) return { content: [{ type: 'text', text: JSON.stringify(require('./content_extract').dispatch(name, args)) }] };
+  if (name.startsWith('vault_curator')) return { content: [{ type: 'text', text: JSON.stringify(require('./vault_curator').dispatch(name, args)) }] };
+  if (name.startsWith('slop_')) return { content: [{ type: 'text', text: JSON.stringify(require('./slop_scan').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

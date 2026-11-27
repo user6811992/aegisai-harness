@@ -72,4 +72,41 @@ and feature sets were used.
   - The AGPL-licensed single-file HTML was **not** vendored; MIT-licensed
     aegisai-harness cannot incorporate it. See `docs/DATASET_TOOLS.md`.
 
+## Clean-room adaptations (by source project)
+Every module below was independently implemented from the **idea/feature set**
+of the referenced project. No source code was copied. All are local-only and
+opt-in where network or heavy toolchains are involved.
+
+| Source project | License | What was adapted |
+|---|---|---|
+| antoinezambelli/forge | MIT | Tool-call reliability guardrails (rescue parsing, retry nudges, response validation) → `src/tool_guardrails.js` |
+| thad0ctor/llama-server-launcher | MIT | HF streaming downloader → `src/hf_download.js` |
+| pmaeria/tune-ik-llama | MIT | Local-inference tuning procedure → `src/inference_playbook.js` |
+| aicodeking/leanrea | MIT | Zero-tool RE methodology → `src/leanrea_skill.js` |
+| aicodeking/deepseek-stack | MIT | Reliability skill patterns → Aegis skill pack |
+| alesha-pro/inference-optimization-playbook | public reference | Universal measured tuning methodology → `src/inference_playbook.js` |
+| alesha-pro/claude-memory-bridge | MIT | Harness-agnostic memory-file idea → roadmap (planned) |
+| linux-can/can-utils, collin80/SavvyCAN, cantools, hardbyte/python-can | various | CAN bus RE methodology → `src/canbus_skill.js` |
+| ikawrakow/ik_llama.cpp | MIT | SOTA quant / MoE flag patterns → roadmap (planned) |
+| mozilla-ai/llamafile, llamafile-builder | Apache-2.0 | Recipe builds, single-file distribution → roadmap (planned) |
+| lightpanda-io/browser + agent-skill | Apache-2.0/MIT | Opt-in headless browser backend → `src/lightpanda.js` |
+| StarTrail-org/LEANN | MIT | Compact RAG idea → roadmap (planned) |
+| StarTrail-org/PixelRAG | Apache-2.0 | Visual retrieval idea → roadmap (planned) |
+| Panniantong/Agent-Reach | MIT | Social/web reach patterns → roadmap (planned) |
+| martossien/dashboard-llm | MIT | Prometheus metrics + config-hardening patterns → roadmap (planned) |
+| hardbyte/qabot | MIT | NL→SQL local data queries → roadmap (planned) |
+| hardbyte/paillier.js | MIT | Homomorphic encryption idea → roadmap (planned) |
+| xerj-org/xerj | Apache-2.0 | BM25 + kNN + hybrid RRF search → `src/hybrid_search.js` |
+| morluto/leantoken | MIT OR Apache-2.0 | Code intelligence / token-lean context → roadmap (planned) |
+| morluto/rea | MIT | RE target catalog reference → roadmap (planned) |
+| morluto/kuna | MIT | Agent-first decompiler idea → roadmap (planned) |
+| kepano/defuddle | MIT | Main-content extraction → `src/content_extract.js` |
+| kepano + obsidianmd/obsidian-skills | MIT | Vault/open formats → `src/obsidian_skill.js` |
+| THU-MAIC/OpenMAIC | MIT | Multi-agent classroom patterns → roadmap (planned) |
+| 0xNyk/lacp | MIT | Local control plane → `src/local_control.js` |
+| 0xNyk/agent-security | MIT | Deterministic security gates → roadmap (planned) |
+| 0xNyk/obsidian-curator | MIT | Knowledge-graph maintenance → `src/vault_curator.js` |
+| 0xNyk/unmachined | MIT | Anti-slop scanner → `src/slop_scan.js` |
+| 0xNyk/council-of-high-intelligence | MIT | Multi-perspective deliberation → roadmap (planned) |
+
 All third-party components retain their respective licenses. See each project for full license text.

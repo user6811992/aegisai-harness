@@ -2,6 +2,21 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.45] - 2026-11-27
+
+### Added (Phase 1/4 — curator + anti-slop)
+- **Knowledge-graph curator** (`src/vault_curator.js`): clean-room 0xNyk/obsidian-curator (MIT). Dry-run-by-default vault maintenance — rename timestamp/category-shaped titles to claim-shaped, propose wikilinks between related notes, prune orphaned old notes (hub-aware, never flags MOC/index notes). 1 MCP tool: `vault_curator_report`.
+- **Anti-slop scanner** (`src/slop_scan.js`): clean-room 0xNyk/unmachined (MIT). Deterministic prose/UI tells with severity-tiered findings, scoring with threshold (pass is a floor), and a bounded rewrite loop with stop gate. 3 MCP tools: `slop_scan_text`, `slop_scan_ui`, `slop_rewrite_loop`.
+- New `tests/curator_slop.test.js` with 13 tests.
+
+### Documentation & licensing audit
+- Updated stale references: issue template (1.0.15→1.0.45), docs/wiki.html (v1.0.15→v1.0.45, 307→316 modules), public/admin.html (v1.0.12→v1.0.45), README (307→316 modules, 320+→316).
+- `THIRD_PARTY_NOTICES.md`: added a full clean-room adaptation matrix (~35 source projects with licenses and what was adapted).
+- ROADMAP: corrected checkbox state for all implemented items (13/89), replaced hand-edited re-evaluation table with generated counts, added a comprehensive re-evaluation section covering all phases and future/research items.
+
+### Verification
+- 597 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.44] - 2026-11-27
 
 ### Added (Phase 1/3 — control plane + content extraction)
