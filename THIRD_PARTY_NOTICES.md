@@ -136,4 +136,13 @@ opt-in where network or heavy toolchains are involved.
 | HarnessRouter/harnessrouter | Apache-2.0 | Unified Harness Protocol → roadmap (planned) |
 | tt-a1i/hive | BSL-1.1 | Local multi-agent PTY teams → roadmap (planned) |
 
+## Phase 2 batch 2
+| Source project | License | What was adapted |
+|---|---|---|
+| VectifyAI/PageIndex + ConDB | Apache-2.0 | Reasoning tree index → `src/tree_index.js` |
+| VectifyAI/ChatIndex | Apache-2.0 | Conversation tree → `src/tree_index.js` |
+| VykosX/Llama-Optimizer | MIT | Backend sweeps → `src/backend_sweeps.js` |
+| hardbyte/netchecks | MIT | Network condition assertions → `src/network_checks.js` |
+| morluto/leantoken | MIT OR Apache-2.0 | Token-lean code selection → `src/code_intelligence.js` |
+
 All third-party components retain their respective licenses. See each project for full license text.

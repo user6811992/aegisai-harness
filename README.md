@@ -2,15 +2,15 @@
 
 [![CI](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml/badge.svg)](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-362133?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-363133?logo=node.js&logoColor=white)](https://nodejs.org)
 [![GitHub release](https://img.shields.io/github/v/release/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/releases)
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
-offline-first: no cloud dependencies, no telemetry. 85 milestones, 316 modules,
-621 tests, CI green.
+offline-first: no cloud dependencies, no telemetry. 85 milestones, 333 modules,
+631 tests, CI green.
 
-> Status: v1.0.47 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.48 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -141,7 +141,7 @@ CI enforces `node scripts/check-version-consistency.js` so `package.json`, the i
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.47-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.48-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
@@ -171,9 +171,9 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ## Layout
 
 ```
-src/              316 modules (agent, tools, backends, storage, integrations, ...)
+src/              333 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            621 tests (node:test)
+tests/            631 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page, setup guides, future integrations matrix
 vendor/aegis      Aegis Method Pack (git submodule, 22 skills)
@@ -214,7 +214,11 @@ Built with inspiration from the open-source community.
 - **Memory & learning** — bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
 - **Security & governance** — Microsoft agent-governance-toolkit, spec-kitty, GanyuanRan/Aegis
 - **Observability** — OpenTelemetry, SARIF, LangSmith, Langfuse
-- **Scaffolding & coordination** — harnessforge, apiad/aegis, linkdigest-mcp
+- **Scaffolding & coordination** — harnessforge, apiad/aegis, linkdigest-mcp, Panniantong/skillshare, HarnessRouter
+- **Reliability & skills** — forge, aicodeking/leanrea + deepseek-stack, 0xNyk (council, LACP, unmachined, obsidian-curator), morluto (leantoken, rea, kuna)
+- **Search & retrieval research** — xerj-org/xerj, VectifyAI (PageIndex, ChatIndex, ConDB), StarTrail-org (LEANN, PixelRAG), morluto/leantoken
+- **Visual & desktop** — lightpanda-io/browser, kepano/defuddle + vault, obsidianmd/obsidian-skills, tt-a1i/Archify + hive
+- **Inference optimization** — raketenkater/ggrun, alesha-pro (inference playbook, vllm-cross-model-kv), ikawrakow/ik_llama.cpp, mozilla-ai/llamafile, ix-infrastructure/Ix
 - **Local inference research (@eelbaz)** — mLattice, JIT LoRA, olmo3-miras, Recursive-Self-Improving-Loopers, lyra, ollama-lmstudio-bridge, dgx-spark-vllm-setup, cdnshare, tensorbend-predictor, Rule30PrizeKit, peerhive
 
 All adapted patterns are attributed in [THIRD_PARTY_NOTICES.md](./THIRD_PARTY_NOTICES.md).

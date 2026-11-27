@@ -2,6 +2,21 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.48] - 2026-11-27
+
+### Added (Phase 2 batch 2)
+- **Reasoning tree index** (`src/tree_index.js`) — vectorless RAG from PageIndex/ConDB/ChatIndex: heading trees for documents, turn trees for conversations, reasoning-proxy search (4 MCP tools)
+- **Network assertions** (`src/network_checks.js`) — declarative + live HTTP condition checks (2 MCP tools)
+- **Backend sweeps** (`src/backend_sweeps.js`) — time-boxed speed/quality/cost scoring feeding metrics_store (1 MCP tool)
+- **Token-lean code selection** (`src/code_intelligence.js`) — Leantoken-style relevant file selection (1 MCP tool)
+- New `tests/phase2_batch2.test.js` with 10 tests
+
+### Fixed
+- Full staleness audit: updated version strings (1.0.44→1.0.48) across issue template, release workflow, wiki, admin UI; module counts to 334; README acknowledgements expanded with all recent sources.
+
+### Verification
+- 631 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.47] - 2026-11-27
 
 ### Added (Phase 2 — core inference, first batch)

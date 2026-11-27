@@ -51,6 +51,10 @@ function toolsList() {
   out.push(...require('./prometheus').tools());
   out.push(...require('./data_query').tools());
   out.push(...require('./escalation_router').tools());
+  out.push(...require('./tree_index').tools());
+  out.push(...require('./network_checks').tools());
+  out.push(...require('./backend_sweeps').tools());
+  out.push(...require('./code_intelligence').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -103,6 +107,14 @@ async function callTool(name, args) {
   if (name.startsWith('prometheus')) return { content: [{ type: 'text', text: JSON.stringify(require('./prometheus').dispatch(name, args)) }] };
   if (name.startsWith('data_query')) return { content: [{ type: 'text', text: JSON.stringify(require('./data_query').dispatch(name, args)) }] };
   if (name.startsWith('model_route')) return { content: [{ type: 'text', text: JSON.stringify(require('./escalation_router').dispatch(name, args)) }] };
+  if (name.startsWith('tree_')) return { content: [{ type: 'text', text: JSON.stringify(require('./tree_index').dispatch(name, args)) }] };
+  if (name.startsWith('netcheck_')) {
+    if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
+    const r = require('./network_checks').dispatch(name, args);
+    return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] };
+  }
+  if (name.startsWith('backend_sweep')) return { content: [{ type: 'text', text: JSON.stringify(require('./backend_sweeps').dispatch(name, args)) }] };
+  if (name.startsWith('code_select')) return { content: [{ type: 'text', text: JSON.stringify(require('./code_intelligence').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);
