@@ -8,7 +8,7 @@
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, 307 modules,
-358 tests, CI green.
+359 tests, CI green.
 
 > Status: v1.0.16 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
@@ -141,7 +141,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ```
 src/              307 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            358 tests (node:test)
+tests/            359 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page (GitHub Pages)
 ```

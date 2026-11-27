@@ -31,8 +31,11 @@ All notable changes to AegisAi Harness are documented here.
 - Added Tauri `build.rs`, fixed Tauri versions/icons, added `.dockerignore`, Docker healthcheck and non-root user.
 - Hardened CI: env-var indirection in release workflow (script injection), unconditional tag/version checks in npm and Docker workflows, version checker now covers Tauri files and semver prereleases.
 
+### Issues resolved
+- Issue #187 (v1.0.14 chat TDZ crash) — fixed in commit c35497b; regression test added via PR #188.
+
 ### Verification
-- All 358 tests pass (357 pass, 1 skipped, 0 failures).
+- All 359 tests pass (358 pass, 1 skipped, 0 failures), including PR #188 regression test for issue #187.
 - Version consistency check passes for v1.0.16.
 
 ## [1.0.15] - 2026-11-26
