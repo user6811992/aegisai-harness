@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-Setup development toolchains for AegisAi Harness v1.0.17 roadmap items
+Setup development toolchains for AegisAi Harness v1.0.18 roadmap items
 
 This script configures available toolchains and attempts to install missing ones
 via Windows Package Manager (winget). It sets up the PATH for development workflows.

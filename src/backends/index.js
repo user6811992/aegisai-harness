@@ -267,6 +267,9 @@ async function backendChatImpl(bodyObj, onChunk, signal) {
     oaiBody.tools = bodyObj.tools;
     if (bodyObj.tool_choice) oaiBody.tool_choice = bodyObj.tool_choice;
   }
+  // Ask OpenAI-compatible servers to include usage in the final stream chunk
+  // so the profiler can record prompt/completion token counts (llama.cpp etc.).
+  if (oaiBody.stream !== false) oaiBody.stream_options = { include_usage: true };
   const headers = { 'Content-Type': 'application/json' };
   if (state.apiKey) headers['Authorization'] = 'Bearer ' + state.apiKey;
   const r = await fetch(state.url + '/v1/chat/completions', { method: 'POST', headers, body: JSON.stringify(oaiBody), signal });

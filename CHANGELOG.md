@@ -2,6 +2,15 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.18] - 2026-11-27
+
+### Fixed
+- Fixed the v1.0.17 Tauri config (removed invalid NSIS `artifactName`) and Rust compile errors: command macros are now non-public, tray icon uses the configured app icon, and `spawn_backend` receives `AppHandle`. `cargo check` now passes cleanly.
+- Issue #189: Performance Dashboard reported zero tokens for llama.cpp and zero built-in tool calls. OpenAI-compatible streaming requests now set `stream_options: { include_usage: true }`; `profiler.recordTool` is now called for every tool (built-in, coding, and cached). Added `tests/v1018_fixes.test.js` regression coverage.
+
+### Verification
+- 361 tests pass, 0 failures. `cargo check` exit code 0. Version consistency ok.
+
 ## [1.0.17] - 2026-11-27
 
 ### Added

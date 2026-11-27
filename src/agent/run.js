@@ -420,6 +420,7 @@ async function runAgent(opts) {
       if (hr && hr.mutatedArgs) args = hr.mutatedArgs;
       else if (hr && hr.finalArgs) args = hr.finalArgs;
       onEvent({ type: 'tool_call', name, args });
+      const toolStart = Date.now();
       let result;
       try {
         if (name === 'sequential_thinking') {
@@ -514,9 +515,9 @@ async function runAgent(opts) {
               if (cached && cached.ok === false) tracer.failSpan(toolSpan, cached.output);
               else tracer.endSpan(toolSpan);
             }
+            try { require('../profiler').recordTool(name, Date.now() - toolStart, cached && cached.ok !== false); } catch (e) {}
             return { name, args, result: cached, cached: true, toolCallId: tc.id };
           }
-          const toolStart = Date.now();
           // auto-retry with backoff for transient failures
           let retries = 0;
           const MAX_RETRIES = 2;
@@ -533,11 +534,12 @@ async function runAgent(opts) {
           }
           // invalidate cache on mutating tools
           require('../tool_cache').invalidate(name, projectRoot);
-          try { require('../profiler').recordTool(name, Date.now() - toolStart, result && result.ok !== false); } catch (e) {}
         }
       } catch (e) {
         result = { ok: false, output: String(e.message || e) };
       }
+      // Record every tool (built-in and coding) so the profiler dashboard is accurate.
+      try { require('../profiler').recordTool(name, Date.now() - toolStart, result && result.ok !== false); } catch (e) {}
       await hooks.run('afterTool', { name, args, result });
       if (toolSpan) {
         if (result && result.ok === false) tracer.failSpan(toolSpan, result.output);

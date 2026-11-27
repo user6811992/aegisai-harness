@@ -8,9 +8,9 @@
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, 307 modules,
-359 tests, CI green.
+361 tests, CI green.
 
-> Status: v1.0.17 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.18 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -116,7 +116,7 @@ CI enforces `node scripts/check-version-consistency.js` so `package.json`, the i
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.17-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.18-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
@@ -148,7 +148,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ```
 src/              307 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            359 tests (node:test)
+tests/            361 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page (GitHub Pages)
 ```

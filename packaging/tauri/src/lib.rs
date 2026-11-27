@@ -10,7 +10,6 @@ use std::{
     time::Duration,
 };
 use tauri::{
-    command,
     menu::{Menu, MenuItem, PredefinedMenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
     AppHandle, Manager, State,
@@ -126,8 +125,8 @@ fn navigate_to_backend(app: &AppHandle) {
 
 // --- IPC commands exposed to the web UI (allowed only for the localhost origin) ---
 
-#[command]
-pub fn backend_status(state: State<'_, BackendState>) -> serde_json::Value {
+#[tauri::command]
+fn backend_status(state: State<'_, BackendState>) -> serde_json::Value {
     let pid = state.child.lock().unwrap().as_ref().map(|c| c.id());
     let reachable = TcpStream::connect(("127.0.0.1", DEFAULT_PORT)).is_ok();
     serde_json::json!({
@@ -138,8 +137,8 @@ pub fn backend_status(state: State<'_, BackendState>) -> serde_json::Value {
     })
 }
 
-#[command]
-pub fn backend_start(app: AppHandle) -> Result<serde_json::Value, String> {
+#[tauri::command]
+fn backend_start(app: AppHandle) -> Result<serde_json::Value, String> {
     let pid = spawn_backend(&app)?;
     if !wait_for_backend(10_000) {
         return Err("Backend did not become ready within 10 seconds".into());
@@ -148,14 +147,14 @@ pub fn backend_start(app: AppHandle) -> Result<serde_json::Value, String> {
     Ok(serde_json::json!({ "ok": true, "pid": pid, "url": BACKEND_URL }))
 }
 
-#[command]
-pub fn backend_stop(app: AppHandle) -> serde_json::Value {
+#[tauri::command]
+fn backend_stop(app: AppHandle) -> serde_json::Value {
     let stopped = stop_backend(&app);
     serde_json::json!({ "ok": true, "stopped": stopped })
 }
 
-#[command]
-pub fn backend_restart(app: AppHandle) -> Result<serde_json::Value, String> {
+#[tauri::command]
+fn backend_restart(app: AppHandle) -> Result<serde_json::Value, String> {
     stop_backend(&app);
     let pid = spawn_backend(&app)?;
     if !wait_for_backend(10_000) {
@@ -179,13 +178,10 @@ pub fn run() {
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
             let menu = Menu::with_items(app, &[&show, &restart, &sep, &quit])?;
 
-            let icon = match app.default_window_icon() {
-                Some(i) => i.clone(),
-                None => {
-                    tauri::image::Image::from_bytes(include_bytes!("../../../public/icon-192.png"))
-                        .expect("invalid tray icon")
-                }
-            };
+            let icon = app
+                .default_window_icon()
+                .expect("app icon missing from bundle config")
+                .clone();
 
             let _tray = TrayIconBuilder::with_id("main-tray")
                 .icon(icon)
@@ -233,7 +229,7 @@ pub fn run() {
             }
 
             // Start the backend and point the window at it once it is listening.
-            if let Err(e) = spawn_backend(app) {
+            if let Err(e) = spawn_backend(app.handle()) {
                 eprintln!("[aegisai] {}", e);
             }
             let handle = app.handle().clone();
