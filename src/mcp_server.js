@@ -18,6 +18,12 @@ function toolsList() {
   out.push({ name: 'sequential_thinking', description: 'Structured reflective thinking.', inputSchema: { type: 'object', properties: { thought: { type: 'string' } } } });
   out.push({ name: 'get_time', description: 'Current time in a timezone.', inputSchema: { type: 'object', properties: { timezone: { type: 'string' } } } });
   out.push(...require('./graph_mcp').tools());
+  // eelbaz-inspired integrations (local-only by default; network tools skipped in offline mode)
+  out.push(...require('./model_bridge').tools());
+  out.push(...require('./hardware').tools());
+  out.push(...require('./lean_verify').tools());
+  out.push(...require('./influxdb').tools());
+  if (process.env.AEGISAI_OFFLINE !== 'true') out.push(...require('./http_advanced').tools());
   return out;
 }
 
@@ -29,6 +35,16 @@ async function callTool(name, args) {
   if (['create_entities', 'create_relations', 'add_observations', 'search_nodes', 'read_graph'].includes(name)) return require('./graph_mcp').handle(name, args);
   if (name === 'fetch_url') { const r = await require('./fetch_url').fetch(args.url); return { content: [{ type: 'text', text: r.ok ? r.content : 'error: ' + r.error }], isError: !r.ok }; }
   if (name === 'sequential_thinking') { const r = require('./sequential_thinking').think(args.thought, args.nextThoughtNeeded, args.thoughtNumber, args.totalThoughts, args.isRevision, null, null, args.branchId); return { content: [{ type: 'text', text: JSON.stringify(r) }] }; }
+  // eelbaz-inspired integrations
+  if (name.startsWith('model_bridge_')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_bridge').dispatch(name, args)) }] };
+  if (name === 'hardware_detect') return { content: [{ type: 'text', text: JSON.stringify(require('./hardware').detect()) }] };
+  if (name.startsWith('lean_verify_')) return { content: [{ type: 'text', text: JSON.stringify(require('./lean_verify').dispatch(name, args)) }] };
+  if (name === 'metrics_export_influx') return { content: [{ type: 'text', text: JSON.stringify(await require('./influxdb').exportMetrics(args.points || [], args)) }] };
+  if (['http_probe_timing', 'http_detect_cdn', 'http_load_test'].includes(name)) {
+    if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
+    const r = await require('./http_advanced').dispatch(name, args);
+    return { content: [{ type: 'text', text: JSON.stringify(r) }], isError: r.ok === false };
+  }
   // generic coding tools
   const coding = require('./tools/coding');
   const result = await coding.execCodingTool(name, args, projectRoot, { autoApprove: true });

@@ -35,4 +35,17 @@ The following open-source projects inspired features adapted into AegisAi Harnes
   - MCP preset for social media content extraction registered in `src/mcp_presets.js`
   - Hosted service operated by LinkDigest; the harness preset does not bundle the reading engine
 
+## Adapted patterns (@eelbaz)
+The following projects by Eric Elbaz inspired features adapted into AegisAi Harness:
+- **ollama-lmstudio-bridge** (MIT) — https://github.com/eelbaz/ollama-lmstudio-bridge
+  - Model-store symlink bridging adapted into `src/model_bridge.js`
+- **lyra** (MIT) — https://github.com/eelbaz/lyra
+  - Phased HTTP timing metrics and InfluxDB line-protocol export adapted into `src/http_advanced.js` and `src/influxdb.js`
+- **cdnshare** (MIT) — https://github.com/eelbaz/cdnshare
+  - CDN identification from network metadata adapted into `src/http_advanced.js`
+- **dgx-spark-vllm-setup** (MIT) — https://github.com/eelbaz/dgx-spark-vllm-setup
+  - DGX Spark / Blackwell hardware profile documented in `docs/DGX_SPARK.md`
+- **Rule30PrizeKit** (MIT) — https://github.com/eelbaz/Rule30PrizeKit
+  - Optional Lean 4 verification wrapper in `src/lean_verify.js`, documented in `docs/LEAN_VERIFY.md`
+
 All third-party components retain their respective licenses. See each project for full license text.

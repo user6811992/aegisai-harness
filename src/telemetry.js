@@ -20,4 +20,11 @@ function exportSpans(spans, outPath) {
   return p;
 }
 
-module.exports = { exportSpans };
+const influx = require('./influxdb');
+
+// Export spans to InfluxDB line protocol (file or HTTP). Opt-in.
+function exportSpansToInflux(spans, opts) {
+  return influx.exportMetrics(influx.fromSpans(spans, { source: 'telemetry' }), opts);
+}
+
+module.exports = { exportSpans, exportSpansToInflux, influx };

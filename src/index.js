@@ -37,6 +37,17 @@ async function main() {
     console.log(JSON.stringify(result, null, 2));
     process.exit(0);
   }
+  if (process.argv.includes('--sync-models')) {
+    const rootIdx = process.argv.indexOf('--root');
+    const root = rootIdx >= 0 ? process.argv[rootIdx + 1] : undefined;
+    const dryRun = process.argv.includes('--dry-run');
+    const bridge = require('./model_bridge');
+    const result = dryRun
+      ? bridge.syncModels(root, { dryRun: true })
+      : Object.assign({ stores: bridge.detectModelStores(root) }, bridge.syncModels(root));
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.ok ? 0 : 1);
+  }
   if (process.argv.includes('--version') || process.argv.includes('-v')) {
     console.log(VERSION);
     process.exit(0);
@@ -58,6 +69,7 @@ async function main() {
       '  --root <path>         Project root',
       '  --version             Print version and exit',
       '  --init                Initialize project for agent use (AGENTS.md, .mcp.json, .aegisai/)',
+      '  --sync-models         Bridge Ollama model store into LM Studio (add --dry-run)',
       '  --help                Show this help',
       '',
       'Docs: https://github.com/user6811992/aegisai-harness',

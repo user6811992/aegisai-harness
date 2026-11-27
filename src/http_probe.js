@@ -120,4 +120,12 @@ async function probe(targets, opts) {
   };
 }
 
-module.exports = { probe, probeOne, fingerprint, extractTitle, TECH_SIGNATURES };
+const advanced = require('./http_advanced');
+module.exports = {
+  probe, probeOne, fingerprint, extractTitle, TECH_SIGNATURES,
+  // Advanced capabilities (phased timings, CDN detection, load simulation)
+  timedGet: advanced.timedGet,
+  detectCdn: advanced.detectCdn,
+  loadTest: advanced.loadTest,
+  advancedTools: advanced.tools,
+};

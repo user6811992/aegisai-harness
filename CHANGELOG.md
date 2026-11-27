@@ -2,6 +2,23 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.23] - 2026-11-27
+
+### Added (eelbaz integrations)
+- **Model-store bridge** (`src/model_bridge.js`): detect Ollama and LM Studio model stores and symlink Ollama blobs into LM Studio's models directory. New `--sync-models` CLI flag (with `--dry-run`) and MCP tools `model_bridge_status` / `model_bridge_sync`. Inspired by `eelbaz/ollama-lmstudio-bridge`.
+- **Phased HTTP timings** (`src/http_advanced.js`): DNS/TCP/TLS/server/transfer phase metrics, CDN detection from response headers, and a lightweight virtual-user load test. Re-exported from `http_probe.js`; MCP tools `http_probe_timing`, `http_detect_cdn`, `http_load_test`. Network tools are disabled in offline mode. Inspired by `eelbaz/lyra` and `eelbaz/cdnshare`.
+- **Hardware profiles** (`src/hardware.js`): named profiles for DGX Spark GB10 (`vllm`, NVFP4/BF16, 131K context), Blackwell, Apple Silicon (MLX), and generic CUDA. `hardware_detect` MCP tool. See `docs/DGX_SPARK.md`. Inspired by `eelbaz/dgx-spark-vllm-setup`.
+- **InfluxDB line-protocol export** (`src/influxdb.js`): opt-in metric export to file or HTTP with proper escaping, span and load-test converters, and `metrics_export_influx` MCP tool. Local-only by default. Inspired by `eelbaz/lyra`.
+- **Lean 4 verification** (`src/lean_verify.js`): optional formal-verification wrapper with graceful availability detection; `lean_verify_status` / `lean_verify_project` MCP tools. See `docs/LEAN_VERIFY.md`. Inspired by `eelbaz/Rule30PrizeKit`.
+- New `tests/eelbaz_integrations.test.js` with 22 tests.
+
+### Documentation
+- README, ROADMAP, CONTRIBUTING, docs pages updated to 421 tests.
+- `THIRD_PARTY_NOTICES.md` updated with eelbaz project attribution.
+
+### Verification
+- 421 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.22] - 2026-11-27
 
 ### Fixed
