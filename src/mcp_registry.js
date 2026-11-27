@@ -96,4 +96,45 @@ function install(spec) {
   return spec;
 }
 
-module.exports = { fetchRegistry, normalize, buildSpec, install, registryUrl, DEFAULT_REGISTRY, validSpec, validMcpUrl };
+// --- Universal local registry (universal MCP registry tool) ---
+// A separate local registry of *installed* servers/tools. The browser/install
+// flow above stays intact; these helpers never perform network calls.
+const ENTRIES = {
+  aegisai: { name: 'aegisai', transport: 'stdio', command: 'aegisai-harness', local: true },
+  filesystem: { name: 'filesystem', transport: 'stdio', local: true, note: 'built-in' },
+  memory: { name: 'memory', transport: 'stdio', local: true, note: 'built-in' },
+};
+function register(name, def) {
+  if (!name || !def || !def.transport) return { ok: false, error: 'name and transport required' };
+  ENTRIES[name] = { name, ...def, registered: new Date().toISOString() };
+  return { ok: true, entry: ENTRIES[name] };
+}
+function list() { return Object.values(ENTRIES); }
+function resolve(name) {
+  const e = ENTRIES[String(name || '')];
+  if (!e) return { ok: false, error: 'MCP server not registered: ' + name };
+  if (!e.local && process.env.AEGISAI_OFFLINE === 'true') return { ok: false, error: 'remote MCP disabled in offline mode' };
+  return { ok: true, ...e };
+}
+function search(query) {
+  const q = String(query || '').toLowerCase();
+  return { ok: true, servers: list().filter((e) => [e.name, e.transport, e.note || ''].join(' ').toLowerCase().includes(q)) };
+}
+function tools() {
+  return [
+    { name: 'mcp_registry_list', description: 'List registered MCP servers.', inputSchema: { type: 'object' } },
+    { name: 'mcp_registry_register', description: 'Register an MCP server.', inputSchema: { type: 'object', properties: { name: { type: 'string' }, transport: { type: 'string' } }, required: ['name','transport'] } },
+    { name: 'mcp_registry_resolve', description: 'Resolve an MCP server connection contract.', inputSchema: { type: 'object', properties: { name: { type: 'string' } }, required: ['name'] } },
+  ];
+}
+function dispatch(name, args) {
+  args = args || {};
+  if (name === 'mcp_registry_list') return { ok: true, servers: list() };
+  if (name === 'mcp_registry_register') return register(args.name, args);
+  if (name === 'mcp_registry_resolve') return resolve(args.name);
+  if (name === 'mcp_registry_search') return search(args.query);
+  throw new Error('unknown mcp_registry tool: ' + name);
+}
+
+module.exports = { fetchRegistry, normalize, buildSpec, install, registryUrl, DEFAULT_REGISTRY, validSpec, validMcpUrl,
+  ENTRIES, register, list, resolve, search, tools, dispatch };

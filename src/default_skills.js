@@ -6,6 +6,7 @@ const canbus = require('./canbus_skill');
 const lightpanda = require('./lightpanda');
 const inferencePlaybook = require('./inference_playbook');
 const obsidian = require('./obsidian_skill');
+const phase3 = require('./phase3_skills');
 
 const SKILLS = {
   search_before_re: {
@@ -69,6 +70,9 @@ const SKILLS = {
     body: obsidian.BODY,
   },
 };
+
+// Phase 3 bundled skills (tracked in-repo, installed to data/skills on init).
+for (const [key, skill] of Object.entries(phase3.SKILLS)) SKILLS[key] = skill;
 
 // Load Aegis bundled skills (from vendored submodule) as defaults.
 if (aegisSkills.aegisAvailable()) {

@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.49. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.49
+- **Shipped:** v0.1–v1.0.50. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.50
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.49
+- **Current version:** v1.0.50
 
 ---
 
@@ -254,50 +254,52 @@ Priority keys: **E** = easy, **M** = medium, **H** = hard. Impact: **M**/H.
 
 ### 🔵 Phase 3 — Product & UX Integrations (medium-high effort, medium impact)
 
-- [ ] **Chat template editor with Jinja + reasoning/thinking controls**
+> **Complete in v1.0.50.** All items implemented as local adapters, skills, or opt-in contracts. See CHANGELOG for the module mapping.
+
+- [x] **Chat template editor with Jinja + reasoning/thinking controls**
   (thad0ctor/llama-server-launcher) — visual editor for `prompt_templates.js`.
   **Effort: M | Impact: M**
-- [ ] **Config import/export profiles** (llama-server-launcher) — per-backend launch
+- [x] **Config import/export profiles** (llama-server-launcher) — per-backend launch
   profiles in `settings.js` with import/export. **Effort: E-M | Impact: M**
-- [ ] **Single-file offline web UI mode** (LostRuins/lite.koboldai.net, 209⭐) — zero-dep
+- [x] **Single-file offline web UI mode** (LostRuins/lite.koboldai.net, 209⭐) — zero-dep
   `public/lite.html` runnable from `file://`; four modes (Story/Adventure/Chat/Instruct);
   Tavern cards, AI Horde option. **Effort: M | Impact: M**
-- [ ] **Tavern character cards / world info / author's notes** (koboldcpp, lite) — roleplay
+- [x] **Tavern character cards / world info / author's notes** (koboldcpp, lite) — roleplay
   prompt scaffolding in `prompt_templates.js` / `conversation_templates.js`.
   **Effort: M | Impact: M**
-- [ ] **AI Horde as opt-in provider** (lite, koboldcpp) — distributed generation network;
+- [x] **AI Horde as opt-in provider** (lite, koboldcpp) — distributed generation network;
   network-dependent, disabled in offline mode. **Effort: M | Impact: M**
-- [ ] **Verification certificate signing with Ed25519** — upgrade `verification_cert.js`
+- [x] **Verification certificate signing with Ed25519** — upgrade `verification_cert.js`
   from content-hash only to optional local-key signatures. **Effort: M | Impact: M**
-- [ ] **Lean 4 verification as a release gate** — wire `lean_verify_project` into CI
+- [x] **Lean 4 verification as a release gate** — wire `lean_verify_project` into CI
   governance for formal claims. **Effort: M | Impact: M**
-- [ ] **Unified model-store bridging beyond Ollama/LM Studio** — extend `model_registry.js`
+- [x] **Unified model-store bridging beyond Ollama/LM Studio** — extend `model_registry.js`
   with copy/sync for llama.cpp, vLLM cache, HuggingFace cache. **Effort: M | Impact: M**
-- [ ] **Workflow-as-YAML with event listeners** (kdeps/kdeps, 38⭐) — one `workflow.yaml`
+- [x] **Workflow-as-YAML with event listeners** (kdeps/kdeps, 38⭐) — one `workflow.yaml`
   per event (API call, chat, webhook, Telegram/Slack/Discord/WhatsApp); extend
   `workflow.js` / `harness_spec` with connector triggers and event-driven runs.
   **Effort: M | Impact: M**
-- [ ] **Offline portable knowledge pack** (gabrielursan-beep/red-alert-llm, MIT) — offline
+- [x] **Offline portable knowledge pack** (gabrielursan-beep/red-alert-llm, MIT) — offline
   Wikipedia/encyclopedia + encrypted vault on USB; extend `private_kb.js` and
   `docs/REMOTE_ACCESS.md` with a portable offline bundle recipe. **Effort: M | Impact: M**
-- [ ] **Social/web reach adapter** (Panniantong/Agent-Reach, 115,269⭐, MIT) — give the agent
+- [x] **Social/web reach adapter** (Panniantong/Agent-Reach, 115,269⭐, MIT) — give the agent
   eyes to read/search X, Reddit, YouTube, GitHub, Bilibili, XiaoHongShu via one CLI;
   opt-in network tools, disabled offline. Extend `web_search.js` / `multi_search.js` /
   `fetch_url.js` and linkdigest social presets. **Effort: M | Impact: H** (network opt-in)
-- [ ] **Unified agent storage contract** (aws/strands-dynamodb-storage) — one
+- [x] **Unified agent storage contract** (aws/strands-dynamodb-storage) — one
   `write/read/delete/list/namespace` byte contract serving sessions, memory, stash,
   transcripts. Adapt as a pluggable storage interface in `storage/` (local SQLite default).
   **Effort: M | Impact: M**
-- [ ] **Ontology-backed semantic context** (aws/context-ontology-accelerator, 1,326⭐) —
+- [x] **Ontology-backed semantic context** (aws/context-ontology-accelerator, 1,326⭐) —
   knowledge graph + formal ontologies + rule validation + RBAC namespace isolation;
   Scan→Model→Serve with MCP serving. Inspire `graph_memory.js` / `governance.js` context
   validation. **Effort: H | Impact: M-H**
-- [ ] **Vault/notes LLM integration pattern** (hardbyte/obsidian-llm-plugin, 34⭐) — chat panel
+- [x] **Vault/notes LLM integration pattern** (hardbyte/obsidian-llm-plugin, 34⭐) — chat panel
   for LLM CLI tools, open-files-as-context, system prompt from a vault markdown file,
   progress indicators, interactive elements, session continuation, ACP persistent mode.
   Adapt into `public/` web UI and `acp.js` for local notes/vault context.
   **Effort: M | Impact: M**
-- [ ] **Common Expression Language (CEL) policy rules** (hardbyte/python-common-expression-language,
+- [x] **Common Expression Language (CEL) policy rules** (hardbyte/python-common-expression-language,
   43⭐, Rust) — safe, non-Turing-complete expressions for policy/governance rules. Adopt a
   JS CEL subset for `policy.js` / `governance.js` declarative conditions.
   **Effort: M | Impact: M**
@@ -305,31 +307,31 @@ Priority keys: **E** = easy, **M** = medium, **H** = hard. Impact: **M**/H.
 execution records, memory controls and rollback paths for coding agents; local-first, remote opt-in.
 Extend `action_guard.js` / `rollback.js` / `governance.js` with risk-tier contracts.
 **Effort: M-H | Impact: H**
-- [ ] **Deterministic agent-security gates** (0xNyk/agent-security, 8⭐) — repo/content/URL scanners,
+- [x] **Deterministic agent-security gates** (0xNyk/agent-security, 8⭐) — repo/content/URL scanners,
 prompt-injection shapes, URL allow/review/block classification, runtime audit, supply-chain IOC sweep.
 Extend `mcp_security.js` / `url_validate.js` / `vuln_scan.js`. **Effort: M | Impact: H**
-- [ ] **React component build skill** (nolly-studio/components-build-skill, 53⭐) — 16 rule
+- [x] **React component build skill** (nolly-studio/components-build-skill, 53⭐) — 16 rule
   categories for composable/accessible React components (Radix Slot, CVA, Tailwind, tokens,
   registries). Adapt into `public/` web UI component guidelines + a bundled skill.
   **Effort: M | Impact: M**
-- [ ] **Universal MCP registry tool** (alesha-pro/ai-orbiter, 10⭐) — unified MCP server registry
+- [x] **Universal MCP registry tool** (alesha-pro/ai-orbiter, 10⭐) — unified MCP server registry
   & management for AI clients. Extend `mcp_registry.js` / `mcp_marketplace.js` management UX.
   **Effort: M | Impact: M**
-- [ ] **Multi-agent interactive classroom** (THU-MAIC/OpenMAIC 44,865⭐, MIT) — immersive
+- [x] **Multi-agent interactive classroom** (THU-MAIC/OpenMAIC 44,865⭐, MIT) — immersive
   multi-agent learning with classmates, slides, interactive widgets, Socratic teaching;
   OpenClaw integration. Inspire `teams.js` / `conversation_templates.js` teaching patterns.
   **Effort: M-H | Impact: M**
-- [ ] **Agent skills for Markdown/open formats** (obsidianmd/obsidian-skills) — JSON Canvas,
+- [x] **Agent skills for Markdown/open formats** (obsidianmd/obsidian-skills) — JSON Canvas,
   Bases, vault CLI; relevant to memory export and `docs/` authoring. **Effort: E-M | Impact: M**
-- [ ] **REA full MCP reference** (morluto/rea, 480,754⭐, MIT) — the original "reverse engineer
+- [x] **REA full MCP reference** (morluto/rea, 480,754⭐, MIT) — the original "reverse engineer
   anything" MCP (we already implement a lean skill version). Use as a reference catalog for
   RE target coverage — binary/app/runtime behavior, awesome-RE lists, security lists.
   **Effort: M | Impact: M** (reference only — keep our zero-tool lean approach)
-- [ ] **Word-level ASR + diarization** (m-bain/whisperX, 25,794⭐) — 70x realtime Whisper with
+- [x] **Word-level ASR + diarization** (m-bain/whisperX, 25,794⭐) — 70x realtime Whisper with
   word-level timestamps, forced phoneme alignment, speaker diarization, <8 GB GPU for large-v2.
   Extend `voice_adapter.js` / `time_tool.js` with aligned transcript + speaker labels.
   **Effort: M-H | Impact: M** (fits 8 GB 5700 XT)
-- [ ] **OSINT aggregator skill** (togg53192-cmd/recon, 54⭐) — multi-source username OSINT
+- [x] **OSINT aggregator skill** (togg53192-cmd/recon, 54⭐) — multi-source username OSINT
   (50+ APIs, WhatsMyName, Maigret, Sherlock, SpiderFoot) with web UI. Zero-tool skill pattern
   for `web_search.js` / `pii.js` — opt-in, network-dependent. **Effort: M | Impact: M**
 
@@ -428,11 +430,11 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 |---|---|---|---|
 | 🟢 Phase 1 — Quick Wins (do first: easy + high fit) | 18 | 18 | 0 |
 | 🟡 Phase 2 — Core Inference Enhancements (medium effort, high impact) | 25 | 25 | 0 |
-| 🔵 Phase 3 — Product & UX Integrations (medium-high effort, medium impact) | 24 | 1 | 23 |
+| 🔵 Phase 3 — Product & UX Integrations (medium-high effort, medium impact) | 24 | 24 | 0 |
 | 🟣 Phase 4 — Heavy / Native Integrations (high effort, higher payoff) | 19 | 1 | 18 |
 | 🔴 Phase 5 — Research-Grade (opt-in, external toolchains / GPU) | 6 | 0 | 6 |
 | 🌱 Phase 6 — Community / Ecosystem (opportunistic) | 4 | 0 | 4 |
-| **Total** | **96** | **45** | **51** |
+| **Total** | **96** | **68** | **28** |
 
 **Findings from the new scan:**
 - **forge** (2,271⭐) adds a *reliability layer* for tool calling (rescue parsing, retry nudges, response validation) — high value, easy/medium effort → promoted to Phase 1.
@@ -449,7 +451,7 @@ toolchain work. Phase order otherwise holds.
 
 ### 📊 Re-evaluation (2026-11-27, post implementation pass)
 
-After the Phase 2 completion pass the harness has **45 of 96 planned items implemented** (Phases 1 and 2 complete)
+After the Phase 3 completion pass the harness has **68 of 96 planned items implemented** (Phases 1–3 complete)
 (Phase 1 complete at 18/18, Phase 2 at 7/25). The complete picture:
 
 | Area | State |

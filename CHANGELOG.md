@@ -2,6 +2,38 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.50] - 2026-11-27
+
+### Added (Phase 3 complete — 24/24)
+- **Chat templates** (`src/chat_templates.js`) — Jinja-style variables, presets, reasoning/thinking controls (2 MCP tools)
+- **CEL policies** (`src/cel_policy.js`) — safe non-Turing-complete expression evaluator (1 MCP tool)
+- **Security gates** (`src/security_gates.js`) — deterministic URL/content/repo scanners; CLEAN means "no known pattern", not "safe" (2 MCP tools)
+- **Workflow YAML** (`src/workflow_yaml.js`) — event listeners + step planner (2 MCP tools)
+- **Config profiles** (`src/config_profiles.js`) — per-backend launch profiles, whitelisted import/export (2 MCP tools)
+- **Social reach** (`src/social_reach.js`) — opt-in social/web adapter, disabled offline (1 MCP tool)
+- **Ed25519 signing** (`src/ed25519_signing.js`) — detached signatures for verification certificates (3 MCP tools)
+- **Offline web UI** (`src/offline_webui.js`) — single-file zero-dependency HTML (1 MCP tool)
+- **Character cards** (`src/character_cards.js`) — Tavern cards, world info, author's notes (2 MCP tools)
+- **AI Horde provider** (`src/horde_provider.js`) — opt-in distributed generation, disabled offline (2 MCP tools)
+- **Model store** (`src/model_store.js`) — unified backend registry, opt-in pulls (3 MCP tools)
+- **Knowledge packs** (`src/knowledge_pack.js`) — offline portable versioned bundles (3 MCP tools)
+- **Agent storage** (`src/agent_storage.js`) — unified session/trace/memory contract (2 MCP tools)
+- **Ontology context** (`src/ontology_context.js`) — typed entities/relations with graph traversal (3 MCP tools)
+- **Universal MCP registry** (`src/mcp_registry.js`) — local installed-server registry merged with existing browser/install flow (4 MCP tools)
+- **Classroom** (`src/classroom.js`) — multi-agent turn-taking + rubric grading (3 MCP tools)
+- **ASR pipeline** (`src/asr_pipeline.js`) — word-level alignment/diarization contract with offline stub (2 MCP tools)
+- **OSINT aggregator** (`src/osint_aggregator.js`) — opt-in multi-source plan only, disabled offline (2 MCP tools)
+- **Lean 4 release gate** (`scripts/lean-gate.js`) — opt-in CI gate; skips when no Lean project is declared
+- **4 new skills** — `vault-notes-chat`, `react-component-build` (16 rules), `open-formats-canvas`, `rea-mcp-reference`
+- New test files: `phase3_batch1/2/3.test.js` (31 tests)
+
+### Fixed
+- `src/workflow_yaml.js` parser now starts a fresh step for every `- ` item (previously only captured the first step).
+- Restored and merged `src/mcp_registry.js` (the universal registry was accidentally overwritten; the original registry browser/install flow is intact).
+
+### Verification
+- 676 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.49] - 2026-11-27
 
 ### Added (Phase 2 complete — 25/25)

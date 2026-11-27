@@ -158,4 +158,21 @@ opt-in where network or heavy toolchains are involved.
 | forge + jordandevai/IK-LLama-Proxy | MIT | Proxy guardrails → `src/proxy_guardrails.js` |
 | alesha-pro/vllm-cross-model-kv | MIT | KV transfer contract → `src/kv_transfer.js` |
 
+## Phase 3
+| Source project | License | What was adapted |
+|---|---|---|
+| llama-server-launcher | MIT | Chat templates + config profiles → `src/chat_templates.js`, `src/config_profiles.js` |
+| hardbyte/python-common-expression-language | Apache-2.0 | CEL policy rules → `src/cel_policy.js` |
+| 0xNyk/agent-security | MIT | Deterministic security gates → `src/security_gates.js` |
+| kdeps/kdeps | Apache-2.0 | Workflow-as-YAML → `src/workflow_yaml.js` |
+| Panniantong/Agent-Reach | MIT | Social reach adapter → `src/social_reach.js` |
+| LostRuins/lite.koboldai.net, koboldcpp | AGPL-3.0 | Clean-room UI/card patterns only (no source vendored) → `src/offline_webui.js`, `src/character_cards.js` |
+| gabrielursan-beep/red-alert-llm | MIT | Offline knowledge pack → `src/knowledge_pack.js` |
+| aws/strands-dynamodb-storage, aws/context-ontology-accelerator | Apache-2.0 | Storage/ontology contracts → `src/agent_storage.js`, `src/ontology_context.js` |
+| alesha-pro/ai-orbiter | MIT | Universal MCP registry → `src/mcp_registry.js` |
+| THU-MAIC/OpenMAIC | MIT | Classroom turn-taking → `src/classroom.js` |
+| m-bain/whisperX | MIT | ASR pipeline contract (external toolchain, not bundled) → `src/asr_pipeline.js` |
+| togg53192-cmd/recon | MIT | OSINT aggregator contract → `src/osint_aggregator.js` |
+| nolly-studio/components-build-skill, obsidianmd/obsidian-skills, morluto/rea, hardbyte/obsidian-llm-plugin | MIT/Apache-2.0 | Clean-room skills (no source vendored) → `data/skills/` |
+
 All third-party components retain their respective licenses. See each project for full license text.

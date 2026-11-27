@@ -18,6 +18,8 @@ jobs:
       - run: node scripts/check-version-consistency.js
       - run: node -e "const r=require('./src/harness_lint').lint(); console.log(JSON.stringify(r)); if(!r.ok) process.exit(1)"
       - run: node -e "const r=require('./src/adversarial').run(); console.log(JSON.stringify(r)); if(!r.pass) process.exit(1)"
+      - name: Lean 4 release gate (opt-in)
+        run: node scripts/lean-gate.js
 
   npm-cli:
     runs-on: ubuntu-latest

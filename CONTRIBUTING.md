@@ -6,7 +6,7 @@
 git clone https://github.com/user6811992/aegisai-harness.git
 cd aegisai-harness
 npm install
-npm test          # 584 tests, all must pass
+npm test          # 676 tests, all must pass
 npm start         # run the harness
 ```
 

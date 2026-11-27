@@ -65,6 +65,24 @@ function toolsList() {
   out.push(...require('./proxy_guardrails').tools());
   out.push(...require('./kv_transfer').tools());
   out.push(...require('./admin_panel_metrics').tools());
+  out.push(...require('./chat_templates').tools());
+  out.push(...require('./cel_policy').tools());
+  out.push(...require('./security_gates').tools());
+  out.push(...require('./workflow_yaml').tools());
+  out.push(...require('./config_profiles').tools());
+  out.push(...require('./social_reach').tools());
+  out.push(...require('./ed25519_signing').tools());
+  out.push(...require('./offline_webui').tools());
+  out.push(...require('./character_cards').tools());
+  out.push(...require('./horde_provider').tools());
+  out.push(...require('./model_store').tools());
+  out.push(...require('./knowledge_pack').tools());
+  out.push(...require('./agent_storage').tools());
+  out.push(...require('./ontology_context').tools());
+  out.push(...require('./mcp_registry').tools());
+  out.push(...require('./classroom').tools());
+  out.push(...require('./asr_pipeline').tools());
+  out.push(...require('./osint_aggregator').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -129,6 +147,18 @@ async function callTool(name, args) {
   const modKey = Object.keys(mods).find((k) => name.startsWith(k));
   if (modKey) { const r = require(mods[modKey]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
   if (name.startsWith('dashboard_')) return { content: [{ type: 'text', text: JSON.stringify(require('./admin_panel_metrics').dispatch(name, args)) }] };
+  if (name.startsWith('chat_template')) return { content: [{ type: 'text', text: JSON.stringify(require('./chat_templates').dispatch(name, args)) }] };
+  if (name.startsWith('cel_')) return { content: [{ type: 'text', text: JSON.stringify(require('./cel_policy').dispatch(name, args)) }] };
+  if (name.startsWith('security_')) return { content: [{ type: 'text', text: JSON.stringify(require('./security_gates').dispatch(name, args)) }] };
+  if (name.startsWith('workflow_')) return { content: [{ type: 'text', text: JSON.stringify(require('./workflow_yaml').dispatch(name, args)) }] };
+  if (name.startsWith('config_profile')) return { content: [{ type: 'text', text: JSON.stringify(require('./config_profiles').dispatch(name, args)) }] };
+  if (name.startsWith('social_')) return { content: [{ type: 'text', text: JSON.stringify(require('./social_reach').dispatch(name, args)) }] };
+  const p3mods = { cert_: './ed25519_signing', offline_webui_: './offline_webui', character_: './character_cards', horde_: './horde_provider', model_store_: './model_store', knowledge_pack_: './knowledge_pack', storage_: './agent_storage', ontology_: './ontology_context' };
+  const p3key = Object.keys(p3mods).find((k) => name.startsWith(k));
+  if (p3key) { const r = require(p3mods[p3key]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
+  const p3c = { mcp_registry_: './mcp_registry', classroom_: './classroom', asr_: './asr_pipeline', osint_: './osint_aggregator' };
+  const p3ckey = Object.keys(p3c).find((k) => name.startsWith(k));
+  if (p3ckey) { const r = require(p3c[p3ckey]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

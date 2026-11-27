@@ -2,15 +2,15 @@
 
 [![CI](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml/badge.svg)](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-364533?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-367633?logo=node.js&logoColor=white)](https://nodejs.org)
 [![GitHub release](https://img.shields.io/github/v/release/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/releases)
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
-offline-first: no cloud dependencies, no telemetry. 85 milestones, 343 modules,
-645 tests, CI green.
+offline-first: no cloud dependencies, no telemetry. 85 milestones, 361 modules,
+676 tests, CI green.
 
-> Status: v1.0.49 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.50 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -141,7 +141,7 @@ CI enforces `node scripts/check-version-consistency.js` so `package.json`, the i
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.49-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.50-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
@@ -171,9 +171,9 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ## Layout
 
 ```
-src/              343 modules (agent, tools, backends, storage, integrations, ...)
+src/              361 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            645 tests (node:test)
+tests/            676 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page, setup guides, future integrations matrix
 vendor/aegis      Aegis Method Pack (git submodule, 22 skills)
@@ -214,7 +214,8 @@ Built with inspiration from the open-source community.
 - **Memory & learning** — bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
 - **Security & governance** — Microsoft agent-governance-toolkit, spec-kitty, GanyuanRan/Aegis
 - **Observability** — OpenTelemetry, SARIF, LangSmith, Langfuse
-- **Scaffolding & coordination** — harnessforge, apiad/aegis, linkdigest-mcp, Panniantong/skillshare, HarnessRouter
+- **Scaffolding & coordination** — harnessforge, apiad/aegis, linkdigest-mcp, Panniantong/skillshare + Agent-Reach, HarnessRouter, kdeps/kdeps, alesha-pro/ai-orbiter
+- **Product & UX research** — LostRuins/lite.koboldai.net, koboldcpp, hardbyte/obsidian-llm-plugin, aws (strands-dynamodb-storage, context-ontology-accelerator), gabrielursan-beep/red-alert-llm, THU-MAIC/OpenMAIC, nolly-studio/components-build-skill, m-bain/whisperX, togg53192-cmd/recon
 - **Reliability & skills** — forge, aicodeking/leanrea + deepseek-stack, 0xNyk (council, LACP, unmachined, obsidian-curator), morluto (leantoken, rea, kuna)
 - **Search & retrieval research** — xerj-org/xerj, VectifyAI (PageIndex, ChatIndex, ConDB), StarTrail-org (LEANN, PixelRAG), morluto/leantoken
 - **Visual & desktop** — lightpanda-io/browser, kepano/defuddle + vault, obsidianmd/obsidian-skills, tt-a1i/Archify + hive
