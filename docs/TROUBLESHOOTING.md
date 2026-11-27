@@ -30,7 +30,7 @@ rd /s /q "%LOCALAPPDATA%\AegisAiHarness\node_modules"
 "%LOCALAPPDATA%\Programs\AegisAiHarness\aegisai-harness.cmd" --version
 ```
 
-The expected version for this release is **1.0.54**. `data/` inside the install folder holds your sessions and memories — back it up before deleting if you want to keep it.
+The expected version for this release is **1.0.55**. `data/` inside the install folder holds your sessions and memories — back it up before deleting if you want to keep it.
 
 ## Stale version after `npm i -g`
 

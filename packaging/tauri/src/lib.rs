@@ -27,14 +27,22 @@ pub struct BackendState {
 /// then next to the executable, then the development repo layout.
 fn app_root(app: &AppHandle) -> PathBuf {
     if let Ok(dir) = app.path().resource_dir() {
-        if dir.join("src").join("index.js").exists() {
-            return dir;
+        // Older bundles used ../../ resource paths which Tauri stored under
+        // _up_/_up_; keep recognizing them so previously installed apps work.
+        for candidate in [dir.clone(), dir.join("_up_").join("_up_")] {
+            if candidate.join("src").join("index.js").exists() {
+                return candidate;
+            }
         }
     }
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
             if dir.join("src").join("index.js").exists() {
                 return dir.to_path_buf();
+            }
+            let legacy = dir.join("_up_").join("_up_");
+            if legacy.join("src").join("index.js").exists() {
+                return legacy;
             }
             // Development: walk up from target/<profile>/ toward the repo root.
             let mut cur = dir.to_path_buf();

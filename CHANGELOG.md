@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.55] - 2026-11-27
+
+### Fixed (found during full installer smoke test)
+- **Tauri bundles no longer nest resources under `_up_\_up_`.** `tauri.conf.json` now maps each source path to an explicit target (`../../src` → `src`, etc.) instead of letting `../..` escape the bundle root. New installers place `src/index.js` where the launcher expects it.
+- **Backward compatibility:** `app_root()` in `packaging/tauri/src/lib.rs` now also checks the legacy `_up_\_up_` layout, so already-installed 1.0.54 apps can find their bundled resources.
+- New `tests/tauri_packaging.test.js` (3 tests) guards the resource targets and legacy fallback.
+
+### Verification
+- 713 tests pass, 0 failures, 1 skipped. `cargo check --locked` clean. Version consistency ok.
+
 ## [1.0.54] - 2026-11-27
 
 ### Documentation & roadmap cleanup
