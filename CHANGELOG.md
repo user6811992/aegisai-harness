@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.36] - 2026-11-27
+
+### Added (Phase 1 — CAN bus RE skill)
+- **CAN bus RE skill** (`src/canbus_skill.js`): clean-room adaptation of ideas from linux-can/can-utils, collin80/SavvyCAN, cantools, and hardbyte/python-can. Zero new tools — teaches the agent which real CLI tools to run for automotive/CAN work (candump, cansend, cantools, isotpsend/recv, SavvyCAN log formats, UDS/OBD-II). Fast commands by task (sniff/decode/inject/logformats/interfaces/isotp/uds/gmlan), safety-first traps, task detection, and command/interface availability checks.
+- Bundled as default skill `canbus-re`; installable as `SKILL.md`; 2 MCP tools: `canbus_recon`, `canbus_skill`.
+- New `tests/canbus_skill.test.js` with 10 tests.
+
+### Verification
+- 523 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.35] - 2026-11-27
 
 ### Documentation

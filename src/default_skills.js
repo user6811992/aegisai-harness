@@ -2,6 +2,7 @@
 // Bundled default skill pack (mirrors aegisai-next default skills + Aegis method pack).
 const aegisSkills = require('./aegis_skills');
 const leanrea = require('./leanrea_skill');
+const canbus = require('./canbus_skill');
 
 const SKILLS = {
   search_before_re: {
@@ -43,6 +44,11 @@ const SKILLS = {
     name: leanrea.SKILL_NAME,
     description: leanrea.SKILL_DESCRIPTION,
     body: leanrea.BODY,
+  },
+  canbus_re: {
+    name: canbus.SKILL_NAME,
+    description: canbus.SKILL_DESCRIPTION,
+    body: canbus.BODY,
   },
 };
 
