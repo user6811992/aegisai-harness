@@ -2,6 +2,20 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.43] - 2026-11-27
+
+### Added (Phase 1 — Obsidian vault + open formats)
+- **Obsidian skill** (`src/obsidian_skill.js`): clean-room adaptation of obsidianmd/obsidian-skills (54,260⭐) + kepano vault ideas. Local Markdown vaults, YAML frontmatter (subset parser/serializer), `[[wiki links]]` + backlinks, JSON Canvas (open infinite-canvas format), Bases view definitions, vault scanning, and note→KB extraction. Bundled as default skill `obsidian-vault`.
+- 5 new MCP tools: `obsidian_skill`, `vault_scan`, `vault_note_info`, `vault_backlinks`, `canvas_info`.
+- New `tests/obsidian_skill.test.js` with 12 tests.
+
+### Documentation
+- ROADMAP.md: added 6 items from 0xNyk (note: different from the earlier 404 `oxnyk`) — knowledge-graph curator, council of high intelligence, LACP control plane, deterministic agent-security gates, anti-slop scanner, terminal media preview. Re-evaluation updated: 90 total items (9 done, 81 remaining). Fixed malformed "New in" lines and a leftover description on the completed Obsidian item.
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6h.
+
+### Verification
+- 568 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.42] - 2026-11-27
 
 ### Added (Phase 2 — XERJ-style hybrid search)

@@ -281,6 +281,25 @@ expert offload, KV-in-VRAM, measured provenance) transfers directly.
 
 ---
 
+## 6h. 0xNyk (added 2026-11-27)
+
+Note: `0xNyk` (with a zero) is a different account from `oxnyk` (404 at an earlier scan).
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| 0xNyk/council-of-high-intelligence | 4,902 | Multi-perspective deliberation, forced disagreement, verdict + dissent + kill criteria | 1 |
+| 0xNyk/obsidian-curator | 4 | Nightly vault maintenance: rename/link/prune, dry-run default, stdlib-only | 1 |
+| 0xNyk/lacp | 311 | Local control plane: routing, approval gates, execution records, rollback paths | 3 |
+| 0xNyk/agent-security | 8 | Deterministic repo/content/URL gates, prompt-injection shapes, runtime audit | 3 |
+| 0xNyk/unmachined | 13 | Anti-AI-slop scanners + bounded rewrite loop with stop gate | 4 |
+| 0xNyk/termpeek | 6 | Preview images/video/PDFs/diffs/X posts inside agent CLI via tmux sidebar | 4 |
+| 0xNyk/awesome-agent-cortex | 235 | Curated map of agent frameworks/protocols/memory/security/eval | reference |
+
+**License note:** council-of-high-intelligence, lacp, unmachined, agent-security,
+termpeek are MIT — ideas can be adapted with attribution.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |

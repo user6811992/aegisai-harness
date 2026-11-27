@@ -5,6 +5,7 @@ const leanrea = require('./leanrea_skill');
 const canbus = require('./canbus_skill');
 const lightpanda = require('./lightpanda');
 const inferencePlaybook = require('./inference_playbook');
+const obsidian = require('./obsidian_skill');
 
 const SKILLS = {
   search_before_re: {
@@ -61,6 +62,11 @@ const SKILLS = {
     name: inferencePlaybook.SKILL_NAME,
     description: inferencePlaybook.SKILL_DESCRIPTION,
     body: inferencePlaybook.BODY,
+  },
+  obsidian_vault: {
+    name: obsidian.SKILL_NAME,
+    description: obsidian.SKILL_DESCRIPTION,
+    body: obsidian.BODY,
   },
 };
 
