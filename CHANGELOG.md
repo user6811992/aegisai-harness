@@ -2,6 +2,23 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.19] - 2026-11-27
+
+### Added
+- Governance module (src/governance.js): baseline-first, evidence-verified, drift-checked patterns from GanyuanRan/Aegis. Verification gate runs before claiming task completion.
+- Project init command (`aegisai --init`): auto-generates AGENTS.md, .mcp.json, .aegisai/project.json for any project type (Node, Python, Rust, Go, Java, .NET, generic).
+- Aegis skill pack bundled as git submodule (vendor/aegis): 22 high-value skills (first-principles-review, verification-before-completion, systematic-debugging, etc.) now available as bundled defaults.
+- linkdigest-mcp registered as MCP preset for social media content extraction.
+- Governance status included in agent run results.
+
+### Changed
+- Agent loop (src/agent/run.js) now records governance evidence for tool executions and runs verification gate before returning final response.
+- default_skills.js now includes 21 Aegis skills as bundled defaults (383 tests).
+- mcp_presets.js adds linkdigest preset.
+
+### Verification
+- 383 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.18] - 2026-11-27
 
 ### Fixed

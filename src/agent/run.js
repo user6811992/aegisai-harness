@@ -331,13 +331,14 @@ async function runAgent(opts) {
         if (!check.safe) finalText = '(blocked by output guardrail: ' + check.hits.join(', ') + ')';
       }
       // Governance: verification gate before claiming completion.
+      let govResult = null;
       if (gov) {
-        const vr = gov.verificationGate(finalText, toolLog);
-        if (!vr.verified) {
-          finalText += '\\n\\n[governance] UNVERIFIED: ' + vr.issues.join('; ');
-          onEvent({ type: 'governance', verified: false, issues: vr.issues });
+        govResult = gov.verificationGate(finalText, toolLog);
+        if (!govResult.verified) {
+          finalText += '\\n\\n[governance] UNVERIFIED: ' + govResult.issues.join('; ');
+          onEvent({ type: 'governance', verified: false, issues: govResult.issues });
         } else {
-          onEvent({ type: 'governance', verified: true, evidenceCount: vr.evidenceCount });
+          onEvent({ type: 'governance', verified: true, evidenceCount: govResult.evidenceCount });
         }
       }
       if (stateAccessor && typeof stateAccessor.save === 'function') { try { await stateAccessor.save({ messages: msgs, toolLog, totalTokens }); } catch (e) {} }
@@ -347,7 +348,7 @@ async function runAgent(opts) {
       try { require('../ledger').append('run_complete', { model, prompt: String((messages || [])[0]?.content || '').slice(0, 200), final: String(finalText).slice(0, 500), tools: toolLog.length }); } catch (e) {}
       await hooks.run('SessionEnd', { reason: 'complete', totalUsage: { totalTokens } });
       if (tracer) { try { tracer.persist(dbModule.get()); tracer.exportOtel(); } catch (e) {} }
-      return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null }, toolLog };
+      return { final: { type: 'done', final: finalText, thinking, toolLog, tokenStats: { prompt: data.prompt_eval_count || 0, generated: data.eval_count || 0, total: totalTokens }, trace: tracer ? tracer.toJSON() : null, governance: govResult }, toolLog };
     }
 
     if (tokenBudgetTotal > 0 && totalTokens > tokenBudgetTotal) {

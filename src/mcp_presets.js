@@ -10,6 +10,7 @@ const PRESETS = {
   memory: { label: 'Memory (knowledge graph)', runtime: 'npx', args: () => ['-y', '@modelcontextprotocol/server-memory'] },
   seq: { label: 'Sequential Thinking', runtime: 'npx', args: () => ['-y', '@modelcontextprotocol/server-sequential-thinking'] },
   time: { label: 'Time / timezone conversion', runtime: 'uvx', args: () => ['mcp-server-time'] },
+  linkdigest: { label: 'Social media content extraction (Xiaohongshu, Douyin, Bilibili, etc.)', runtime: 'uvx', args: () => ['linkdigest-mcp'], optional: true },
 };
 
 function wrap(command, args) {
