@@ -3,6 +3,7 @@
 const aegisSkills = require('./aegis_skills');
 const leanrea = require('./leanrea_skill');
 const canbus = require('./canbus_skill');
+const lightpanda = require('./lightpanda');
 
 const SKILLS = {
   search_before_re: {
@@ -49,6 +50,11 @@ const SKILLS = {
     name: canbus.SKILL_NAME,
     description: canbus.SKILL_DESCRIPTION,
     body: canbus.BODY,
+  },
+  lightpanda: {
+    name: lightpanda.SKILL_NAME,
+    description: lightpanda.SKILL_DESCRIPTION,
+    body: lightpanda.skill().body,
   },
 };
 

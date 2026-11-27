@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.38] - 2026-11-27
+
+### Added (Phase 1 — Lightpanda browser backend)
+- **Lightpanda backend** (`src/lightpanda.js`): clean-room integration of lightpanda-io/browser (42,657⭐) + agent-skill (121⭐). Opt-in, NOT bundled — requires a separately installed `lightpanda` binary. Binary detection/version, CDP server start/stop, CLI one-shot fetch, and PandaScript deterministic replay scripts (save/list/run, token-free). Reuses the existing CDP browser integration by pointing `CDP_URL` at Lightpanda's endpoint (default port 9223). Bundled as default skill `lightpanda`.
+- 6 new MCP tools: `lightpanda_available`, `lightpanda_start`, `lightpanda_fetch`, `lightpanda_script_save`, `lightpanda_script_list`, `lightpanda_skill` (network tools disabled in offline mode).
+- New `tests/lightpanda.test.js` with 10 tests.
+
+### Verification
+- 533 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.37] - 2026-11-27
 
 ### Documentation

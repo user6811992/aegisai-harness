@@ -32,6 +32,7 @@ function toolsList() {
   out.push(...require('./tool_guardrails').tools());
   out.push(...require('./leanrea_skill').tools());
   out.push(...require('./canbus_skill').tools());
+  out.push(...require('./lightpanda').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -59,6 +60,11 @@ async function callTool(name, args) {
   if (name.startsWith('tool_guard_')) return { content: [{ type: 'text', text: JSON.stringify(require('./tool_guardrails').dispatch(name, args)) }] };
   if (name.startsWith('leanrea_')) return { content: [{ type: 'text', text: JSON.stringify(require('./leanrea_skill').dispatch(name, args)) }] };
   if (name.startsWith('canbus_')) return { content: [{ type: 'text', text: JSON.stringify(require('./canbus_skill').dispatch(name, args)) }] };
+  if (name.startsWith('lightpanda_')) {
+    if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
+    const r = await require('./lightpanda').dispatch(name, args);
+    return { content: [{ type: 'text', text: JSON.stringify(r) }], isError: r.ok === false };
+  }
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);
