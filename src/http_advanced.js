@@ -143,14 +143,25 @@ function tools() {
   ];
 }
 
+const metrics = require('./metrics_store');
+
 async function dispatch(name, args) {
   args = args || {};
-  if (name === 'http_probe_timing') return timedGet(args.url, args);
+  if (name === 'http_probe_timing') {
+    const r = await timedGet(args.url, args);
+    try { metrics.record('http_timing', { url: args.url, timings: r.timings, durationMs: r.durationMs, status: r.status }); } catch (e) {}
+    return r;
+  }
   if (name === 'http_detect_cdn') {
     const r = await timedGet(args.url, args);
+    try { metrics.record('http_timing', { url: args.url, timings: r.timings, durationMs: r.durationMs, status: r.status }); } catch (e) {}
     return Object.assign({ ok: r.ok, status: r.status, error: r.error }, detectCdn(r.headers));
   }
-  if (name === 'http_load_test') return loadTest(args.url, args);
+  if (name === 'http_load_test') {
+    const r = await loadTest(args.url, args);
+    try { metrics.record('http_load', { url: args.url, result: r }); } catch (e) {}
+    return r;
+  }
   throw new Error('unknown http_advanced tool: ' + name);
 }
 

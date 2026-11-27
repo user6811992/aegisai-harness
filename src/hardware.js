@@ -79,7 +79,7 @@ function recommend(hw) {
   let context = profile.context;
   if (profile.id === 'generic') context = ram >= 32 ? 16384 : ram >= 16 ? 8192 : 4096;
   return {
-    engine, modelSize: modelSize + ' ' + profile.quant, context,
+    engine, modelSize: modelSize + ' ' + profile.quant, quant: profile.quant, context,
     profile: profile.id,
     profileLabel: profile.label,
     model: modelSize === '3B' ? 'llama3.2:3b' : modelSize === '8B' ? 'llama3.1:8b' : 'llama3.1:14b',

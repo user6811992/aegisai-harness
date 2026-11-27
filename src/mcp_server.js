@@ -23,6 +23,11 @@ function toolsList() {
   out.push(...require('./hardware').tools());
   out.push(...require('./lean_verify').tools());
   out.push(...require('./influxdb').tools());
+  out.push(...require('./performance_dashboard').tools());
+  out.push(...require('./hardware_autotune').tools());
+  out.push(...require('./model_registry').tools());
+  out.push(...require('./optional_modules').tools());
+  out.push(...require('./verification_cert').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') out.push(...require('./http_advanced').tools());
   return out;
 }
@@ -38,6 +43,16 @@ async function callTool(name, args) {
   // eelbaz-inspired integrations
   if (name.startsWith('model_bridge_')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_bridge').dispatch(name, args)) }] };
   if (name === 'hardware_detect') return { content: [{ type: 'text', text: JSON.stringify(require('./hardware').detect()) }] };
+  if (name.startsWith('hardware_autotune')) return { content: [{ type: 'text', text: JSON.stringify(require('./hardware_autotune').dispatch(name, args)) }] };
+  if (name.startsWith('model_registry_')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_registry').dispatch(name, args)) }] };
+  if (name === 'optional_modules_status') return { content: [{ type: 'text', text: JSON.stringify(require('./optional_modules').status()) }] };
+  if (name === 'performance_dashboard') return { content: [{ type: 'text', text: JSON.stringify(require('./performance_dashboard').view()) }] };
+  if (name.startsWith('certificate_')) {
+    const c = name === 'certificate_issue'
+      ? require('./verification_cert').issue(args.runId, args, args)
+      : require('./verification_cert').verify(args.path || args.cert);
+    return { content: [{ type: 'text', text: JSON.stringify(c) }], isError: c.ok === false };
+  }
   if (name.startsWith('lean_verify_')) return { content: [{ type: 'text', text: JSON.stringify(require('./lean_verify').dispatch(name, args)) }] };
   if (name === 'metrics_export_influx') return { content: [{ type: 'text', text: JSON.stringify(await require('./influxdb').exportMetrics(args.points || [], args)) }] };
   if (['http_probe_timing', 'http_detect_cdn', 'http_load_test'].includes(name)) {

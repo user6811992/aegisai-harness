@@ -48,6 +48,11 @@ async function main() {
     console.log(JSON.stringify(result, null, 2));
     process.exit(result.ok ? 0 : 1);
   }
+  if (process.argv.includes('--autotune')) {
+    const result = require('./hardware_autotune').apply(null, { dryRun: process.argv.includes('--dry-run') });
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.ok ? 0 : 1);
+  }
   if (process.argv.includes('--version') || process.argv.includes('-v')) {
     console.log(VERSION);
     process.exit(0);
@@ -70,6 +75,7 @@ async function main() {
       '  --version             Print version and exit',
       '  --init                Initialize project for agent use (AGENTS.md, .mcp.json, .aegisai/)',
       '  --sync-models         Bridge Ollama model store into LM Studio (add --dry-run)',
+      '  --autotune            Apply hardware-aware backend/context settings (add --dry-run)',
       '  --help                Show this help',
       '',
       'Docs: https://github.com/user6811992/aegisai-harness',

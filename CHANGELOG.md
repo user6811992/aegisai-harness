@@ -2,6 +2,25 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.24] - 2026-11-27
+
+### Added (cross-cutting + research)
+- **Performance Dashboard 2.0** (`src/performance_dashboard.js`): unified local view merging model runs (token dashboard), tool timings (profiler), and HTTP phase timings (DNS/TCP/TLS/server/transfer) from `src/metrics_store.js`. New `performance_dashboard` MCP tool. HTTP tools now record metrics automatically.
+- **Hardware auto-tuning** (`src/hardware_autotune.js`): derives concrete backend/quantization/context settings from the detected profile, with opt-in apply to `data/autotune.json`. New `--autotune` CLI flag and `hardware_autotune` MCP tool.
+- **Unified model registry** (`src/model_registry.js`): aggregates discovery across all local providers, deduplicates bridged copies and split shards, and surfaces a single catalog via `model_registry_catalog`.
+- **Optional research modules** (`src/optional_modules.js`): generalized lazy discovery of opt-in research modules (Lean, mLattice, JIT LoRA, MoE predictor, Aegis submodule) with clear availability status. New `optional_modules_status` MCP tool.
+- **Verification certificates** (`src/verification_cert.js`): signed, hash-verifiable completion certificates built on evidence bundles + verifier (+ optional Lean check). New `certificate_issue` / `certificate_verify` MCP tools.
+- **Convergence detection** (`src/convergence.js`): Banach-style fixed-point detection for the self-improvement loop (pure-JS policy layer).
+- **Surprise-weighted memory policy** (`src/memory_policy.js`): MIRAS-inspired surprise scoring for consolidation plus the JIT-LORA ≥33% regularization guard against catastrophic forgetting.
+- New `tests/crosscutting.test.js` with 23 tests.
+
+### Documentation
+- README, ROADMAP, CONTRIBUTING, docs pages updated to 444 tests.
+- THIRD_PARTY_NOTICES.md updated with mLattice, JIT LoRA, and tensorbend-predictor attribution.
+
+### Verification
+- 444 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.23] - 2026-11-27
 
 ### Added (eelbaz integrations)
