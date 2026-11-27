@@ -145,4 +145,17 @@ opt-in where network or heavy toolchains are involved.
 | hardbyte/netchecks | MIT | Network condition assertions → `src/network_checks.js` |
 | morluto/leantoken | MIT OR Apache-2.0 | Token-lean code selection → `src/code_intelligence.js` |
 
+## Phase 2 batch 3/4 (completion)
+| Source project | License | What was adapted |
+|---|---|---|
+| ix-infrastructure/Peer2Peer | Apache-2.0 | Encrypted agent messaging → `src/p2p_messaging.js` |
+| tt-a1i/Archify | MIT | Interactive diagrams → `src/diagram_gen.js` |
+| HarnessRouter/harnessrouter | Apache-2.0 | Unified harness protocol → `src/harness_protocol.js` |
+| asg017/sqlite-rembed | MIT | Embedding client registry → `src/embedding_registry.js` |
+| ikawrakow/ik_llama.cpp, mozilla-ai/llamafile, HyperMink/inferenceable | MIT/Apache-2.0 | Backend variants + ABI guard → `src/backend_variants.js` |
+| StarTrail-org/LEANN | MIT | Compact vector index → `src/compact_index.js` |
+| StarTrail-org/PixelRAG | Apache-2.0 | Visual retrieval → `src/visual_retrieval.js` |
+| forge + jordandevai/IK-LLama-Proxy | MIT | Proxy guardrails → `src/proxy_guardrails.js` |
+| alesha-pro/vllm-cross-model-kv | MIT | KV transfer contract → `src/kv_transfer.js` |
+
 All third-party components retain their respective licenses. See each project for full license text.

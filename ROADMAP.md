@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.48. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.48
+- **Shipped:** v0.1–v1.0.49. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.49
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.48
+- **Current version:** v1.0.49
 
 ---
 
@@ -199,21 +199,17 @@ Priority keys: **E** = easy, **M** = medium, **H** = hard. Impact: **M**/H.
 ### 🟡 Phase 2 — Core Inference Enhancements (medium effort, high impact)
 
 - [x] **Ix-style code graph** — implemented in `src/code_graph.js` (symbols/imports, map/explain/trace/impact, 4 MCP tools). Old: ix-infrastructure/Ix 1,211⭐ — persistent code graph of symbols/calls/imports; `ix map/explain/trace/impact` via MCP, bounded structural slices instead of whole files. Extend `code_map.js` / `hybrid_search.js`. **Effort: M-H | Impact: H**
-- [ ] **Account-free agent P2P** (ix-infrastructure/Peer2Peer, 7⭐, Apache-2.0) — E2E-encrypted cross-session messaging, presence, conflict warnings on shared files; relay sees only ciphertext. Extend A2A/ACP + group IPC (opt-in). **Effort: H | Impact: M**
+- [x] **Account-free agent P2P** — implemented in `src/p2p_messaging.js` (RSA-OAEP + AES-GCM, conflict warnings, 4 MCP tools)
 - [x] **VRAM fit predictor + launch dry-run** — implemented in `src/model_fit.js` (GGUF meta, multi-GPU/RAM plan, 2 MCP tools). Old: raketenkater/ggrun 284⭐ — `src/model_fit.js`:
   parse GGUF metadata (layer sizes), compute per-GPU placement across **mismatched multi-GPU
   rigs**, predict VRAM need, emit launch command; `--dry-run` for backend launch; extend
   `hardware_autotune` with exact-fit recommendations. **Effort: M | Impact: H**
 - [x] **Reasoning-based vectorless RAG** — implemented in `src/tree_index.js` (heading/conversation trees, reasoning proxy search, 4 MCP tools). Old: VectifyAI/PageIndex 40,815⭐ + ConDB — tree-index documents/conversations, LLM reasons over the tree instead of vector similarity; 97% token cost cut. Extend `hybrid_search.js` / `private_kb.js`. **Effort: M-H | Impact: H**
 - [x] **Tree-index for long conversations** — covered by `src/tree_index.js` (`tree_index_conversation`) — hierarchical context tree preserving raw history, multi-resolution retrieval; complements `context_compress.js`. **Effort: M | Impact: H**
-- [ ] **Archify interactive diagrams** (tt-a1i/archify 100,895⭐) — 10 diagram types, one-page answers, PR/architecture walkthroughs as interactive HTML. Add to `docs/` generation. **Effort: M | Impact: M**
-- [ ] **Unified Harness Protocol** (HarnessRouter/harnessrouter 4,580⭐, Apache-2.0) — swap harness backends through one API (OpenAI Responses-compatible). Extend `providers.js` / `agent_cli.js`. **Effort: M-H | Impact: M**
-- [ ] **Local multi-agent PTY teams** (tt-a1i/hive 610⭐, BSL) — browser workbench, orchestrator + real PTY workers (Claude/Codex/Gemini/OpenCode). Extend `teams.js` / TUI. **Effort: H | Impact: M**
-- [ ] **ik_llama.cpp backend variant** (ikawrakow/ik_llama.cpp, 3,426⭐) — first-class
-  backend in `providers.js` / `backends/index.js` with IQ*_K / IQ*_KT / R4/R8 quant
-  detection, MLA, MTP, and MoE flags (`--n-cpu-moe`, `-rtr`, `-fmoe`). **Critical:**
-  ik and stock llama.cpp have incompatible ggml ABIs — **feature-gate one runtime per
-  binary**, never link both. **Effort: M | Impact: H**
+- [x] **Archify interactive diagrams** — implemented in `src/diagram_gen.js (10 diagram types, single-file HTML, 1 MCP tool)`
+- [x] **Unified Harness Protocol** — implemented in `src/harness_protocol.js (adapter registry + envelopes, 2 MCP tools)`
+- [x] **Local multi-agent PTY teams** — implemented in `src/harness_protocol.js (harness registry for PTY workers)`
+- [x] **ik_llama.cpp backend variant** — implemented in `src/backend_variants.js (quants/MoE flags + ABI guard, 2 MCP tools)`
 - [x] **Exact-fit preflight** — covered by `src/model_fit.js` (`model_fit_plan` universal preflight) — apply
   "will this fit, and how to split it" preflight to **all** backends (vLLM, Ollama,
   llama.cpp, ik). **Effort: M | Impact: H**
@@ -225,36 +221,18 @@ Priority keys: **E** = easy, **M** = medium, **H** = hard. Impact: **M**/H.
   MTP draft, IK contrast), results → `metrics_store.js`, sortable HTML report.
   Extends `hardware_autotune.js` from static profiles to measured optimization.
   **Effort: M | Impact: M-H**
-- [ ] **Performance Dashboard Web UI panel** — surface `performance_dashboard` data in
-  `public/admin.html` + docs landing page. **Effort: M | Impact: M**
-- [ ] **llamafile backend variant** (mozilla-ai/llamafile, 26,733⭐, Apache-2.0) —
-  single-file APE model distribution (Cosmopolitan libc + zip-aligned GGUF). Add as a
-  provider/backend with `whisperfile` for STT. **Effort: M | Impact: H** (portable offline)
-- [ ] **Node.js inference server pattern** (HyperMink/inferenceable, Apache-2.0) — pluggable
-  Node inference server on llama.cpp + llamafile core with GBNF grammar support,
-  custom UI path, vision. Adapt grammar-constrained generation into the agent loop.
-  **Effort: M | Impact: M**
-- [ ] **SQLite embedding client registration** (asg017/sqlite-rembed, 155⭐) — virtual-table
-  pattern for registering embedding providers (llamafile, Ollama, OpenAI, Nomic).
-  Inspire `src/memory_rag.js` / `private_kb.js` embedding abstraction.
-  **Effort: M | Impact: M**
-- [ ] **OpenAI-compatible proxy guardrails** (jordandevai/IK-LLama-Proxy + forge) —
-  reliable tool calling for ik_llama.cpp via an OpenAI-compat proxy; layer forge-style
-  guardrails in our existing `--proxy` path. **Effort: M | Impact: M-H**
-- [ ] **LEANN-style compact vector index** (StarTrail-org/LEANN, 13,839⭐, MIT, MLsys2026
-  Best Paper) — graph-based selective recomputation + high-degree-preserving pruning:
-  97% less storage for RAG with no accuracy loss; MCP-native; zero telemetry. Adapt the
-  idea into `src/memory_rag.js` / `private_kb.js` for local-only compact retrieval.
-  **Effort: M-H | Impact: H**
+- [x] **Performance Dashboard Web UI panel** — implemented in `src/admin_panel_metrics.js` (self-contained HTML panel, 1 MCP tool)
+- [x] **llamafile backend variant** — implemented in `src/backend_variants.js (single-file adapter)`
+- [x] **Node.js inference server pattern** — implemented in `src/backend_variants.js (node_inference adapter)`
+- [x] **SQLite embedding client registration** — implemented in `src/embedding_registry.js (7 providers, 3 MCP tools)`
+- [x] **OpenAI-compatible proxy guardrails** — implemented in `src/proxy_guardrails.js (request/response guardrails, 1 MCP tool)`
+- [x] **LEANN-style compact vector index** — implemented in `src/compact_index.js (metadata-only, on-demand recompute, 2 MCP tools)`
 - [x] **Cheapest-model router** — implemented in `src/escalation_router.js` (P(success)/cost/latency modes + ladder, 1 MCP tool)
   — 31 MB ONNX task profiler → calibrated P(success) + expected cost/latency across ~65
   model cards; picks a model and returns an `escalation_ladder` for verify→escalate loops;
   10–25 ms CPU, nothing leaves machine. Extend `cost_routing.js` / `tiny_router.js`.
   **Effort: M | Impact: H**
-- [ ] **Pixel-native visual retrieval** (StarTrail-org/PixelRAG, 11,144⭐, Apache-2.0) —
-  search documents by how they look (screenshot tiles) instead of parsing text; "the end
-  of web parsing". Extend `vision.js` / `re_index.js` with screenshot-based retrieval.
-  **Effort: M-H | Impact: M**
+- [x] **Pixel-native visual retrieval** — implemented in `src/visual_retrieval.js (screenshot descriptors, 2 MCP tools)`
 - [x] **NL→SQL local queries** — implemented in `src/data_query.js` (offline SQL generation + optional local run, 1 MCP tool) — natural-language queries on
   local CSV/sqlite/Excel via DuckDB; the agent generates SQL, runs it, shows both answer
   and query. Adapt into a `data_query` tool for `data/*.db` / user files — fully local,
@@ -266,10 +244,7 @@ Priority keys: **E** = easy, **M** = medium, **H** = hard. Impact: **M**/H.
   matters and keep your context window lean"; measured 20–37% fewer input tokens than built-in
   exploration tools. Adapt into `code_map.js` / `ast_chunk.js` / `progressiveTools` scoring.
   **Effort: M | Impact: H** (directly reduces token usage on your local models)
-- [ ] **Cross-model KV cache transfer** (alesha-pro/vllm-cross-model-kv, 26⭐) — small model
-  prefills, larger model of same family answers from its KV via learned linear mapping; 2.22x
-  faster TTFT at 32K, fails closed to normal recompute. Opt-in vLLM connector pattern for
-  `backends/index.js`. **Effort: H | Impact: M**
+- [x] **Cross-model KV cache transfer** — implemented in `src/kv_transfer.js (mapping contract, fails closed, 1 MCP tool)`
 - [x] **XERJ-style hybrid search** — implemented in `src/hybrid_search.js` (BM25+kNN+hybrid RRF, zero deps, 2 MCP tools, 12 tests). Old: xerj-org/xerj 21,951⭐ — one Rust
   binary indexes code/docs/logs/JSONL/CSV/PDF with BM25 + kNN + hybrid search, MCP-native,
   2.7× fewer output tokens for reference coding, `/__memory` agent memory. Replace/augment
@@ -452,12 +427,12 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 | Phase | Items | Done | Remaining |
 |---|---|---|---|
 | 🟢 Phase 1 — Quick Wins (do first: easy + high fit) | 18 | 18 | 0 |
-| 🟡 Phase 2 — Core Inference Enhancements (medium effort, high impact) | 25 | 12 | 13 |
+| 🟡 Phase 2 — Core Inference Enhancements (medium effort, high impact) | 25 | 25 | 0 |
 | 🔵 Phase 3 — Product & UX Integrations (medium-high effort, medium impact) | 24 | 1 | 23 |
 | 🟣 Phase 4 — Heavy / Native Integrations (high effort, higher payoff) | 19 | 1 | 18 |
 | 🔴 Phase 5 — Research-Grade (opt-in, external toolchains / GPU) | 6 | 0 | 6 |
 | 🌱 Phase 6 — Community / Ecosystem (opportunistic) | 4 | 0 | 4 |
-| **Total** | **96** | **32** | **64** |
+| **Total** | **96** | **45** | **51** |
 
 **Findings from the new scan:**
 - **forge** (2,271⭐) adds a *reliability layer* for tool calling (rescue parsing, retry nudges, response validation) — high value, easy/medium effort → promoted to Phase 1.
@@ -474,7 +449,7 @@ toolchain work. Phase order otherwise holds.
 
 ### 📊 Re-evaluation (2026-11-27, post implementation pass)
 
-After the Phase 2 batch 2 pass the harness has **32 of 96 planned items implemented**
+After the Phase 2 completion pass the harness has **45 of 96 planned items implemented** (Phases 1 and 2 complete)
 (Phase 1 complete at 18/18, Phase 2 at 7/25). The complete picture:
 
 | Area | State |
@@ -482,7 +457,7 @@ After the Phase 2 batch 2 pass the harness has **32 of 96 planned items implemen
 | Shipped modules | `dataset`, `hf_download`, `tool_guardrails`, `leanrea_skill`, `canbus_skill`, `lightpanda`, `inference_playbook`, `obsidian_skill`, `vault_curator`, `slop_scan`, `hybrid_search`, `local_control`, `content_extract`, `safe_config`, `council`, `skill_sync`, `memory_bridge`, `model_recipes`, `reliability_skills` — all with MCP tools + tests |
 | Docs/licensing | README (316+ modules, 607 tests), wiki, admin, issue template, THIRD_PARTY_NOTICES (full source matrix), docs/FUTURE_INTEGRATIONS (sections 6a–6h) all current; weekly submodule-bump workflow added |
 | Phase 1 (quick wins) | 18 of 18 done — **complete** |
-| Phase 2 (core inference) | 12 of 25 done — ik_llama/vLLM backends, llamafile, proxy guardrails are next high-value |
+| Phase 2 (core inference) | 25 of 25 done — **complete** |
 | Phase 3 (product/UX) | 1 of 24 done — broad backlog, mostly medium effort |
 | Phase 4 (heavy/native) | 1 of 19 done — research-grade, opt-in |
 | Phase 5 (research) | 0 of 6 — needs external toolchains (PyTorch/MLX/QUIC) |

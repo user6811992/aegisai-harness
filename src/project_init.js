@@ -122,7 +122,7 @@ docs/             landing page (GitHub Pages)
 - \`npm start\` — start the harness (--web for UI, --tui for terminal, --mcp-server for MCP)
 - \`node src/index.js --json "prompt"\` — headless/CI mode
 - \`cargo tauri build\` — build native Windows desktop app (MSI/NSIS)
-- \`npm test\` - run 631 tests (0 failures)
+- \`npm test\` - run 645 tests (0 failures)
 
 ## 5. Security Model
 - Capability-based: patterns of allowed/denied tools per session

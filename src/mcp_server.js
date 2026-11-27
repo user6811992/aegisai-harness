@@ -55,6 +55,16 @@ function toolsList() {
   out.push(...require('./network_checks').tools());
   out.push(...require('./backend_sweeps').tools());
   out.push(...require('./code_intelligence').tools());
+  out.push(...require('./p2p_messaging').tools());
+  out.push(...require('./diagram_gen').tools());
+  out.push(...require('./harness_protocol').tools());
+  out.push(...require('./embedding_registry').tools());
+  out.push(...require('./backend_variants').tools());
+  out.push(...require('./compact_index').tools());
+  out.push(...require('./visual_retrieval').tools());
+  out.push(...require('./proxy_guardrails').tools());
+  out.push(...require('./kv_transfer').tools());
+  out.push(...require('./admin_panel_metrics').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -115,6 +125,10 @@ async function callTool(name, args) {
   }
   if (name.startsWith('backend_sweep')) return { content: [{ type: 'text', text: JSON.stringify(require('./backend_sweeps').dispatch(name, args)) }] };
   if (name.startsWith('code_select')) return { content: [{ type: 'text', text: JSON.stringify(require('./code_intelligence').dispatch(name, args)) }] };
+  const mods = { p2p_: './p2p_messaging', diagram_: './diagram_gen', harness_: './harness_protocol', embed_: './embedding_registry', backend_variant: './backend_variants', backend_abi: './backend_variants', compact_: './compact_index', visual_: './visual_retrieval', proxy_: './proxy_guardrails', kv_: './kv_transfer' };
+  const modKey = Object.keys(mods).find((k) => name.startsWith(k));
+  if (modKey) { const r = require(mods[modKey]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
+  if (name.startsWith('dashboard_')) return { content: [{ type: 'text', text: JSON.stringify(require('./admin_panel_metrics').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

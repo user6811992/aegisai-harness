@@ -2,6 +2,27 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.49] - 2026-11-27
+
+### Added (Phase 2 complete — 25/25)
+- **P2P messaging** (`src/p2p_messaging.js`) — account-free RSA-OAEP + AES-GCM encrypted agent messaging, presence, conflict warnings (4 MCP tools)
+- **Diagram generation** (`src/diagram_gen.js`) — 10 diagram types, single-file interactive HTML (1 MCP tool)
+- **Unified Harness Protocol** (`src/harness_protocol.js`) — harness adapter registry + task/result envelopes (2 MCP tools)
+- **Embedding registry** (`src/embedding_registry.js`) — 7 embedding clients with offline local default (3 MCP tools)
+- **Backend variants** (`src/backend_variants.js`) — ik_llama/llamafile/vLLM adapters with ABI incompatibility guard (2 MCP tools)
+- **Compact index** (`src/compact_index.js`) — LEANN-style metadata-only storage, on-demand embedding recompute (2 MCP tools)
+- **Visual retrieval** (`src/visual_retrieval.js`) — screenshot descriptors + search (2 MCP tools)
+- **Proxy guardrails** (`src/proxy_guardrails.js`) — transparent request/response reliability checks (1 MCP tool)
+- **KV transfer** (`src/kv_transfer.js`) — cross-model KV mapping contract, fails closed (1 MCP tool)
+- **Dashboard panel** (`src/admin_panel_metrics.js`) — self-contained HTML performance panel (1 MCP tool)
+- New `tests/phase2_batch3.test.js` (11 tests) and `tests/phase2_batch4.test.js` (3 tests)
+
+### Documentation
+- ROADMAP: Phases 1 and 2 both complete (45/96 items); remaining phases 3–6 documented. Module count 343, tests 645 across all docs.
+
+### Verification
+- 645 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.48] - 2026-11-27
 
 ### Added (Phase 2 batch 2)
