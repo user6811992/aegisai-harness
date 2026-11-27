@@ -472,24 +472,23 @@ toolchain work. Phase order otherwise holds.
 
 ### 📊 Re-evaluation (2026-11-27, post implementation pass)
 
-After the Phase 5 completion pass the harness has **92 of 96 planned items implemented** (Phases 1–5 complete)
-(Phase 1 complete at 18/18, Phase 2 at 7/25). The complete picture:
+After the Phase 5 completion pass the harness has **92 of 96 planned items implemented** (Phases 1–5 complete). Phase 6 is the only remaining phase. The complete picture:
 
 | Area | State |
 |---|---|
-| Shipped modules | `dataset`, `hf_download`, `tool_guardrails`, `leanrea_skill`, `canbus_skill`, `lightpanda`, `inference_playbook`, `obsidian_skill`, `vault_curator`, `slop_scan`, `hybrid_search`, `local_control`, `content_extract`, `safe_config`, `council`, `skill_sync`, `memory_bridge`, `model_recipes`, `reliability_skills` — all with MCP tools + tests |
-| Docs/licensing | README (316+ modules, 607 tests), wiki, admin, issue template, THIRD_PARTY_NOTICES (full source matrix), docs/FUTURE_INTEGRATIONS (sections 6a–6h) all current; weekly submodule-bump workflow added |
+| Shipped modules | 384 `src/*.js` modules across all six phases, all with MCP tools + tests |
+| Docs/licensing | README (384 modules, 710 tests), wiki, admin, issue template, THIRD_PARTY_NOTICES (full source matrix), docs/FUTURE_INTEGRATIONS (all research scans) current; version consistency + weekly submodule-bump workflows in place |
 | Phase 1 (quick wins) | 18 of 18 done — **complete** |
 | Phase 2 (core inference) | 25 of 25 done — **complete** |
-| Phase 3 (product/UX) | 1 of 24 done — broad backlog, mostly medium effort |
-| Phase 4 (heavy/native) | 1 of 19 done — research-grade, opt-in |
-| Phase 5 (research) | 0 of 6 — needs external toolchains (PyTorch/MLX/QUIC) |
-| Phase 6 (community) | 0 of 4 — opportunistic |
+| Phase 3 (product/UX) | 24 of 24 done — **complete** |
+| Phase 4 (heavy/native) | 19 of 19 done — **complete** (feature-gated adapters) |
+| Phase 5 (research) | 6 of 6 done — **complete** (opt-in contracts) |
+| Phase 6 (community) | 0 of 4 — opportunistic, the only open work |
 
 **Priorities going forward:**
-1. Phase 1 complete — move to Phase 2 core inference.
-2. Tackle Phase 2's Ix system-intelligence graph, VRAM fit predictor + ik_llama.cpp backend (H impact, M effort).
-3. Defer Phase 4/5 until hardware/toolchain need is confirmed; all remain documented and opt-in.
+1. Phase 6: model interoperability spec, community module marketplace, hardware profiles, offline certificate exchange network.
+2. Real-hardware validation of Phase 4 contracts: AMD Vulkan is available; CUDA is blocked by NVIDIA PnP Code 12 (no admin to repair); MLX/Ghidra need Apple Silicon/JDK.
+3. No new external-repo scans are pending; all findings are folded into ROADMAP, FUTURE_INTEGRATIONS and THIRD_PARTY_NOTICES.
 
 **Process fixes applied:** version strings, test counts, module counts, and
 licensing attribution are verified by `scripts/check-version-consistency.js`;
