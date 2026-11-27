@@ -158,6 +158,30 @@ Backlog" section in `ROADMAP.md`. This document is the detail matrix.
 
 ---
 
+## 6b. llamafile & ik_llama.cpp Pages 1–4 (added 2026-11-27)
+
+| Repo | Stars | Idea | Phase |
+|---|---|---|---|
+| antoinezambelli/forge | 2,271 | Tool-call guardrails: rescue parsing, retry nudges, response validation; proxy mode; 26-scenario eval | 1 |
+| mozilla-ai/llamafile | 26,733 | Single-file APE distribution (Cosmopolitan + zip-aligned GGUF) + whisperfile STT | 2/4 |
+| mozilla-ai/llamafile-builder | 9 | JSON recipes for runtime+model+GPU-libs builds; HF registry; resume+SHA256 | 1/4 |
+| asg017/sqlite-rembed | 155 | SQLite virtual-table pattern for embedding clients (llamafile/Ollama/OpenAI/Nomic) | 2 |
+| HyperMink/inferenceable | 15 | Node.js inference server on llama.cpp + llamafile core; GBNF grammars; vision | 2/4 |
+| jordandevai/IK-LLama-Proxy | 0 | OpenAI-compat proxy with reliable tool calling for ik backend | 2 |
+| kdeps/kdeps | 38 | Workflow-as-YAML with event listeners (API/webhook/Telegram/Slack/Discord) | 3 |
+| gabrielursan-beep/red-alert-llm | 14 | Offline knowledge pack on USB: Wikipedia + encrypted vault, 119 languages | 3 |
+| steadfastgaze/mlx-iqk | 0 | IQ_K codecs + Metal kernels for MLX Apple Silicon routed experts | 4 |
+| wepromen/pxq_llama | 0 | PXQ 2/3/4-bit MoE quants + fused CUDA for Pascal/Volta | 4 |
+| ambassadorOfCplusPlus/memex-engine | 0 | MoE engine for weak hardware: static-on-GPU + resident-CPU experts | 4 |
+| PhilAnderson1/minicpm-pi5 | 0 | Raspberry Pi 5 ARM optimization for ik_llama.cpp | 4 |
+| pantalipe/cpu-llm-bench | 0 | Pre-AVX2 CPU benchmarks + patches | 4 |
+| f1zz1ec0ke/ik_fe | 0 | Minimal ik_llama web UI (sampling controls) | future |
+
+**License note:** llamafile = Apache-2.0, forge = MIT, sqlite-rembed = MIT,
+inferenceable = Apache-2.0, red-alert-llm = MIT. All can be adapted with attribution.
+
+---
+
 ## 7. Cross-Project Patterns Worth Reusing
 
 | Pattern | Source | Where it applies |

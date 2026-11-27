@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.31] - 2026-11-27
+
+### Documentation
+- ROADMAP.md: added findings from llamafile pages 1–2 and ik_llama.cpp pages 3–4 scan to the phased backlog. 14 new items across Phases 1–4: tool-call reliability guardrails (forge, 2,271⭐), recipe-based model configs (llamafile-builder), llamafile backend variant (26,733⭐), Node.js inference server + GBNF grammars (inferenceable), SQLite embedding registration (sqlite-rembed), OpenAI-compat proxy guardrails (IK-LLama-Proxy), workflow-as-YAML (kdeps), offline knowledge pack (red-alert-llm), MLX IQ_K codecs, low-bit MoE quants, memex-engine, GBNF generation.
+- Added a **Re-evaluation** table to the roadmap: 48 total items (2 done, 46 remaining); tool-call guardrails promoted to Phase 1 priority.
+- `docs/FUTURE_INTEGRATIONS.md`: new section 6b cataloging the new repos with stars, ideas, phases, and license notes.
+
+### Verification
+- 487 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.30] - 2026-11-27
 
 ### Added (Phase 1 — HF model downloader)
