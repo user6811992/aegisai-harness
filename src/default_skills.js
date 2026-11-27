@@ -1,5 +1,7 @@
 // src/default_skills.js
-// Bundled default skill pack (mirrors aegisai-next default skills).
+// Bundled default skill pack (mirrors aegisai-next default skills + Aegis method pack).
+const aegisSkills = require('./aegis_skills');
+
 const SKILLS = {
   search_before_re: {
     name: 'search-before-re',
@@ -37,6 +39,18 @@ const SKILLS = {
     body: 'Compare the implemented UI against the reference. Report layout, spacing, color, and interaction differences.',
   },
 };
+
+// Load Aegis bundled skills (from vendored submodule) as defaults.
+if (aegisSkills.aegisAvailable()) {
+  for (const name of aegisSkills.BUNDLED_AEGIS_SKILLS) {
+    const skill = aegisSkills.getBundledSkill(name);
+    if (skill) {
+      const key = skill.name.replace(/-/g, '_');
+      SKILLS[key] = { name: skill.name, description: skill.description, body: skill.body };
+    }
+  }
+}
+
 function list() { return Object.values(SKILLS).map((s) => ({ name: s.name, description: s.description })); }
 function get(name) { return SKILLS[name] || Object.values(SKILLS).find((s) => s.name === name) || null; }
 function installAll() {
