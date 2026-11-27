@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.29] - 2026-11-27
+
+### Added (Phase 1 — dataset tools)
+- **Dataset curation module** (`src/dataset.js`): clean-room implementation of datasetexplorer ideas (AGPL-3.0 upstream — no code copied). Supports JSON/JSONL streaming load with element ranges, Alpaca/ShareGPT/Text/generic format detection and text extraction, composite filters (chars/words/turns/matches + regex/substring search + sort), n-gram analysis, exact + normalized dedup, merge/replace/subtract, select/erase, deterministic shuffle, regex/substring find/replace with dry-run, field replacement, JSON/JSONL export, and stats.
+- 7 new MCP tools: `dataset_stats`, `dataset_filter`, `dataset_ngram`, `dataset_dedupe`, `dataset_merge`, `dataset_replace`, `dataset_export`.
+- New `tests/dataset.test.js` with 28 tests and `docs/DATASET_TOOLS.md`.
+- `THIRD_PARTY_NOTICES.md` documents the clean-room/AGPL attribution.
+
+### Verification
+- 476 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.28] - 2026-11-27
 
 ### Fixed (issues #190, #191)

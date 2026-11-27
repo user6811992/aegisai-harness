@@ -28,6 +28,7 @@ function toolsList() {
   out.push(...require('./model_registry').tools());
   out.push(...require('./optional_modules').tools());
   out.push(...require('./verification_cert').tools());
+  out.push(...require('./dataset').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') out.push(...require('./http_advanced').tools());
   return out;
 }
@@ -45,6 +46,10 @@ async function callTool(name, args) {
   if (name === 'hardware_detect') return { content: [{ type: 'text', text: JSON.stringify(require('./hardware').detect()) }] };
   if (name.startsWith('hardware_autotune')) return { content: [{ type: 'text', text: JSON.stringify(require('./hardware_autotune').dispatch(name, args)) }] };
   if (name.startsWith('model_registry_')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_registry').dispatch(name, args)) }] };
+  if (name.startsWith('dataset_')) {
+    const r = await require('./dataset').dispatch(name, args);
+    return { content: [{ type: 'text', text: JSON.stringify(r) }] };
+  }
   if (name === 'optional_modules_status') return { content: [{ type: 'text', text: JSON.stringify(require('./optional_modules').status()) }] };
   if (name === 'performance_dashboard') return { content: [{ type: 'text', text: JSON.stringify(require('./performance_dashboard').view()) }] };
   if (name.startsWith('certificate_')) {

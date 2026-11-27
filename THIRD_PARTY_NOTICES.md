@@ -62,4 +62,14 @@ They are opt-in and never bundled:
 - **tensorbend-predictor** (MIT) — https://github.com/eelbaz/tensorbend-predictor
   - MoE expert prefetch documented as an optional research module in `src/optional_modules.js`
 
+## Clean-room implementations (inspired, not copied)
+The following projects inspired functionality that was **independently
+reimplemented** in AegisAi Harness. No source code was copied; only the ideas
+and feature sets were used.
+- **datasetexplorer** (AGPL-3.0) — https://github.com/LostRuins/datasetexplorer
+  - Dataset curation concepts (JSON/JSONL viewing, composite filters, n-grams,
+    dedup, split/merge, find/replace) reimplemented clean-room in `src/dataset.js`.
+  - The AGPL-licensed single-file HTML was **not** vendored; MIT-licensed
+    aegisai-harness cannot incorporate it. See `docs/DATASET_TOOLS.md`.
+
 All third-party components retain their respective licenses. See each project for full license text.
