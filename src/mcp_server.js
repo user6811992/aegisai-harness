@@ -83,7 +83,7 @@ function toolsList() {
   out.push(...require('./classroom').tools());
   out.push(...require('./asr_pipeline').tools());
   out.push(...require('./osint_aggregator').tools());
-  for (const m of ['native_bindings','multimodal_tools','parallel_loader','phishing_filter','portable_dist','quant_advisor','grammar_constraints','terminal_preview','credential_seal','aws_emulator_target','paillier','thumb2_symbols','decompiler_bridge','rl_harness','moe_engine','mlattice','jit_lora','miras_memory','expert_prefetch','fixed_point','peerhive','shortcut_debt']) out.push(...require('./' + m).tools());
+  for (const m of ['native_bindings','multimodal_tools','parallel_loader','phishing_filter','portable_dist','quant_advisor','grammar_constraints','terminal_preview','credential_seal','aws_emulator_target','paillier','thumb2_symbols','decompiler_bridge','rl_harness','moe_engine','mlattice','jit_lora','miras_memory','expert_prefetch','fixed_point','peerhive','shortcut_debt','hardware_probe']) out.push(...require('./' + m).tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -166,6 +166,7 @@ async function callTool(name, args) {
   const p5mods = { mlattice_: './mlattice', jit_lora_: './jit_lora', miras_: './miras_memory', expert_prefetch_: './expert_prefetch', fixed_point_: './fixed_point', peerhive_: './peerhive', shortcut_debt: './shortcut_debt' };
   const p5key = Object.keys(p5mods).find((k) => name.startsWith(k));
   if (p5key) { const r = require(p5mods[p5key]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
+  if (name.startsWith('hardware_')) { const r = require('./hardware_probe').dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

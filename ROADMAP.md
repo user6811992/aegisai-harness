@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.52. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.52
+- **Shipped:** v0.1–v1.0.53. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.53
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.52
+- **Current version:** v1.0.53
 
 ---
 
@@ -419,6 +419,14 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 
 ---
 
+
+### Hardware validation status (local machine, 2026-11-27)
+- **Vulkan / AMD RX 5700 XT — VERIFIED PRESENT** (Vulkan 1.4.357, driver 26.11.2). `src/hardware_probe.js` reads it read-only. Can validate backend-agnostic behavior (ABI guards, fit/parallel load plans, GBNF output) against a real Vulkan runtime once a model/runtime is installed.
+- **CUDA / GTX 1660 Super — hardware present but NOT VALIDATABLE**: driver listed in Device Manager and `nvcuda.dll` exists, but `nvidia-smi` fails (`Failed to initialize NVML`) and no CUDA toolkit / `nvcc` is installed. CUDA-specific k-quant and MoE flags cannot be validated here yet.
+- **MLX — NOT VALIDATABLE locally**: requires Apple Silicon + macOS Metal. IQ_K kernels stay contracts until tested on an Apple device.
+- **Tauri FFI — partially testable**: Rust/cargo are available and `cargo check --locked` passes, but real FFI inference needs a built native engine + model; the worker-process strategy is a contract only.
+- **Ghidra — NOT VALIDATABLE locally**: no JDK and no `GHIDRA_INSTALL_DIR`; Thumb2/BSim work remains a contract.
+- **No GGUF models are installed locally**, so no end-to-end inference test is possible in this pass.
 
 ### Research scan 2026-11-27 — hardware verification + account sweep
 - **Verified / corrected Phase 4 contracts:** MLX IQ_K codec set is IQ1_S_R4 / IQ2_KS / IQ2_K (mlx-iqk, MIT); IQ3_K/IQ4_K belong to mlx-kquant. MoE offload must **not** use `-rtr` with hybrid CPU/GPU (forces CPU matmul for k-quants); prefer smallest `--n-cpu-moe` that fits plus `--fit` with a 1024 MiB margin. In-process Tauri FFI can crash the host — prefer a supervised worker process, pin the upstream commit/tag, and feature-gate native compilation. Implemented as corrections in `backend_variants.js`, `moe_engine.js`, `quant_advisor.js`, `native_bindings.js`.

@@ -2,6 +2,24 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.53] - 2026-11-27
+
+### Fixed (reported issues)
+- **#192** — `model_fit` now sums all `-NNNNN-of-NNNNN.gguf` shards in `readGgufMeta()` and `estimate()`, so split models no longer underreport VRAM/RAM. Exposes `shardFiles()` and `split: { index, total }`.
+- **#193** — `workflow_yaml.parse()` now handles `on: [push, pull_request]` and `on: push` in addition to block form, and `run()` correctly gates unlisted events.
+- New `tests/issues_192_193.test.js` (4 tests).
+
+### Added
+- **`src/hardware_probe.js`** — read-only local capability probe (`vulkaninfo --summary`, `nvidia-smi`) with `hardware_probe` / `hardware_recommend` MCP tools. New `tests/hardware_probe.test.js` (4 tests).
+
+### Hardware validation status
+- Vulkan AMD RX 5700 XT: present and probed (Vulkan 1.4.357, driver 26.11.2).
+- CUDA GTX 1660 Super: GPU present, but NVML (`nvidia-smi`) fails and no CUDA toolkit is installed — CUDA flags remain unvalidated.
+- MLX, Ghidra, and real Tauri FFI inference cannot be validated on this machine (no Apple Silicon/JDK/model binaries).
+
+### Verification
+- 710 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.52] - 2026-11-27
 
 ### Added (Phase 5 complete — 6/6)

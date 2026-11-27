@@ -7,21 +7,46 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+// A split GGUF is addressed by its first shard; all shards must be counted or
+// fit estimates will claim a model fits when it cannot.
+function shardFiles(filePath) {
+  const m = path.basename(filePath).match(/^(.*)-(\d{5})-of-(\d{5})\.gguf$/i);
+  if (!m) return [filePath];
+  const total = parseInt(m[3], 10);
+  const dir = path.dirname(filePath);
+  const out = [];
+  for (let i = 1; i <= total; i += 1) {
+    const name = `${m[1]}-${String(i).padStart(5, '0')}-of-${String(total).padStart(5, '0')}.gguf`;
+    const p = path.join(dir, name);
+    if (fs.existsSync(p)) out.push(p);
+  }
+  // Incomplete splits still report what exists, but keep the requested file first.
+  return out.includes(filePath) ? out : [filePath, ...out];
+}
+
 // Minimal GGUF header reader: magic "GGUF", version, tensor count, KV count,
 // then key/value pairs. We only need total tensor bytes + metadata hints.
 function readGgufMeta(filePath) {
   if (!fs.existsSync(filePath)) return { ok: false, error: 'file not found' };
+  const shards = shardFiles(filePath);
   const fd = fs.openSync(filePath, 'r');
+  let version;
   try {
     const buf = Buffer.alloc(24);
     fs.readSync(fd, buf, 0, 24, 0);
     if (buf.toString('ascii', 0, 4) !== 'GGUF') return { ok: false, error: 'not a GGUF file' };
-    const version = buf.readUInt32LE(4);
-    // v2/v3 use uint64 counts; we read tensor_data_offset from metadata when
-    // available, else estimate from file size minus header.
-    const size = fs.statSync(filePath).size;
-    return { ok: true, file: filePath, version, sizeGB: +(size / 1024 ** 3).toFixed(2), bytes: size };
+    version = buf.readUInt32LE(4);
   } finally { fs.closeSync(fd); }
+  // v2/v3 use uint64 counts; we read tensor_data_offset from metadata when
+  // available, else estimate from file size minus header.
+  const size = shards.reduce((a, p) => a + fs.statSync(p).size, 0);
+  const m = path.basename(filePath).match(/-(\d{5})-of-(\d{5})\.gguf$/i);
+  return {
+    ok: true, file: filePath, version,
+    sizeGB: +(size / 1024 ** 3).toFixed(2), bytes: size,
+    shards: shards.length,
+    split: m ? { index: parseInt(m[1], 10), total: parseInt(m[2], 10) } : null,
+  };
 }
 
 // Estimate memory needs from file size + quant heuristic (bpw): Q4 ≈ 4.5 bits/weight,
@@ -86,4 +111,4 @@ function dispatch(name, args) {
   if (name === 'model_fit_plan') return fit(args.model, args.devices, args);
   throw new Error('unknown model_fit tool: ' + name);
 }
-module.exports = { readGgufMeta, estimate, fit, launchCommand, tools, dispatch };
+module.exports = { shardFiles, readGgufMeta, estimate, fit, launchCommand, tools, dispatch };

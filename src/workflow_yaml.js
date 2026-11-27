@@ -12,7 +12,15 @@ function parse(text) {
     const ind = line.length - line.trimStart().length;
     const t = line.trim();
     if (ind===0 && t.startsWith('name:')) { out.name=t.slice(5).trim().replace(/^['"]|['"]$/g,''); section=''; current=null; continue; }
-    if (ind===0 && t==='on:') { section='on'; current=null; continue; }
+    if (ind===0 && t.startsWith('on:')) {
+      const rest = t.slice(3).trim();
+      if (rest) {
+        const vals = (rest.startsWith('[') && rest.endsWith(']')) ? rest.slice(1, -1).split(',') : [rest];
+        out.on = vals.map((v) => v.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean);
+        section = ''; current = null;
+      } else { section = 'on'; current = null; }
+      continue;
+    }
     if (ind===0 && t==='steps:') { section='steps'; current=null; continue; }
     // A new list item always starts a fresh step/event, even if the previous
     // item already populated `current` with key/value fields.
