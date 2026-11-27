@@ -15,6 +15,18 @@ test('v068: package.json is the single version source', () => {
   assert.equal(require('../src/version').VERSION, require('../package.json').version);
 });
 
+test('v068: every ROADMAP "Current version" declaration matches package.json', () => {
+  const fs = require('fs');
+  const path = require('path');
+  const version = require('../package.json').version;
+  const text = fs.readFileSync(path.join(__dirname, '..', 'ROADMAP.md'), 'utf8');
+  const matches = [...text.matchAll(/Current version:\*\*\s*v([0-9]+\.[0-9]+\.[0-9]+)/g)];
+  assert.ok(matches.length >= 2, 'ROADMAP should have top and footer version declarations');
+  matches.forEach((m, i) => {
+    assert.equal(m[1], version, `ROADMAP current version #${i + 1} is stale`);
+  });
+});
+
 test('v068: CLI entry point has a shebang and supports --version/--help', () => {
   assert.equal(read('src/index.js').split(/\r?\n/)[0].trim(), '#!/usr/bin/env node');
   const entry = path.join(ROOT, 'src', 'index.js');

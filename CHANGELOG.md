@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.26] - 2026-11-27
+
+### Fixed
+- ROADMAP footer "Current version" was stale (v1.0.24 while the header said v1.0.25). Both declarations are now consistent at v1.0.26.
+- `scripts/check-version-consistency.js` now validates **all** "Current version" declarations in ROADMAP.md (previously only the first was checked), so a stale footer can no longer slip through CI.
+- Added regression test in `tests/v068.test.js` asserting every ROADMAP version declaration matches `package.json`.
+
+### Verification
+- 445 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.25] - 2026-11-27
 
 ### Documentation

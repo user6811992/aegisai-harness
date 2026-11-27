@@ -30,7 +30,16 @@ function check() {
   expect('README.md', new RegExp('Status: v' + SV), 'status version');
   expect('llms.txt', new RegExp('offline-first\\. v' + SV + '\\.'), 'catalog version');
   expect('CHANGELOG.md', new RegExp('^## \\[' + SV + '\\]', 'm'), 'latest changelog entry');
-  expect('ROADMAP.md', new RegExp('Current version:\\*\\*\\s*v' + SV), 'current version');
+  // ROADMAP has two "Current version" declarations (top + footer); validate ALL.
+  {
+    const roadmap = read('ROADMAP.md');
+    const re = new RegExp('Current version:\\*\\*\\s*v' + SV, 'g');
+    const found = [...roadmap.matchAll(re)];
+    if (!found.length) issues.push('ROADMAP.md: current version pattern not found');
+    found.forEach((m, i) => {
+      if (m[1] !== version) issues.push(`ROADMAP.md: current version #${i + 1} is ${m[1]}, expected ${version}`);
+    });
+  }
   expect('packaging/tauri/tauri.conf.json', new RegExp('"version": "' + SV + '"'), 'tauri version');
   expect('packaging/tauri/Cargo.toml', new RegExp('version = "' + SV + '"'), 'tauri cargo version');
 
