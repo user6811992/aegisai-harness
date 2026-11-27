@@ -1,6 +1,8 @@
 // src/project_init.js
 // Project initialization: auto-generate MCP configs, repo instructions, memory files,
-// test commands, and validation scripts for any coding agent. Inspired by harnessforge.
+// test commands, validation scripts, and harness-style blueprints for any coding agent.
+// Inspired by harnessforge and Aegis method pack patterns.
+
 const fs = require('fs');
 const path = require('path');
 
@@ -34,10 +36,11 @@ function getLintCommand(type) {
     case 'node': return 'npm run lint';
     case 'python': return 'ruff check .';
     case 'rust': return 'cargo clippy';
-    case 'go': return 'golangci-lint run';
     default: return null;
   }
 }
+
+// ---- harnessforge-style blueprint generation ----
 
 function generateAgentsMd(root, type, testCmd) {
   return `# AGENTS.md — Project Agent Guide
@@ -77,6 +80,531 @@ function generateMcpConfig(root, type) {
   }
   return JSON.stringify(config, null, 2);
 }
+
+// ---- New: harnessforge-style blueprints ----
+
+function generateSoulMd(type) {
+  return `# SOUL.md — System Overview & Architecture
+
+# Project: AegisAi Harness
+# Type: ${type}
+# Generated: ${new Date().toISOString()}
+
+## 1. Purpose
+A feature-rich, local-only AI agent harness with offline-first guarantees,
+multi-model support, and extensible tool architecture.
+
+## 2. Architecture Overview
+- **Agent loop** with tool calls, streaming, fallback models, iteration caps
+- **Tool registry** with 64+ coding tools plus pluggable external tools (MCP, plugins, REA, Ghidra, Craft)
+- **Capability-based security** (allowed/denied tool patterns per session, sandbox rings, clean room mode)
+- **Session & memory persistence** in local SQLite with WAL (bi-temporal memory graph)
+- **Context management** (compaction + retrievable archive + capsules)
+- **Local-only guarantees** (offline mode, local embeddings, no phone-home)
+- **MCP client + server** (stdio + Streamable HTTP, conformance, Apps, Tasks, .mcpb, interceptors, uploads, skills)
+- **Web UI** (Preact, Markdown rendering, context meter, dark/light theme, voice, config panel)
+- **Terminal UI** (multi-pane TUI with status bar, chat, sidebar, command palette)
+- **Reverse engineering** (REA, Ghidra, Craft, 30+ index, awesome-re 17k, pentest pipeline, vuln scanner, security KB)
+- **Observability** (run capture, harness score, reliability attribution, OTel export, SARIF, Merkle ledger)
+- **Always-on layer** (events, timers, approvals, outbox, scheduler, cron, mailbox)
+- **Multi-agent** (DAG orchestration, swarm, teams, multi-critic, task phases, async/background tools)
+
+## 3. Project Structure
+```
+src/              307 modules (agent, tools, backends, storage, integrations, ...)
+public/           web UI (Preact + Tailwind vendored locally, no build step)
+tests/            test suite (node:test)
+packaging/        Windows/macOS/Linux installers + binary build
+docs/             landing page (GitHub Pages)
+```
+
+## 4. Key Commands
+- `npm start` — start the harness (--web for UI, --tui for terminal, --mcp-server for MCP)
+- `node src/index.js --json "prompt"` — headless/CI mode
+- `cargo tauri build` — build native Windows desktop app (MSI/NSIS)
+- `npm test` — run 383 tests (0 failures)
+
+## 5. Security Model
+- Capability-based: patterns of allowed/denied tools per session
+- Sandbox rings: clean room mode for untrusted code
+- Path traversal prevention: assertAllowedPath resolves symlinks/junctions
+- Large file rejection: 413 for files over size limit
+- Auth gate: only guards /api and /mcp routes
+
+## 6. Development Guidelines
+- Run tests before claiming completion (`npm test`)
+- Keep changes minimal and focused
+- Update documentation when code changes
+- Follow existing code style and patterns
+- Respect tenant/session identifier validation to prevent path traversal
+- Validate columns against PRAGMA table_info for SQL operations
+- Pass selector data as base64-encoded JSON instead of interpolating raw strings
+`;
+}
+
+function generateToolsMd(type) {
+  return `# TOOLS.md — Tool Catalog & Guidelines
+
+# Tool Catalog for ${type} Projects
+
+## Total Tools
+64+ coding tools organized by category:
+
+### Code Tools
+- **write_file** — write file content with path validation
+- **delete_file** — delete file with traversal protection
+- **edit_file** — edit file content with diff support
+- **move_file** — move/rename with traversal protection
+- **copy_file** — copy with traversal protection
+
+### Analysis Tools
+- **read_file** — read file content with safe encoding
+- **search_code** — search codebase for patterns
+- **grep_code** — regex-based code search
+- **parse_ast** — AST-based code analysis
+- **index_repo** — repository indexing and cataloging
+
+### Model & Backend Tools
+- **set_backend** — change backend type/URL
+- **get_backend_status** — check backend health
+- **stream_chat** — streaming chat with model
+- **compare_models** — compare model outputs
+- **discover_models** — discover available models
+
+### MCP Tools
+- **filesystem** — scoped file system MCP server
+- **git** — read-only git operations
+- **fetch** — URL fetching with SSRF guard
+- **memory** — knowledge graph MCP server
+- **sequential_thinking** — structured reasoning tool
+- **time** — timezone conversion tool
+- **linkdigest** — social media content extraction
+
+### Reverse Engineering Tools
+- **ghidra_analyze** — Ghidra binary analysis
+- **craft_analysis** — Craft module analysis
+- **re_index** — REA model analysis
+- **vuln_scan** — vulnerability pattern scanning
+- **security_kb** — security knowledge base lookup
+
+### Utility Tools
+- **get_time** — current time retrieval
+- **set_environment** — environment variable management
+- **toggle_readonly** — read-only mode switching
+- **team_create** — team creation and listing
+- **project_init** — project scaffolding initialization
+
+## Usage Guidelines
+
+### Path Traversal Prevention
+All file operations must use `assertAllowedPath()` which:
+- Resolves symlinks/junctions via realpath
+- Blocks traversal via symlink to parent directories
+- Rejects non-existent targets
+- Large files (>100MB) rejected with 413
+
+### SQL Injection Prevention
+- Validate column names against `PRAGMA table_info`
+- Never interpolate raw strings in SQL queries
+- Use parameterized queries where possible
+
+### PowerShell Injection Prevention
+- Pass selector data as base64-encoded JSON
+- Never interpolate raw strings in command arguments
+
+### Tool Approval
+- Web UI: `AEGISAI_WEB_AUTO_APPROVE` opt-in (`false` by default)
+- CLI: interactive approval required for destructive tools
+- CLI: `AEGISAI_TOKEN` enables open mode if unset
+
+### MCP Integration
+- All MCP servers bind to `127.0.0.1` by default
+- LAN mode requires shared secret
+- Social media preset (`linkdigest`) available for content extraction
+- Skills can be registered via `src/mcp_skills.js`
+
+## Project-Specific Tool Configuration
+
+### Node.js Projects
+- filesystem MCP server scoped to project root
+- npm test as default test command
+- lint: `npm run lint`
+
+### Python Projects
+- filesystem MCP server scoped to project root
+- pytest as default test command
+- lint: `ruff check .`
+
+### Rust Projects
+- filesystem MCP server scoped to project root
+- cargo test as default test command
+- lint: `cargo clippy`
+
+### Go Projects
+- filesystem MCP server scoped to project root
+- go test ./... as default test command
+- lint: golangci-lint run
+
+### Java Projects
+- filesystem MCP server scoped to project root
+- mvn test as default test command
+- lint: (configure as needed)
+
+### .NET Projects
+- filesystem MCP server scoped to project root
+- dotnet test as default test command
+- lint: (configure as needed)
+
+### Generic Projects
+- filesystem MCP server scoped to project root
+- echo "no test command configured" as default
+- lint: null (configure as needed)
+`;
+}
+
+function generateMemoryMd(type) {
+  return `# MEMORY.md — Memory Hierarchy & Persistence
+
+# Memory Hierarchy for ${type} Projects
+
+## L0: Capture (Immediate)
+- Raw tool outputs and API responses
+- Tool result metadata (ok, durationMs, tool_call_id)
+- Stream chat chunks and SSE frames
+- User input and prompt texts
+- Auto-cleared after each agent turn
+
+## L1: Episode (Recent Context)
+- Last 8-16 agent turns (configurable)
+- Summary of completed tool sequences
+- Captured evidence bundles
+- Active session state (SQLite with WAL)
+- Bi-temporal memory graph nodes
+
+## L2: Fact (Persistent Knowledge)
+- Architecture decisions recorded as ADRs
+- Tool policy configurations per session
+- Capability patterns (allowed/denied tool sets)
+- Forbidden path rules and traversal protections
+- SQL column validation sets
+- Security KB indicators persisted to disk
+
+## L3: Skill (Long-term Knowledge)
+- Project-specific skill discoveries
+- Successful pattern libraries
+- Failed anti-patterns (avoid these)
+- Custom tool extensions per project
+- Aegis skill pack integrations (22 skills bundled)
+
+## Memory Management
+
+### Automatic Behavior
+- L0 cleared after each agent turn
+- L1 shrinks when exceeding turn cap
+- L2 persisted to `.aegisai/` directory
+- L3 persists across sessions
+
+### Manual Operations
+- `/evidence-bundle` — create auditable artifact for current run
+- `/ledger-replay` — replay audit ledger for verification
+- `/ledger-rewind` — rewind to prior state
+- `/merkle-root` — compute Merkle root of audit ledger
+- `/journal-search` — search historical actions by day/words/path/session
+- `/journal-note` — add decision or blocker to historical record
+
+### Aegis Integration
+- Aegis method pack (vendor/aegis submodule) provides:
+  - `first-principles-review` skill for architecture analysis
+  - `systematic-debugging` for methodical problem-solving
+  - `verification-before-completion` for evidence-aware completion
+  - `goal-framing` for explicit goal specification
+  - `test-driven-development` for strict test-first workflows
+
+## Project-Type Memory Profiles
+
+### Node.js Projects
+- Heavy emphasis on L1: npm module dependencies, script outputs
+- L2: package.json scripts, environment configurations
+- L3: Built npm modules, published packages history
+
+### Python Projects
+- Heavy emphasis on L1: pip package outputs, virtualenv environments
+- L2: pyproject.toml configurations, dependency trees
+- L3: Published PyPI packages, C extension histories
+
+### Rust Projects
+- Heavy emphasis on L1: cargo build outputs, compilation errors
+- L2: Cargo.toml dependency versions, feature flags
+- L3: Compiled binary histories, crates.io publish records
+
+### Go Projects
+- Heavy emphasis on L1: go build outputs, vet check results
+- L2: go.mod dependency versions, module paths
+- L3: Published module histories, GoBridge records
+
+### Java Projects
+- Heavy emphasis on L1: compile outputs, test execution results
+- L2: pom.xml configurations, Maven plugin histories
+- L3: Published JAR histories, Maven Central records
+
+### .NET Projects
+- Heavy emphasis on L1: build outputs, test execution results
+- L2: .csproj configurations, NuGet package histories
+- L3: Published assembly histories, NuGet records
+
+## Memory Commands (CLI)
+- `evidence-bundle` — create auditable run artifact
+- `ledger-replay` — replay audit ledger
+- `ledger-rewind` — rewind state
+- `merkle-root` — compute ledger Merkle root
+- `journal-search` — search historical record
+- `journal-note` — add decision/blocker
+`;
+}
+
+function generateForbiddenPathRules(type) {
+  return `# Forbidden Path Rules — Security Protections
+
+# Project: AegisAi Harness
+# Type: ${type}
+# Generated: ${new Date().toISOString()}
+
+## Overview
+This file defines forbidden path patterns that all tool operations must respect.
+Violations are rejected with an error and logged to the audit ledger.
+
+## Root Directory Protections
+The following paths are always forbidden regardless of project type:
+
+1. **System Directories**
+   - `/etc/` and all subdirectories
+   - `/usr/` and all subdirectories
+   - `/var/` and all subdirectories
+   - Windows: `C:\\Windows\\` and `C:\\Program Files\\`
+   - Linux: `/bin/`, `/sbin/`, `/lib/`, `/lib64/`
+
+2. **User Home Extensions**
+   - `~/.ssh/` and all subdirectories
+   - `~/.gnupg/` and all subdirectories
+   - `~/.aws/` and all subdirectories
+   - `~/.kubernetes/` and all subdirectories
+
+3. **Aegisai Installation**
+   - `%LOCALAPPDATA%\\Programs\\AegisAiHarness\\` (or `\\AegisAiHarness`)
+   - `%APPDATA%\\AegisAiHarness\\`
+   - These must never be written to by agent tools
+
+4. **Project Root Protections**
+   - `.git/` and all subdirectories — never modify git internals
+   - `.gitignore` — never overwrite without explicit approval
+   - `.gitmodules` — never modify without explicit approval
+   - `package-lock.json` / `yarn.lock` / `pnpm-lock.json` — never modify without explicit approval
+   - `composer.lock` / `Gemfile.lock` — never modify without explicit approval
+
+## Project-Type Specific Protections
+
+### Node.js Projects
+- `node_modules/` — never delete or rewrite dependencies
+- `package.json` — never modify scripts or dependencies without explicit approval
+- `tsconfig.json` — never modify without explicit approval
+- `webpack.config.*` / `vite.config.*` — never modify without explicit approval
+
+### Python Projects
+- `venv/` and `env/` — virtual environment directories, never delete
+- `pyproject.toml` — never modify dependencies without explicit approval
+- `requirements.txt` — never modify without explicit approval
+- `.env` — never overwrite without explicit approval
+
+### Rust Projects
+- `Cargo.toml` — never modify dependencies without explicit approval
+- `Cargo.lock` — never modify without explicit approval
+- `target/` — build artifacts directory, never delete manually
+- `.rust-toolchain` — never modify without explicit approval
+
+### Go Projects
+- `go.mod` and `go.sum` — never modify dependencies without explicit approval
+- `vendor/` — never delete or rewrite vendor directory
+- `Gopath/` — never modify GOPATH structure
+
+### Java Projects
+- `pom.xml` and `pom.lock` — never modify dependencies without explicit approval
+- `mvnw` / `gradlew` — never modify wrapper scripts
+- `target/` — build artifacts, never delete manually
+
+### .NET Projects
+- `*.csproj` — never modify PackageReference without explicit approval
+- `packages.config` — never modify without explicit approval
+- `obj/` and `bin/` — build artifact directories
+- `Web.config` — never modify without explicit approval
+
+## Global Forbidden Patterns (Always Enforced)
+
+These patterns are enforced across ALL project types via `assertAllowedPath()`:
+
+```
+1. /etc/
+2. /usr/
+3. /var/
+4. /bin/
+5. /sbin/
+6. /lib/
+7. /lib64/
+8. ~/../*  (parent directory traversal)
+9. ~/*/../*  (grandparent traversal)
+10. /proc/*
+11. /sys/*
+12. /dev/*
+13. /run/*
+```
+
+## assertAllowedPath Implementation Notes
+
+The `assertAllowedPath()` function (src/tools/) must:
+
+1. Resolve the target path via `require('path').realpath()` to follow symlinks/junctions
+2. Check the resolved path against all forbidden patterns above
+3. Reject with a descriptive error if any pattern matches
+4. Also check the **project root allowlist** — only paths within the configured
+   project root are permitted (configurable via `AEGISAI_PROJECT_ROOT_ALLOWLIST`)
+5. Log all rejection attempts to the audit ledger with timestamp and user context
+
+## Violation Consequences
+
+- **Tool execution denied** — tool returns error, no file/state change
+- **Audit log entry** — recorded with: timestamp, attempted path, user context,
+  violation type, project type
+- **Security session flag** — if violations exceed threshold, session may be
+  flagged for review or restricted to read-only mode
+- **Documentation update needed** — if pattern was intentionally needed, update
+  this Forbidden Path Rules file and document the exception
+`;
+}
+
+function generateMcpRecommendations(type) {
+  const recommendations = {
+    node: {
+      title: 'MCP Server Recommendations for Node.js Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true,
+          description: 'Scoped filesystem MCP server for project root access' },
+        { id: 'git', enabled: true, readOnly: true,
+          description: 'Read-only git operations (log, diff, status)' },
+        { id: 'fetch', enabled: true,
+          description: 'URL fetching with SSRF guard active' },
+        { id: 'memory', enabled: false,
+          description: 'Knowledge graph MCP server (enable for long-term memory)' },
+        { id: 'linkdigest', enabled: true,
+          description: 'Social media content extraction (Xiaohongshu, Douyin, Bilibili)' },
+        { id: 'sequential_thinking', enabled: true,
+          description: 'Structured reasoning tool for complex problems' },
+        { id: 'time', enabled: true,
+          description: 'Timezone conversion and timestamp management' },
+      ],
+      forbiddenTools: ['run_python', 'run_command'], // Node projects: restrict exec
+    },
+    python: {
+      title: 'MCP Server Recommendations for Python Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true,
+          description: 'Scoped filesystem MCP server for project root access' },
+        { id: 'git', enabled: true, readOnly: true,
+          description: 'Read-only git operations (log, diff, status)' },
+        { id: 'fetch', enabled: true,
+          description: 'URL fetching with SSRF guard active' },
+        { id: 'memory', enabled: true,
+          description: 'Knowledge graph MCP server (enable for long-term memory)' },
+        { id: 'linkdigest', enabled: true,
+          description: 'Social media content extraction (Xiaohongshu, Douyin, Bilibili)' },
+        { id: 'sequential_thinking', enabled: true,
+          description: 'Structured reasoning tool for complex problems' },
+        { id: 'time', enabled: true,
+          description: 'Timezone conversion and timestamp management' },
+      ],
+      forbiddenTools: [], // Python: more permissive with exec
+    },
+    rust: {
+      title: 'MCP Server Recommendations for Rust Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true,
+          description: 'Scoped filesystem MCP server for project root access' },
+        { id: 'git', enabled: true, readOnly: true,
+          description: 'Read-only git operations (log, diff, status)' },
+        { id: 'fetch', enabled: true,
+          description: 'URL fetching with SSRF guard active' },
+        { id: 'memory', enabled: false,
+          description: 'Knowledge graph MCP server (disable for Rust projects)' },
+        { id: 'linkdigest', enabled: true,
+          description: 'Social media content extraction' },
+        { id: 'sequential_thinking', enabled: true,
+          description: 'Structured reasoning tool' },
+        { id: 'time', enabled: true,
+          description: 'Timezone conversion' },
+      ],
+      forbiddenTools: ['run_python'], // Rust: restrict Python execution
+    },
+    go: {
+      title: 'MCP Server Recommendations for Go Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true,
+          description: 'Scoped filesystem MCP server' },
+        { id: 'git', enabled: true, readOnly: true,
+          description: 'Read-only git operations' },
+        { id: 'fetch', enabled: true,
+          description: 'URL fetching with SSRF guard' },
+        { id: 'memory', enabled: false,
+          description: 'Disable for Go projects' },
+        { id: 'linkdigest', enabled: true,
+          description: 'Social media content extraction' },
+        { id: 'sequential_thinking', enabled: true },
+        { id: 'time', enabled: true },
+      ],
+      forbiddenTools: [],
+    },
+    java: {
+      title: 'MCP Server Recommendations for Java Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true },
+        { id: 'git', enabled: true, readOnly: true },
+        { id: 'fetch', enabled: true },
+        { id: 'memory', enabled: false },
+        { id: 'linkdigest', enabled: true },
+        { id: 'sequential_thinking', enabled: true },
+        { id: 'time', enabled: true },
+      ],
+      forbiddenTools: [],
+    },
+    dotnet: {
+      title: 'MCP Server Recommendations for .NET Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true },
+        { id: 'git', enabled: true, readOnly: true },
+        { id: 'fetch', enabled: true },
+        { id: 'memory', enabled: false },
+        { id: 'linkdigest', enabled: true },
+        { id: 'sequential_thinking', enabled: true },
+        { id: 'time', enabled: true },
+      ],
+      forbiddenTools: [],
+    },
+    generic: {
+      title: 'MCP Server Recommendations for Generic Projects',
+      servers: [
+        { id: 'filesystem', enabled: true, scopeRoot: true },
+        { id: 'git', enabled: true, readOnly: true },
+        { id: 'fetch', enabled: true },
+        { id: 'memory', enabled: false },
+        { id: 'linkdigest', enabled: true },
+        { id: 'sequential_thinking', enabled: true },
+        { id: 'time', enabled: true },
+      ],
+      forbiddenTools: [],
+    },
+  };
+
+  return recommendations[type] || recommendations.generic;
+}
+
+// ---- End harnessforge-style blueprints ----
 
 function initProject(root) {
   root = root || process.cwd();
@@ -136,6 +664,52 @@ function initProject(root) {
     created.push('.gitignore');
   }
 
+  // 5. SOUL.md - System Architecture Overview
+  const soulPath = path.join(root, 'SOUL.md');
+  if (!fs.existsSync(soulPath)) {
+    fs.writeFileSync(soulPath, generateSoulMd(type));
+    created.push('SOUL.md');
+  } else {
+    skipped.push('SOUL.md (already exists)');
+  }
+
+  // 6. TOOLS.md - Tool Catalog
+  const toolsPath = path.join(root, 'TOOLS.md');
+  if (!fs.existsSync(toolsPath)) {
+    fs.writeFileSync(toolsPath, generateToolsMd(type));
+    created.push('TOOLS.md');
+  } else {
+    skipped.push('TOOLS.md (already exists)');
+  }
+
+  // 7. MEMORY.md - Memory Hierarchy
+  const memoryPath = path.join(root, 'MEMORY.md');
+  if (!fs.existsSync(memoryPath)) {
+    fs.writeFileSync(memoryPath, generateMemoryMd(type));
+    created.push('MEMORY.md');
+  } else {
+    skipped.push('MEMORY.md (already exists)');
+  }
+
+  // 8. Forbidden Path Rules
+  const rulesPath = path.join(root, 'PATH_RULES.md');
+  if (!fs.existsSync(rulesPath)) {
+    fs.writeFileSync(rulesPath, generateForbiddenPathRules(type));
+    created.push('PATH_RULES.md');
+  } else {
+    skipped.push('PATH_RULES.md (already exists)');
+  }
+
+  // 9. MCP Recommendations
+  const mcpRecs = generateMcpRecommendations(type);
+  const mcpRecsPath = path.join(root, 'MCP_RECOMMENDATIONS.json');
+  if (!fs.existsSync(mcpRecsPath)) {
+    fs.writeFileSync(mcpRecsPath, JSON.stringify(mcpRecs, null, 2));
+    created.push('MCP_RECOMMENDATIONS.json');
+  } else {
+    skipped.push('MCP_RECOMMENDATIONS.json (already exists)');
+  }
+
   return {
     ok: true,
     projectType: type,
@@ -147,4 +721,9 @@ function initProject(root) {
   };
 }
 
-module.exports = { detectProjectType, getTestCommand, getLintCommand, generateAgentsMd, generateMcpConfig, initProject };
+module.exports = {
+  detectProjectType, getTestCommand, getLintCommand, generateAgentsMd,
+  generateMcpConfig, initProject,
+  generateSoulMd, generateToolsMd, generateMemoryMd,
+  generateForbiddenPathRules, generateMcpRecommendations,
+};

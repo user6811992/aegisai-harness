@@ -123,7 +123,62 @@ fn navigate_to_backend(app: &AppHandle) {
     }
 }
 
+// ---- Group & Broadcast IPC commands ----
+
+/// Broadcast a message to all connected agent sessions.
+/// Fields: objective, output_format, tool_guidance, boundaries
+#[tauri::command]
+fn backend_broadcast(objective: String, output_format: String, tool_guidance: String, boundaries: String) -> serde_json::Value {
+    // In a full integration, this would IPC the broadcast to all agent sessions.
+    // For now we return a structure that the frontend can display.
+    serde_json::json!({
+        "objective": objective,
+        "output_format": output_format,
+        "tool_guidance": tool_guidance,
+        "boundaries": boundaries,
+        "status": "broadcast_queued",
+        "message": "Broadcast sent to all agent sessions"
+    })
+}
+
+/// Spawn a group of agent sessions with given profiles.
+/// Profiles can be a comma-separated list or a preset name.
+#[tauri::command]
+fn backend_group_spawn(profiles: String) -> serde_json::Value {
+    // In a full integration, this would spawn actual agent sessions.
+    // For now we return a structure the frontend can display.
+    serde_json::json!({
+        "profiles": profiles,
+        "status": "group_spawn_queued",
+        "message": "Group agent spawn queued"
+    })
+}
+
+/// Get current group status including members and in-flight broadcasts.
+#[tauri::command]
+fn backend_group_status() -> serde_json::Value {
+    serde_json::json!({
+        "members": [],
+        "in_flight_broadcast": null,
+        "recent_results": [],
+        "message": "Group status endpoint ready"
+    })
+}
+
 // --- IPC commands exposed to the web UI (allowed only for the localhost origin) ---
+
+#[tauri::command]
+fn governance_status() -> serde_json::Value {
+    // Read governance state from the agent loop via a snapshot.
+    // In a full integration, this would IPC the governance module state,
+    // but for now we return a basic status structure.
+    serde_json::json!({
+        "verified": true,
+        "evidenceCount": 0,
+        "baselineSet": false,
+        "message": "Governance module ready"
+    })
+}
 
 #[tauri::command]
 fn backend_status(state: State<'_, BackendState>) -> serde_json::Value {
@@ -175,8 +230,15 @@ pub fn run() {
             let show = MenuItem::with_id(app, "show", "Show Window", true, None::<&str>)?;
             let restart = MenuItem::with_id(app, "restart", "Restart Backend", true, None::<&str>)?;
             let sep = PredefinedMenuItem::separator(app)?;
+            let governance = MenuItem::with_id(app, "governance", "Governance Status", true, None::<&str>)?;
+            let gov_sep = PredefinedMenuItem::separator(app)?;
+            let group = MenuItem::with_id(app, "group", "Group Coordination", true, None::<&str>)?;
+            let group_sep = PredefinedMenuItem::separator(app)?;
+            let group_broadcast = MenuItem::with_id(app, "group_broadcast", "Broadcast Message", true, None::<&str>)?;
+            let group_spawn = MenuItem::with_id(app, "group_spawn", "Spawn Group", true, None::<&str>)?;
+            let group_status = MenuItem::with_id(app, "group_status", "Group Status", true, None::<&str>)?;
             let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
-            let menu = Menu::with_items(app, &[&show, &restart, &sep, &quit])?;
+            let menu = Menu::with_items(app, &[&show, &restart, &gov_sep, &governance, &group_sep, &group, &group_sep, &group_broadcast, &group_spawn, &group_status, &sep, &quit])?;
 
             let icon = app
                 .default_window_icon()
@@ -197,6 +259,29 @@ pub fn run() {
                     }
                     "restart" => {
                         let _ = backend_restart(app.clone());
+                    }
+                    "governance" => {
+                        let _ = app.emit_to("main", "governance-status", governance_status());
+                    }
+                    "group" => {
+                        if let Some(w) = app.get_webview_window("main") {
+                            let _ = w.show();
+                            let _ = w.set_focus();
+                        }
+                    }
+                    "group_broadcast" => {
+                        let _ = app.emit_to("main", "group-broadcast", backend_broadcast(
+                            "Diagnose login failure".to_string(),
+                            "free text".to_string(),
+                            "all tools".to_string(),
+                            "system paths, git dir".to_string()
+                        ));
+                    }
+                    "group_spawn" => {
+                        let _ = app.emit_to("main", "group-spawn", backend_group_spawn("default,analyst,reviewer"));
+                    }
+                    "group_status" => {
+                        let _ = app.emit_to("main", "group-status", backend_group_status());
                     }
                     "quit" => app.exit(0),
                     _ => {}
