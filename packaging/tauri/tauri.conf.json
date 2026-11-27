@@ -1,28 +1,59 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "AegisAi Harness",
-  "version": "1.0.16",
+  "version": "1.0.17",
   "identifier": "com.aegisai.harness",
   "build": {
     "frontendDist": "../../public",
+    "devUrl": "http://127.0.0.1:8080",
     "beforeDevCommand": "node ../../src/index.js --web",
     "beforeBuildCommand": ""
   },
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "AegisAi Harness",
-        "width": 1024,
-        "height": 768
+        "url": "http://127.0.0.1:8080",
+        "width": 1280,
+        "height": 820,
+        "minWidth": 900,
+        "minHeight": 600,
+        "center": true,
+        "resizable": true,
+        "visible": false
       }
     ],
     "security": {
-      "csp": null
-    }
+      "csp": null,
+      "capabilities": ["main-capability"]
+    },
+    "withGlobalTauri": true
   },
   "bundle": {
     "active": true,
-    "targets": "all",
-    "icon": ["../../public/icon-192.png", "../../public/icon-512.png"]
+    "targets": ["msi", "nsis"],
+    "publisher": "AegisAi",
+    "copyright": "Copyright (c) 2026 AegisAi",
+    "icon": [
+      "icons/icon.ico",
+      "icons/icon-192.png",
+      "icons/icon-512.png"
+    ],
+    "resources": [
+      "../../src",
+      "../../public",
+      "../../scripts",
+      "../../package.json",
+      "../../README.md",
+      "../../LICENSE",
+      "../../THIRD_PARTY_NOTICES.md"
+    ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "artifactName": "AegisAi-Harness-Tauri-${version}-Setup.exe"
+      }
+    }
   }
 }

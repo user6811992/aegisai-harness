@@ -1,4 +1,4 @@
 // src/version.js — single runtime source for the version string.
 // Kept separate from package.json so bundled/npm-installed copies behave the same.
-const VERSION = '1.0.16';
+const VERSION = '1.0.17';
 module.exports = { VERSION, version: VERSION };

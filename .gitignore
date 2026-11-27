@@ -12,3 +12,6 @@ coverage/
 # Test output artifacts (UTF-16 logs from local runs)
 test*.txt
 testrun*.txt
+# Tauri build artifacts
+packaging/tauri/target/
+packaging/tauri/gen/

@@ -43,8 +43,35 @@ jobs:
             dist/*.exe
             dist/*.sha256
 
+  tauri:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: packaging/tauri -> target
+      - name: Install Tauri CLI
+        run: cargo install tauri-cli --version "^2" --locked
+      - name: Build Tauri Windows bundles
+        working-directory: packaging/tauri
+        run: cargo tauri build
+      - name: Upload Tauri bundles
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri
+          path: |
+            packaging/tauri/target/release/bundle/msi/*.msi
+            packaging/tauri/target/release/bundle/nsis/*.exe
+          if-no-files-found: warn
+
   release:
-    needs: build
+    needs: [build, tauri]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -56,10 +83,14 @@ jobs:
         with:
           name: installer
           path: dist/
+      - uses: actions/download-artifact@v4
+        with:
+          name: tauri
+          path: dist/tauri/
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ inputs.tag || github.ref_name }}
-          files: dist/*
+          files: dist/**/*
           generate_release_notes: true
           draft: false

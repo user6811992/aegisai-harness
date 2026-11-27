@@ -2,6 +2,13 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.17] - 2026-11-27
+
+### Added
+- **Native Windows desktop shell (Tauri v2)**: `packaging/tauri/` now builds real MSI/NSIS installers. The Rust shell manages the Node backend (start/stop/restart), provides a system tray (show, restart backend, quit), and exposes IPC commands (`backend_status`, `backend_start`, `backend_stop`, `backend_restart`) to the localhost-origin WebView.
+- Bundled harness resources (`src`, `public`, `scripts`, docs, LICENSE) into the Tauri installers; added Windows icons (`.ico`), capability permissions, and a Tauri README.
+- Release workflow now builds Tauri bundles on `windows-latest` and attaches them to the GitHub release.
+
 ## [1.0.16] - 2026-11-26
 
 ### Security

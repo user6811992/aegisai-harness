@@ -10,7 +10,7 @@ A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. 85 milestones, 307 modules,
 359 tests, CI green.
 
-> Status: v1.0.16 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.17 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -103,13 +103,20 @@ node src/index.js --json "your prompt here"
 
 # Or use the cross-platform binary script
 bash packaging/build-binary.sh
+
+# Native Windows desktop app (MSI / NSIS, requires Rust + Tauri CLI)
+cd packaging/tauri && cargo tauri build
 ```
+
+The Tauri desktop shell wraps the web UI in a WebView2 window and manages the
+Node backend automatically (system tray with Show / Restart backend / Quit).
+See [packaging/tauri/README.md](./packaging/tauri/README.md) for details.
 
 CI enforces `node scripts/check-version-consistency.js` so `package.json`, the installer filename, docs, and release tag always agree. Release assets include a `.sha256` checksum file — verify it before running an installer:
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.16-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.17-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
