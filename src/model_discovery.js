@@ -154,9 +154,21 @@ function scan(roots, maxFiles, backend) {
   return output;
 }
 
+const hf = require('./hf_download');
+
+// Backward-compatible: returns the resolved URL synchronously (the REPL and
+// older tests rely on `.url`). Use `hfDownload` for the real streaming pull.
 function huggingFacePull(repo, filename) {
-  const url = 'https://huggingface.co/' + repo + '/resolve/main/' + (filename || '');
-  return { ok: true, url, note: 'streaming download not implemented; open URL or use huggingface-cli' };
+  try {
+    const url = hf.resolveUrl(repo, filename, 'main');
+    return { ok: true, url, note: 'call hfDownload(repo, filename) to stream to local cache' };
+  } catch (e) {
+    return { ok: false, error: String((e && e.message) || e) };
+  }
 }
 
-module.exports = { ROOTS: [], getDefaultRoots, scan, huggingFacePull };
+// Real streaming download with progress + optional checksum (network, opt-in).
+function hfDownload(repo, filename, opts) { return hf.download(repo, filename, opts); }
+function hfManifest(repo, opts) { return hf.manifest(repo, opts); }
+
+module.exports = { ROOTS: [], getDefaultRoots, scan, huggingFacePull, hfDownload, hfManifest };

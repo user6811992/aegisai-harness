@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.30] - 2026-11-27
+
+### Added (Phase 1 — HF model downloader)
+- **Hugging Face downloader** (`src/hf_download.js`): clean-room implementation of thad0ctor/llama-server-launcher's HF downloader idea. Streams model files to local cache with progress callbacks, optional SHA-256 verification, redirect following, element-validation for repo ids/filenames (no traversal), path-root containment, and `.part` temp files with cleanup on failure. Respects `AEGISAI_OFFLINE` (all network tools disabled). Repo manifest listing via HF API.
+- `model_discovery.huggingFacePull()` upgraded from a stub to a validated URL resolver (backward-compatible synchronous `.url`); new `hfDownload` / `hfManifest` exports for real streaming operations.
+- 3 new MCP tools: `hf_model_url`, `hf_model_manifest`, `hf_model_download` (network tools only registered when not offline).
+- New `tests/hf_download.test.js` with 11 tests.
+
+### Verification
+- 487 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.29] - 2026-11-27
 
 ### Added (Phase 1 — dataset tools)

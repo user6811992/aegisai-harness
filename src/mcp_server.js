@@ -29,7 +29,10 @@ function toolsList() {
   out.push(...require('./optional_modules').tools());
   out.push(...require('./verification_cert').tools());
   out.push(...require('./dataset').tools());
-  if (process.env.AEGISAI_OFFLINE !== 'true') out.push(...require('./http_advanced').tools());
+  if (process.env.AEGISAI_OFFLINE !== 'true') {
+    out.push(...require('./http_advanced').tools());
+    out.push(...require('./hf_download').tools());
+  }
   return out;
 }
 
@@ -49,6 +52,11 @@ async function callTool(name, args) {
   if (name.startsWith('dataset_')) {
     const r = await require('./dataset').dispatch(name, args);
     return { content: [{ type: 'text', text: JSON.stringify(r) }] };
+  }
+  if (name.startsWith('hf_model_')) {
+    if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
+    const r = await require('./hf_download').dispatch(name, args);
+    return { content: [{ type: 'text', text: JSON.stringify(r) }], isError: r.ok === false };
   }
   if (name === 'optional_modules_status') return { content: [{ type: 'text', text: JSON.stringify(require('./optional_modules').status()) }] };
   if (name === 'performance_dashboard') return { content: [{ type: 'text', text: JSON.stringify(require('./performance_dashboard').view()) }] };
