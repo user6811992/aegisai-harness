@@ -2,6 +2,14 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.22] - 2026-11-27
+
+### Fixed
+- Tauri release build: restored the pinned `dyn-clone = 1.0.20` dependency in `packaging/tauri/Cargo.lock` so the Windows MSI/NSIS bundles build in CI again.
+
+### Verification
+- 399 tests pass, 0 failures, 1 skipped. Version consistency ok. `cargo check --locked` clean.
+
 ## [1.0.21] - 2026-11-27
 
 ### Documentation & Licensing
