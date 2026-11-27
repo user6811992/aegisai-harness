@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.21] - 2026-11-27
+
+### Documentation & Licensing
+- Refreshed all user-facing docs for v1.0.21: README, ROADMAP, CONTRIBUTING, llms.txt, docs landing page, wiki, and troubleshooting guide now reflect 399 tests and the latest feature set.
+- README gains an `aegisai --init` scaffolding walkthrough and updated feature list (governance, project blueprints, native desktop shell, group coordination).
+- CHANGELOG restructured: v1.0.20 and v1.0.19 entries now accurately document their respective releases.
+- `THIRD_PARTY_NOTICES.md` expanded with attribution for the bundled Aegis method pack (vendor/aegis, MIT) and adapted patterns from harnessforge (project blueprints), apiad/aegis (group/broadcast IPC), and linkdigest-mcp (MCP preset).
+
+### Verification
+- 399 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.20] - 2026-11-27
 
 ### Added
