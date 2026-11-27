@@ -107,6 +107,7 @@ async function runAgent(opts) {
     debuggerInstance = null,
     lenientTools = false,
     governance = false,
+    toolGuardrails = false,
   } = opts;
 
   // project root allowlist
@@ -361,10 +362,22 @@ async function runAgent(opts) {
     // parallel tool execution
     const results = await Promise.all(toolCalls.map(async (tc) => {
       const fn = tc.function || tc;
-      const name = fn.name;
+      let name = fn.name;
       let args = fn.arguments;
       if (typeof args === 'string') { try { args = JSON.parse(args); } catch (e) { args = {}; } }
       args = args || {};
+      // Reliability guardrails: rescue malformed calls / nudge retries (opt-in).
+      let guardResult = null;
+      if (toolGuardrails) {
+        const guards = typeof toolGuardrails === 'object' ? toolGuardrails : {};
+        guardResult = require('../tool_guardrails').guardToolCall({ id: tc.id, function: { name, arguments: args } }, guards);
+        if (guardResult.rescued) {
+          try { onEvent({ type: 'tool_guard', rescued: true, notes: guardResult.notes, name }); } catch (e) {}
+          name = guardResult.name;
+          args = guardResult.args;
+        }
+        if (!guardResult.ok) return { name, args, guardBlocked: guardResult.issues.join('; ') };
+      }
 
       // governance charter
       if (charterObj) {
@@ -575,6 +588,13 @@ async function runAgent(opts) {
         msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
+      if (r.guardBlocked) {
+        const preview = 'BLOCKED (tool guard): ' + r.guardBlocked;
+        toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
+        onEvent({ type: 'tool_guard', blocked: true, issues: r.guardBlocked });
+        msgs.push({ role: 'tool', content: preview, name: r.name, tool_call_id: r.toolCallId });
+        continue;
+      }
       if (r.actionBlocked) {
         const preview = r.actionBlocked;
         toolLog.push({ name: r.name, args: r.args, resultPreview: preview });
@@ -639,6 +659,13 @@ async function runAgent(opts) {
       toolLog.push({ name: r.name, args: r.args, resultPreview: previewStr, cached: !!r.cached, ok: r.result ? r.result.ok !== false : true });
       onEvent({ type: 'tool_result', name: r.name, preview: previewStr });
       msgs.push({ role: 'tool', content: previewStr, name: r.name, tool_call_id: r.toolCallId });
+      // Reliability guardrails: add a corrective nudge after a failed tool result.
+      if (toolGuardrails && r.result && r.result.ok === false) {
+        try {
+          const nudge = require('../tool_guardrails').nudge(r.name, r.args, r.result, typeof toolGuardrails === 'object' ? toolGuardrails : {});
+          if (nudge) { msgs.push(nudge); onEvent({ type: 'tool_guard_nudge', name: r.name, issues: nudge.issues }); }
+        } catch (e) {}
+      }
     }
     // doom-loop detection
     if (detector) {

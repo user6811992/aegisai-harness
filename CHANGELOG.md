@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.32] - 2026-11-27
+
+### Added (Phase 1 — tool-call reliability guardrails)
+- **Tool-call guardrails** (`src/tool_guardrails.js`): clean-room adaptation of forge ideas (MIT). Rescue parsing repairs malformed tool calls (code fences, wrapped JSON, truncated JSON, key=value fallback); response validation detects empty/placeholder output; retry nudges inject corrective messages after failed tool results; optional workflow constraints (`required_steps`, `prerequisites`). `guardToolCall` enforces allowed/denied tool lists.
+- Integrated into `runAgent` via opt-in `toolGuardrails` option: rescued calls emit `tool_guard` events, blocked calls are handled safely, failed results produce `tool_guard_nudge` events.
+- 3 new MCP tools: `tool_guard_rescue`, `tool_guard_validate`, `tool_guard_workflow`.
+- New `tests/tool_guardrails.test.js` with 16 tests.
+
+### Verification
+- 503 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.31] - 2026-11-27
 
 ### Documentation
