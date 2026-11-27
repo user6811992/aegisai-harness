@@ -32,7 +32,10 @@ function issue(runId, run, opts) {
     claims: run && run.claims || [],
   };
   const certificateId = 'cert_' + Date.now().toString(36) + '_' + crypto.randomBytes(3).toString('hex');
-  const cert = Object.assign({ id: certificateId }, payload, { contentHash: hash(payload) });
+  const cert = Object.assign({ id: certificateId }, payload);
+  // Hash the certificate as it will be saved (id included) so verify() can
+  // reproduce the same hash by excluding only the contentHash field itself.
+  cert.contentHash = hash(cert);
   fs.mkdirSync(CERT_DIR(), { recursive: true });
   const p = path.join(CERT_DIR(), certificateId + '.json');
   fs.writeFileSync(p, JSON.stringify(cert, null, 2));
@@ -46,7 +49,10 @@ function verify(certOrPath) {
     catch (e) { return { ok: false, error: 'cannot read certificate: ' + String(e.message || e) }; }
   }
   if (!cert || cert.type !== 'aegisai-verification-certificate') return { ok: false, error: 'not an AegisAi certificate' };
-  const expected = hash(cert);
+  // Exclude only the self-referential hash field when recomputing.
+  const unsigned = Object.assign({}, cert);
+  delete unsigned.contentHash;
+  const expected = hash(unsigned);
   return {
     ok: cert.contentHash === expected,
     id: cert.id,

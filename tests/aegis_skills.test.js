@@ -63,7 +63,11 @@ test('default_skills: installAll writes Aegis skills', () => {
     const minCount = aegisSkills.aegisAvailable() ? 20 : 5;
     assert.ok(count >= minCount, `Expected ${minCount}+ skills installed, got ${count}`);
     const files = fs.readdirSync(path.join(DATA_DIR, 'skills'));
-    assert.ok(files.some(f => f.includes('verification-before-completion')));
+    // Source installs may not initialize git submodules; only assert the
+    // Aegis skill file exists when the submodule is actually available.
+    if (aegisSkills.aegisAvailable()) {
+      assert.ok(files.some(f => f.includes('verification-before-completion')));
+    }
   } finally {
     process.env.AEGIS_DATA_DIR = origDataDir;
     try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) {}

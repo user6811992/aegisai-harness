@@ -2,6 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.28] - 2026-11-27
+
+### Fixed (issues #190, #191)
+- **#190** — freshly issued verification certificates failed their own content-hash check. `issue()` now hashes the certificate as saved (id included); `verify()` excludes only the self-referential `contentHash` field when recomputing. Added regression tests for self-verification and tamper detection.
+- **#191** — `npm test` failed on source installs without git submodules initialized. The Aegis-skill file assertion is now conditional on `aegisSkills.aegisAvailable()`. README quick start now documents `git submodule update --init --recursive` for source installs.
+- New `tests/v1028_fixes.test.js` with 3 regression tests.
+
+### Verification
+- 448 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.27] - 2026-11-27
 
 ### Documentation
