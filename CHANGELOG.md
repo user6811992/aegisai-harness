@@ -2,10 +2,16 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.15] - 2026-11-26
+
+### Fixed
+- Removed stray UTF-16 test output artifacts (test_final.txt, test_run.txt, testrun*.txt) from git tracking; added ignore rules so local test logs are never committed again.
+- Cleaned literal mojibake text from the v1.0.14 CHANGELOG entry.
+
 ## [1.0.14] - 2026-11-26
 
 ### Fixed
-- Corrected mojibake/encoding corruption in ROADMAP.md and README.md (dashes rendered as "â€”"/"G??").
+- Corrected mojibake/encoding corruption in ROADMAP.md and README.md (em dashes rendered as corrupted character sequences).
 - Updated stale documentation: README test count (257 -> 358), shipped-version range, and "Remaining / blocked" section now reflects all items complete.
 
 ## [1.0.13] - 2026-11-26
