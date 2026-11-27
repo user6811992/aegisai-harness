@@ -122,4 +122,18 @@ opt-in where network or heavy toolchains are involved.
 | ix-infrastructure/Ix | Apache-2.0 | Persistent code graph / bounded structural retrieval → roadmap (planned) |
 | ix-infrastructure/Peer2Peer | Apache-2.0 | E2E-encrypted agent P2P coordination → roadmap (planned) |
 
+## Phase 2 additions and research scan
+| Source project | License | What was adapted |
+|---|---|---|
+| raketenkater/ggrun | MIT | VRAM fit + launch dry-run → `src/model_fit.js` |
+| ix-infrastructure/Ix | Apache-2.0 | Code system graph → `src/code_graph.js` |
+| Martossien/dashboard-llm | MIT | Prometheus metrics exposition → `src/prometheus.js` |
+| aicodeking/PandaOrchestrator | MIT | Cheapest-model router + escalation ladder → `src/escalation_router.js` |
+| hardbyte/qabot | MIT | Offline NL→SQL → `src/data_query.js` |
+| VectifyAI/PageIndex + ConDB | Apache-2.0 | Vectorless reasoning RAG → roadmap (planned) |
+| VectifyAI/ChatIndex | Apache-2.0 | Tree-index for long conversations → roadmap (planned) |
+| tt-a1i/archify | MIT | Interactive diagrams → roadmap (planned) |
+| HarnessRouter/harnessrouter | Apache-2.0 | Unified Harness Protocol → roadmap (planned) |
+| tt-a1i/hive | BSL-1.1 | Local multi-agent PTY teams → roadmap (planned) |
+
 All third-party components retain their respective licenses. See each project for full license text.

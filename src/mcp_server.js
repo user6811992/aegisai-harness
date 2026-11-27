@@ -46,6 +46,11 @@ function toolsList() {
   out.push(...require('./memory_bridge').tools());
   out.push(...require('./model_recipes').tools());
   out.push(...require('./reliability_skills').tools());
+  out.push(...require('./model_fit').tools());
+  out.push(...require('./code_graph').tools());
+  out.push(...require('./prometheus').tools());
+  out.push(...require('./data_query').tools());
+  out.push(...require('./escalation_router').tools());
   if (process.env.AEGISAI_OFFLINE !== 'true') {
     out.push(...require('./http_advanced').tools());
     out.push(...require('./hf_download').tools());
@@ -93,6 +98,11 @@ async function callTool(name, args) {
   if (name.startsWith('memory_bridge')) return { content: [{ type: 'text', text: JSON.stringify(require('./memory_bridge').dispatch(name, args)) }] };
   if (name.startsWith('recipe_')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_recipes').dispatch(name, args)) }] };
   if (name.startsWith('reliability_skills')) return { content: [{ type: 'text', text: JSON.stringify(require('./reliability_skills').dispatch(name, args)) }] };
+  if (name.startsWith('model_fit')) return { content: [{ type: 'text', text: JSON.stringify(require('./model_fit').dispatch(name, args)) }] };
+  if (name.startsWith('code_graph')) return { content: [{ type: 'text', text: JSON.stringify(require('./code_graph').dispatch(name, args)) }] };
+  if (name.startsWith('prometheus')) return { content: [{ type: 'text', text: JSON.stringify(require('./prometheus').dispatch(name, args)) }] };
+  if (name.startsWith('data_query')) return { content: [{ type: 'text', text: JSON.stringify(require('./data_query').dispatch(name, args)) }] };
+  if (name.startsWith('model_route')) return { content: [{ type: 'text', text: JSON.stringify(require('./escalation_router').dispatch(name, args)) }] };
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);

@@ -2,6 +2,23 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.47] - 2026-11-27
+
+### Added (Phase 2 — core inference, first batch)
+- **VRAM fit + launch dry-run** (`src/model_fit.js`) — GGUF metadata, multi-GPU/RAM placement plan, launch command (2 MCP tools)
+- **Ix-style code graph** (`src/code_graph.js`) — persistent symbols/imports graph, map/explain/trace/impact (4 MCP tools)
+- **Prometheus metrics** (`src/prometheus.js`) — standard /metrics text exposition (1 MCP tool)
+- **Offline NL→SQL** (`src/data_query.js`) — natural-language to SQL for local data, optional local execution (1 MCP tool)
+- **Cheapest-model router** (`src/escalation_router.js`) — P(success)/cost/latency modes + escalation ladder (1 MCP tool)
+- New `tests/phase2.test.js` with 14 tests
+
+### Documentation
+- ROADMAP: Phase 2 now 7/25 done; added 5 research items (PageIndex/ConDB vectorless RAG, ChatIndex tree-index, Archify diagrams, HarnessRouter UHP, Hive PTY teams). Re-evaluation: 27/96 implemented.
+- `THIRD_PARTY_NOTICES.md`: Phase 2 additions and research scan matrix.
+
+### Verification
+- 621 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.46] - 2026-11-27
 
 ### Added (Phase 1 complete — 18/18)
