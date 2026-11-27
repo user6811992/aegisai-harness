@@ -7,9 +7,11 @@ OUT="$ROOT/dist"
 STAGE="$OUT/aegisai-harness-$VERSION"
 mkdir -p "$OUT"
 rm -rf "$STAGE"
+rm -f "$OUT/aegisai-harness-$VERSION.dmg"
 mkdir -p "$STAGE"
 cp -R "$ROOT/src" "$STAGE/"
 cp -R "$ROOT/public" "$STAGE/"
+cp -R "$ROOT/scripts" "$STAGE/"
 cp "$ROOT/package.json" "$ROOT/README.md" "$STAGE/"
 cat > "$STAGE/aegisai-harness.command" <<'EOF'
 #!/bin/bash

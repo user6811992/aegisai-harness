@@ -24,7 +24,10 @@ let brokerState = {
 // Try to load persisted state from disk
 try {
   const persisted = JSON.parse(fs.readFileSync(LOCK_FILE, 'utf8'));
-  if (persisted) brokerState.locks = persisted.locks || {};
+  if (persisted) {
+    brokerState.locks = persisted.locks || {};
+    brokerState.leases = persisted.leases || {};
+  }
 } catch (e) {
   // Best-effort; start fresh if persist file missing
 }
@@ -69,7 +72,8 @@ function releaseLock(resourceId, owner) {
 
 // Check if a resource is locked
 function isLocked(resourceId) {
-  return !!brokerState.locks[resourceId];
+  const lock = brokerState.locks[resourceId];
+  return !!lock && lock.expiresAt > Date.now();
 }
 
 // === Lease-based access (time-bounded) ===

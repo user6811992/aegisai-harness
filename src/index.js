@@ -896,7 +896,10 @@ async function main() {
         if (s.title !== undefined && typeof s.title !== 'string') { sendJson(res, 400, { error: 'title must be a string' }); return; }
         if (s.title !== undefined && s.title.length > 200) { sendJson(res, 400, { error: 'title too long' }); return; }
         if (s.tags !== undefined && (!Array.isArray(s.tags) || !s.tags.every((t) => typeof t === 'string'))) { sendJson(res, 400, { error: 'tags must be an array of strings' }); return; }
-        if (s.tags !== undefined) { if (s.tags.length > 100) { sendJson(res, 400, { error: 'too many tags' }); return; } s.tags.forEach((t, i) => { if (t.length > 200) { sendJson(res, 400, { error: 'tag ' + i + ' too long' }); return; } }); }
+        if (s.tags !== undefined) {
+          if (s.tags.length > 100) { sendJson(res, 400, { error: 'too many tags' }); return; }
+          if (s.tags.some((t) => t.length > 200)) { sendJson(res, 400, { error: 'tag too long' }); return; }
+        }
         if (!Array.isArray(s.messages)) { sendJson(res, 400, { error: 'messages must be an array' }); return; }
         if (s.messages.length > 500) { sendJson(res, 400, { error: 'too many messages' }); return; }
         for (const m of s.messages) {
@@ -1194,7 +1197,7 @@ async function main() {
           const tags = parsed.tags || [];
           if (!Array.isArray(tags)) { sendJson(res, 400, { error: 'tags must be an array' }); return; }
           if (tags.length > 100) { sendJson(res, 400, { error: 'too many tags' }); return; }
-          tags.forEach((t, i) => { if (typeof t !== 'string' || t.length > 200) { sendJson(res, 400, { error: 'tag ' + i + ' invalid' }); return; } });
+          if (tags.some((t) => typeof t !== 'string' || t.length > 200)) { sendJson(res, 400, { error: 'invalid tag' }); return; }
           let ok = false;
           try { db.saveMemory({ text: parsed.text, tags }); ok = true; } catch (e) { sendJson(res, 500, { error: String(e.message || e) }); return; }
           sendJson(res, 200, { ok });
@@ -1490,6 +1493,7 @@ async function main() {
     let offline = OFFLINE;
     let approvalMode = process.env.AEGISAI_APPROVAL_MODE || null;
     let lastToolLog = [];
+    let replHistory = [];
     global.__dbg = new (require('./debugger').HarnessDebugger)();
     const runOne = async (prompt) => {
       const result = await runAgent({
@@ -1504,6 +1508,8 @@ async function main() {
         autoCommit: autoCommitFlag,
       });
       lastToolLog = result.toolLog || [];
+      replHistory.push({ role: 'user', content: prompt });
+      replHistory.push({ role: 'assistant', content: (result.final && result.final.final) || '' });
       process.stdout.write('\n');
       console.log('--- final ---');
       console.log(result.final.final);
@@ -1617,7 +1623,7 @@ async function main() {
       if (t === '/templates') { console.log(JSON.stringify(require('./conversation_templates').list().map((x) => x.id + ' — ' + x.name), null, 2)); rl.prompt(); return; }
       if (t.startsWith('/tpl-use ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const vars = {}; for (const kv of (p[1] || '').split(',')) { const i = kv.indexOf('='); if (i > 0) vars[kv.slice(0, i).trim()] = kv.slice(i + 1).trim(); } const r = require('./conversation_templates').render(p[0], vars); console.log(r ? r.rendered : 'template not found'); rl.prompt(); return; }
       if (t.startsWith('/ab ')) { const p = t.slice(4).trim().split('|').map((x) => x.trim()); const models2 = (p[0] || '').split(',').map((s) => s.trim()).filter(Boolean); const r = await require('./model_compare').abTest(p[2] || '', models2, { runs: parseInt(p[1] || '3', 10), projectRoot: root }); console.log(JSON.stringify({ best: r.best && r.best.model, arms: r.arms.map((a) => ({ model: a.model, passRate: a.passRate, meanDuration: a.meanDuration })), comparisons: r.comparisons }, null, 2)); rl.prompt(); return; }
-      if (t.startsWith('/export ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const r = require('./conversation_export').exportToFile(lastToolLog.length ? [] : [], { title: p[1] || 'export', model: process.env.AEGISAI_MODEL || 'llama3.2:3b' }, p[0] || 'markdown', p[2]); console.log(JSON.stringify(r)); rl.prompt(); return; }
+      if (t.startsWith('/export ')) { const p = t.slice(8).trim().split('|').map((x) => x.trim()); const r = require('./conversation_export').exportToFile(replHistory.map((m) => ({ role: m.role, content: m.content })), { title: p[1] || 'export', model: process.env.AEGISAI_MODEL || 'llama3.2:3b' }, p[0] || 'markdown', p[2]); console.log(JSON.stringify(r)); rl.prompt(); return; }
       if (t.startsWith('/compare ')) { const p = t.slice(9).trim().split('|').map((x) => x.trim()); const r = await require('./model_compare').compare(p[0] || '', p.slice(1).filter(Boolean), { projectRoot: root }); console.log(require('./model_compare').formatComparison(r).slice(0, 3000)); rl.prompt(); return; }
       if (t.startsWith('/probe-http ')) { const u = t.slice(12).trim(); const r = await require('./http_probe').probe(u, { headers: true }); console.log(JSON.stringify(r.results[0], null, 2)); rl.prompt(); return; }
       if (t.startsWith('/pentest-eval')) { const r = await require('./pentest_eval').run({}); console.log(JSON.stringify(r.summary, null, 2)); console.log(JSON.stringify(r.fixtures.map((f) => ({ id: f.id, s: f.score })), null, 2)); rl.prompt(); return; }

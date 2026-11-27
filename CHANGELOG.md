@@ -2,6 +2,39 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.16] - 2026-11-26
+
+### Security
+- Fixed PowerShell command injection in `src/native_adapters.js` `windowsRPA.click()` by passing selector data as base64-encoded JSON instead of interpolating raw strings.
+- Fixed SQL injection via column names in `src/backup.js` backup import by validating columns against `PRAGMA table_info`.
+- Added tenant/session identifier validation in `src/tenants.js` to prevent path traversal.
+- Fixed double-response bug on invalid tags in `src/index.js` (return inside forEach callback).
+- Switched Docker/Compose web binding to `0.0.0.0` inside the container so published ports are reachable; bound Ollama to loopback only.
+- Removed the GitHub PAT from the local git remote URL.
+
+### Fixed
+- Fixed `r is not defined` in `src/tenants.js` `checkQuota()` (all tenant tool-access checks previously threw).
+- Fixed non-streaming OpenAI-compatible backend responses being parsed as SSE (silently empty content in compaction, memory, critic, peer review).
+- Fixed `v052` test failure: `data` used before declaration in `src/agent/run.js`; also corrected token-count operator precedence.
+- Fixed denied tool results missing `tool_call_id`, which broke follow-up model turns after approval denial.
+- Fixed resource broker leases not being restored from disk; `isLocked()` now ignores expired locks.
+- Fixed persistent shell `exec()` returning partial output after a fixed 200ms; now uses a completion sentinel with timeout fallback.
+- Fixed REPL `/export` always exporting an empty conversation (dead code in `src/index.js`).
+- Fixed agent compaction dropping removed messages from the archive.
+- Fixed code sandbox temp-file collisions by using `mkdtempSync`; `isAvailable()` now reflects real runnable state.
+- Added missing `src/harness_generator.js`, `harness_spec_schema.yaml`, `harness_spec_template.yaml` referenced by the roadmap (generator also had missing `fs`/`path` requires).
+
+### Documentation & Packaging
+- Corrected mojibake and stale version/test-count data across README, ROADMAP, CHANGELOG, docs pages, and issue templates.
+- Balanced unmatched Markdown code fences in README, CHANGELOG, llms.txt, and CONTRIBUTING.
+- Added `THIRD_PARTY_NOTICES.md`; shipped LICENSE + notices + `scripts/` in Windows/Linux/macOS installers (first-run `npm install` was broken without `scripts/`).
+- Added Tauri `build.rs`, fixed Tauri versions/icons, added `.dockerignore`, Docker healthcheck and non-root user.
+- Hardened CI: env-var indirection in release workflow (script injection), unconditional tag/version checks in npm and Docker workflows, version checker now covers Tauri files and semver prereleases.
+
+### Verification
+- All 358 tests pass (357 pass, 1 skipped, 0 failures).
+- Version consistency check passes for v1.0.16.
+
 ## [1.0.15] - 2026-11-26
 
 ### Fixed
@@ -30,16 +63,6 @@ All notable changes to AegisAi Harness are documented here.
 
 ### Added
 - Tor/proxy support for web requests via AEGISAI_TOR_PROXY/TOR_PROXY (curl-backed, SOCKS/HTTP).
-- Persistent shell session module (src/persistent_shell.js) for stateful command execution.
-
-## [1.0.10] - 2026-11-26
-
-### Added
-- Persistent shell session module (src/persistent_shell.js) for stateful command execution.
-
-## [1.0.9] - 2026-11-26
-
-### Added
 - Persistent shell session module (src/persistent_shell.js) for stateful command execution.
 
 ## [1.0.8] - 2026-11-26
@@ -428,4 +451,3 @@ See ROADMAP.md and git history for per-version detail (v0.64–v0.85). Highlight
 
 ### Added
 - Initial harness scaffold: agent loop, tool registry, backends, storage, MCP client, compaction, hooks, tracing, eval, vault, backup, proxy, web UI
-```

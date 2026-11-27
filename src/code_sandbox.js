@@ -47,10 +47,11 @@ function run(code, lang, opts) {
 
   return new Promise((resolve) => {
     const startTime = Date.now();
-    const tmpFile = path.join(os.tmpdir(), 'sandbox-' + Date.now() + langConfig.ext);
+    const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'aegisai-sandbox-'));
+    const tmpFile = path.join(tmpDir, 'code' + langConfig.ext);
     fs.writeFileSync(tmpFile, code);
     let child;
-    let cleanup = () => { try { fs.unlinkSync(tmpFile); } catch (e) {} };
+    let cleanup = () => { try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (e) {} };
 
     if (runtime === 'docker' || runtime === 'podman') {
       const bin = runtime;
@@ -109,7 +110,9 @@ function run(code, lang, opts) {
 
 function isAvailable() {
   const rt = detectRuntime();
-  return { runtime: rt, available: true, languages: Object.keys(LANGUAGES) };
+  const allowLocal = process.env.AEGISAI_SANDBOX_ALLOW_LOCAL === 'true';
+  const available = rt !== 'local' || allowLocal;
+  return { runtime: rt, available, reason: available ? '' : 'set AEGISAI_SANDBOX_ALLOW_LOCAL=true to enable local execution', languages: Object.keys(LANGUAGES) };
 }
 
 module.exports = { run, detectRuntime, isAvailable, LANGUAGES };

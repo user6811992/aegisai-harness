@@ -23,12 +23,16 @@ function check() {
     if (m[1] !== version) issues.push(`${rel}: ${label} is ${m[1]}, expected ${version}`);
   };
 
-  expect('packaging/windows/installer.iss', /AppVersion=([\d.]+)/, 'AppVersion');
-  expect('packaging/windows/installer.iss', /OutputBaseFilename=AegisAi-Harness-([\d.]+)-Setup/, 'OutputBaseFilename');
-  expect('README.md', /Status: v([\d.]+)/, 'status version');
-  expect('llms.txt', /offline-first\. v([\d.]+)\./, 'catalog version');
-  expect('CHANGELOG.md', /^## \[([\d.]+)\]/m, 'latest changelog entry');
-  expect('ROADMAP.md', /Current version:\*\*\s*v([\d.]+)/, 'current version');
+  // Semver pattern including optional prerelease/build labels.
+  const SV = '([0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?)';
+  expect('packaging/windows/installer.iss', new RegExp('AppVersion=' + SV), 'AppVersion');
+  expect('packaging/windows/installer.iss', new RegExp('OutputBaseFilename=AegisAi-Harness-' + SV + '-Setup'), 'OutputBaseFilename');
+  expect('README.md', new RegExp('Status: v' + SV), 'status version');
+  expect('llms.txt', new RegExp('offline-first\\. v' + SV + '\\.'), 'catalog version');
+  expect('CHANGELOG.md', new RegExp('^## \\[' + SV + '\\]', 'm'), 'latest changelog entry');
+  expect('ROADMAP.md', new RegExp('Current version:\\*\\*\\s*v' + SV), 'current version');
+  expect('packaging/tauri/tauri.conf.json', new RegExp('"version": "' + SV + '"'), 'tauri version');
+  expect('packaging/tauri/Cargo.toml', new RegExp('version = "' + SV + '"'), 'tauri cargo version');
 
   const srcVersion = read('src/version.js');
   if (!srcVersion || !srcVersion.includes(`'${version}'`)) {

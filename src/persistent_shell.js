@@ -87,9 +87,10 @@ function start(sessionId) {
   // Clear any previous state for this session
   clearState(sessionId);
 
-  // If shell running for another session, kill it
+  // If shell running for another session, kill it and reset the shared buffer
   if (shell && currentSessionId !== sessionId) {
     try { shell.kill(); } catch (e) {}
+    buffer = '';
   }
 
   const cmd = process.platform === 'win32' ? 'cmd.exe' : 'bash';
@@ -112,18 +113,25 @@ function start(sessionId) {
 function exec(command, timeoutMs, sessionId) {
   sessionId = sessionId || 'default';
   const s = start(sessionId);
-  const before = buffer.length;
   buffer = '';
+  // Use a unique sentinel to detect real command completion instead of a
+  // fixed 200ms delay (which returned partial output for long-running commands).
+  const sentinel = '__AEGISAI_DONE_' + Math.random().toString(36).slice(2, 10) + '__';
   return new Promise((resolve) => {
-    const to = setTimeout(() => {
-      resolve({ ok: true, output: buffer, timedOut: true, sessionId });
-    }, timeoutMs || 5000);
-    s.stdin.write(String(command) + '\n');
-    // Give the shell time to produce output.
-    setTimeout(() => {
+    let settled = false;
+    const finish = (timedOut) => {
+      if (settled) return;
+      settled = true;
+      clearInterval(poll);
       clearTimeout(to);
-      resolve({ ok: true, output: buffer, sessionId });
-    }, 200);
+      const output = buffer.split(sentinel)[0];
+      resolve({ ok: true, output, timedOut, sessionId });
+    };
+    const to = setTimeout(() => finish(true), timeoutMs || 5000);
+    const poll = setInterval(() => {
+      if (buffer.includes(sentinel)) finish(false);
+    }, 20);
+    s.stdin.write(String(command) + '\necho ' + sentinel + '\n');
   });
 }
 

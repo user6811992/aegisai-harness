@@ -1,0 +1,48 @@
+# Harness Specification Schema (JSON-compatible structure)
+# See src/harness_generator.js for the generator that consumes these specs.
+
+metadata:
+  title: "string"           # Harness title
+  version: "string"         # Spec version
+  description: "string"     # Human-readable description
+
+agent:
+  name: "string"            # Agent name/identifier
+  description: "string"     # Human-readable description
+  model: "string"           # Primary model
+  temperature: 0.3          # Sampling temperature
+  maxTokens: 1000           # Max tokens per response
+  systemPrompt: "string"    # System prompt
+
+tools:                      # Array of tool definitions
+  - name: "string"          # Tool name
+    description: "string"   # Human-readable description
+    parameters:             # JSON Schema for parameters
+      type: "object"
+      properties: {}
+      required: []
+    returns:                # Expected return shape
+      type: "object"
+      properties: {}
+
+session:
+  maxHistory: 50            # Max conversation history entries
+  memoryEnabled: true       # Long-term memory enabled
+  memoryType: "sqlite"      # sqlite | graph | none
+  autoBrief: true           # Auto-generate session briefs
+  goalTracking: true        # Track session goals
+
+safety:
+  sandboxEnabled: true      # Enable sandboxing
+  maxSteps: 50              # Max agent steps
+  approvedTools: []         # Tool whitelist
+  deniedTools: []           # Tool blacklist
+  admissionGate: true       # Admission gate active
+  policyFile: "charter.md"  # Policy/charter file
+
+output:
+  markdown: true
+  codeHighlighting: true
+  thinkingBlocks: true
+  citations: true
+  format: "markdown"        # markdown | json | html

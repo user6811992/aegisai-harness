@@ -271,6 +271,23 @@ async function backendChatImpl(bodyObj, onChunk, signal) {
   if (state.apiKey) headers['Authorization'] = 'Bearer ' + state.apiKey;
   const r = await fetch(state.url + '/v1/chat/completions', { method: 'POST', headers, body: JSON.stringify(oaiBody), signal });
   if (!r.ok) throw new Error('Chat failed: ' + r.status + ' ' + (await r.text()));
+
+  // Non-streaming mode: parse a single JSON response instead of SSE frames.
+  if (oaiBody.stream === false) {
+    const data = await r.json();
+    const choice = (data && data.choices && data.choices[0]) || {};
+    const msg = choice.message || {};
+    const usage = (data && data.usage) || {};
+    if (onChunk && msg.content) onChunk({ type: 'token', content: msg.content });
+    if (onChunk) onChunk({ type: 'done' });
+    return { status: 200, data: {
+      message: { role: msg.role || 'assistant', content: msg.content || '', tool_calls: msg.tool_calls || null },
+      done: true,
+      eval_count: usage.completion_tokens || 0,
+      prompt_eval_count: usage.prompt_tokens || 0,
+    } };
+  }
+
   const reader = r.body.getReader();
   const decoder = new TextDecoder();
   let fullContent = '', buf = '', promptTokens = 0, completionTokens = 0, toolCalls = null;

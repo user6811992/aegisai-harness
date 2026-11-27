@@ -5,10 +5,18 @@ const fs = require('fs');
 const path = require('path');
 const { DATA_DIR } = require('./core/config');
 const db = require('./storage/db');
-const { acquireLock, releaseLock, isLocked } = require('./resource_broker');
 
 const ROOT = path.join(DATA_DIR, 'tenants');
 const REGISTRY = path.join(ROOT, 'registry.json');
+
+// Tenant/session identifiers must be simple path-safe tokens (no traversal).
+const SAFE_ID = /^[A-Za-z0-9_-]{1,128}$/;
+function assertSafeId(id, label) {
+  if (typeof id !== 'string' || !SAFE_ID.test(id)) {
+    throw new Error('invalid ' + (label || 'identifier') + ': ' + String(id));
+  }
+  return id;
+}
 
 function readRegistry() {
   try { return JSON.parse(fs.readFileSync(REGISTRY, 'utf8')); } catch (e) { return { tenants: {} }; }
@@ -18,6 +26,7 @@ function writeRegistry(r) {
   fs.writeFileSync(REGISTRY, JSON.stringify(r, null, 2));
 }
 function create(id, meta) {
+  assertSafeId(id, 'tenant id');
   const r = readRegistry();
   r.tenants[id] = Object.assign({ id, created: new Date().toISOString() }, meta || {});
   writeRegistry(r);
@@ -25,8 +34,9 @@ function create(id, meta) {
   return r.tenants[id];
 }
 function list() { return Object.values(readRegistry().tenants); }
-function get(id) { return readRegistry().tenants[id] || null; }
+function get(id) { assertSafeId(id, 'tenant id'); return readRegistry().tenants[id] || null; }
 function dataDir(id) {
+  assertSafeId(id, 'tenant id');
   if (!get(id)) throw new Error('unknown tenant: ' + id);
   return path.join(ROOT, id);
 }
@@ -37,12 +47,14 @@ function use(id) {
   return { tenant: id, db: dir };
 }
 function getQuota(id) {
+  assertSafeId(id, 'tenant id');
   const r = readRegistry();
   return r.tenants[id] && r.tenants[id].quota
     ? r.tenants[id].quota
     : { maxAgents: 10, maxSessions: 50, maxStorageMb: 100, maxConcurrentTools: 5 };
 }
 function incrementUsage(id, key) {
+  assertSafeId(id, 'tenant id');
   const r = readRegistry();
   if (!r.tenants[id]) return false;
   if (!r.tenants[id].usage) r.tenants[id].usage = {};
@@ -51,17 +63,23 @@ function incrementUsage(id, key) {
   return true;
 }
 function checkQuota(id, key) {
-  const quota = getQuota(id);
+  assertSafeId(id, 'tenant id');
+  const r = readRegistry();
+  const quota = r.tenants[id] && r.tenants[id].quota
+    ? r.tenants[id].quota
+    : { maxAgents: 10, maxSessions: 50, maxStorageMb: 100, maxConcurrentTools: 5 };
   const usage = (r.tenants[id] && r.tenants[id].usage && r.tenants[id].usage[key]) || 0;
   return usage < quota[key];
 }
-function checkToolAccess(id, toolName) {
-  const quota = getQuota(id);
+function checkToolAccess(id) {
+  assertSafeId(id, 'tenant id');
   if (!checkQuota(id, 'maxConcurrentTools')) return { ok: false, error: 'maxConcurrentTools quota exceeded' };
   incrementUsage(id, 'maxConcurrentTools');
   return { ok: true };
 }
 function sessionDir(id, sessionId) {
+  assertSafeId(id, 'tenant id');
+  assertSafeId(sessionId, 'session id');
   return path.join(dataDir(id), 'sessions', sessionId + '.json');
 }
 function saveSession(id, sessionId, sessionData) {
@@ -84,4 +102,4 @@ function openTenantDb(id) {
   return db;
 }
 
-module.exports = { create, list, get, dataDir, use, getQuota, incrementUsage, checkQuota, checkToolAccess, sessionDir, saveSession, loadSession, openTenantDb };
+module.exports = { create, list, get, dataDir, use, getQuota, incrementUsage, checkQuota, checkToolAccess, sessionDir, saveSession, loadSession, openTenantDb, assertSafeId };

@@ -33,8 +33,9 @@ if ($SourceZip) {
 
 Copy-Item -Path (Join-Path $root "src") -Destination $dest -Recurse
 Copy-Item -Path (Join-Path $root "public") -Destination $dest -Recurse
+Copy-Item -Path (Join-Path $root "scripts") -Destination $dest -Recurse
 Copy-Item -Path (Join-Path $root "package.json") -Destination $dest
-foreach ($doc in @("README.md", "LICENSE", "CHANGELOG.md", "llms.txt")) {
+foreach ($doc in @("README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "CHANGELOG.md", "llms.txt")) {
   $f = Join-Path $root $doc
   if (Test-Path $f) { Copy-Item -Path $f -Destination $dest }
 }

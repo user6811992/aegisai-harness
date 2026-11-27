@@ -7,10 +7,10 @@
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
-offline-first: no cloud dependencies, no telemetry. 85 milestones, ~275 modules,
+offline-first: no cloud dependencies, no telemetry. 85 milestones, 307 modules,
 358 tests, CI green.
 
-> Status: v1.0.15 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.16 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -105,16 +105,16 @@ node src/index.js --json "your prompt here"
 bash packaging/build-binary.sh
 ```
 
-CI enforces `npm run check:version` so `package.json`, the installer filename, docs, and release tag always agree. Release assets include a `.sha256` checksum file — verify it before running an installer:
+CI enforces `node scripts/check-version-consistency.js` so `package.json`, the installer filename, docs, and release tag always agree. Release assets include a `.sha256` checksum file — verify it before running an installer:
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-0.85.0-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.16-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
 
-See [ROADMAP.md](./ROADMAP.md) for the full list. Key ones:
+Key ones:
 
 | Var | Purpose | Default |
 |---|---|---|
@@ -139,7 +139,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ## Layout
 
 ```
-src/              150+ modules (agent, tools, backends, storage, integrations, ...)
+src/              307 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
 tests/            358 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
@@ -152,7 +152,7 @@ MIT
 
 ## Acknowledgments
 
-Built with inspiration from the open-source community. See [ROADMAP.md](./ROADMAP.md) for the full list of explored projects and patterns.
+Built with inspiration from the open-source community.
 
 ### Prior art & inspiration
 - **Agent harnesses** — OpenCode, Claude Code, Aider, Cline, OpenHands, Goose, Codex, DeerFlow, Symphony, diggerhq
@@ -161,4 +161,3 @@ Built with inspiration from the open-source community. See [ROADMAP.md](./ROADMA
 - **Memory & learning** — bytedance/deer-flow, volcengine/OpenViking, rohitg00/agentmemory
 - **Security** — Microsoft agent-governance-toolkit, spec-kitty
 - **Observability** — OpenTelemetry, SARIF, LangSmith, Langfuse
-```

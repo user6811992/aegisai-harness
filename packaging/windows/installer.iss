@@ -4,13 +4,13 @@
 [Setup]
 AppId={{8F3D1B2A-6C4E-4B9A-9D21-AE615A010001}}
 AppName=AegisAi Harness
-AppVersion=1.0.15
+AppVersion=1.0.16
 AppPublisher=AegisAi
 AppPublisherURL=https://github.com/user6811992/aegisai-harness
 DefaultDirName={autopf}\AegisAiHarness
 DefaultGroupName=AegisAi Harness
 OutputDir=..\..\dist
-OutputBaseFilename=AegisAi-Harness-1.0.15-Setup
+OutputBaseFilename=AegisAi-Harness-1.0.16-Setup
 Compression=lzma2
 SolidCompression=yes
 PrivilegesRequired=lowest
@@ -25,12 +25,15 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "..\..\src\*"; DestDir: "{app}\src"; Flags: recursesubdirs ignoreversion
 Source: "..\..\public\*"; DestDir: "{app}\public"; Flags: recursesubdirs ignoreversion
+Source: "..\..\scripts\*"; DestDir: "{app}\scripts"; Flags: recursesubdirs ignoreversion
 Source: "..\..\package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\README.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\ROADMAP.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\HARNESS_DOCS.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\CHANGELOG.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\llms.txt"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
+Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\..\THIRD_PARTY_NOTICES.md"; DestDir: "{app}"; Flags: ignoreversion
 Source: "aegisai-harness.cmd"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]

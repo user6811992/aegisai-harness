@@ -48,8 +48,14 @@ function importState(data) {
       conn.prepare('DELETE FROM ' + t).run();
       if (rows.length === 0) continue;
       const cols = Object.keys(rows[0]);
+      // Validate column names against the real table schema to prevent SQL injection.
+      const allowedCols = new Set(conn.prepare('PRAGMA table_info(' + t + ')').all().map((c) => c.name));
+      for (const c of cols) {
+        if (!allowedCols.has(c)) throw new Error(t + ' has unknown column ' + c);
+      }
+      const quotedCols = cols.map((c) => '"' + c.replace(/"/g, '""') + '"').join(',');
       const placeholders = cols.map(() => '?').join(',');
-      const sql = `INSERT INTO ${t} (${cols.join(',')}) VALUES (${placeholders})`;
+      const sql = `INSERT INTO ${t} (${quotedCols}) VALUES (${placeholders})`;
       const stmt = conn.prepare(sql);
       for (const r of rows) {
         stmt.run(...cols.map((c) => r[c]));

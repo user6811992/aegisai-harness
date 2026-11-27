@@ -17,29 +17,22 @@ const windowsRPA = {
   // Returns element info; actual click depends on element pattern availability
   click(selector) {
     return new Promise((resolve) => {
+      // Pass selector as base64-encoded JSON to avoid PowerShell injection.
+      const selectorB64 = Buffer.from(JSON.stringify(selector || {}), 'utf8').toString('base64');
       const psScript = `
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName 'UIAutomationClient, Version=3.0.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35'
 $root = [System.Windows.Automation.AutomationElement]::RootElement
-# Default result
+$selector = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${selectorB64}')) | ConvertFrom-Json
 $result = 'not-found'
-# Try by AutomationId first
-$cond = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::AutomationIdProperty, '${
-        selector.automationId || ''
-      }')
+$cond = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::AutomationIdProperty, [string]$selector.automationId)
 $elem = $root.FindFirst([System.Windows.Automation.TreeScope]::Children, $cond)
-# If not found by AutomationId, try by Name
-if ($elem -eq $null) {
-    $cond2 = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, '${
-        selector.name || ''
-      }')
+if ($elem -eq $null -and $selector.name) {
+    $cond2 = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::NameProperty, [string]$selector.name)
     $elem = $root.FindFirst([System.Windows.Automation.TreeScope]::Children, $cond2)
 }
-# If not found by Name, try by ClassName
-if ($elem -eq $null) {
-    $cond3 = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ClassNameProperty, '${
-        selector.className || ''
-      }')
+if ($elem -eq $null -and $selector.className) {
+    $cond3 = [System.Windows.Automation.PropertyCondition]::new([System.Windows.Automation.AutomationElement]::ClassNameProperty, [string]$selector.className)
     $elem = $root.FindFirst([System.Windows.Automation.TreeScope]::Children, $cond3)
 }
 if ($elem -ne $null) {
@@ -47,14 +40,12 @@ if ($elem -ne $null) {
     $class = $elem.Current.ClassName
     $autoId = $elem.Current.AutomationId
     $enabled = $elem.Current.IsEnabled
-    # Try InvokePattern for clicking
     if ($elem.Current.InvokePattern -ne $null) {
         try { $elem.Current.InvokePattern.Invoke(); $result = 'ok:clicked:' + $name } catch { $result = 'pattern-error:InvokePattern failed' }
     } else {
         $result = 'found:element=' + $name + ':class=' + $class + ':autoid=' + $autoId + ':enabled=' + $enabled + ':invoke-not-available'
     }
 } else {
-    # Build not-found message without JSON.stringify
     $notFound = 'not-found:selector'
     if ($selector.automationId) { $notFound = $notFound + ':automationId=' + $selector.automationId }
     if ($selector.name) { $notFound = $notFound + ':name=' + $selector.name }

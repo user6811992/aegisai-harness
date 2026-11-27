@@ -10,6 +10,7 @@ rm -rf "$APP"
 mkdir -p "$APP/usr/bin"
 cp -R "$ROOT/src" "$APP/usr/bin/"
 cp -R "$ROOT/public" "$APP/usr/bin/"
+cp -R "$ROOT/scripts" "$APP/usr/bin/"
 cp "$ROOT/package.json" "$ROOT/README.md" "$APP/usr/bin/"
 cat > "$APP/AppRun" <<'EOF'
 #!/bin/sh

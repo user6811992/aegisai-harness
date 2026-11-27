@@ -6,7 +6,7 @@
 git clone https://github.com/user6811992/aegisai-harness.git
 cd aegisai-harness
 npm install
-npm test          # 250+ tests, all must pass
+npm test          # 358 tests, all must pass
 npm start         # run the harness
 ```
 
@@ -44,4 +44,3 @@ Use conventional commits: `feat(v0.XX): description`, `fix: description`, `docs:
 ## Code of conduct
 
 Be respectful. This is a local-first, privacy-first project. No telemetry, no cloud dependencies, no tracking.
-```

@@ -1,0 +1,69 @@
+# Example Harness Specification — Research Assistant
+# Convert to JSON before running src/harness_generator.js.
+
+metadata:
+  title: "Research Assistant Harness"
+  version: "1.0.0"
+  description: "Agent that researches topics, gathers sources, and writes reports"
+
+agent:
+  name: "research-assistant"
+  description: "Researches user-requested topics and synthesizes reports"
+  model: "gpt-4o-mini"
+  temperature: 0.3
+  maxTokens: 1000
+  systemPrompt: "You are a research assistant. Gather relevant information and synthesize a clear report. Cite your sources."
+
+tools:
+  - name: "web_search"
+    description: "Search the web for information"
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+          description: "Search query"
+        maxResults:
+          type: integer
+          default: 5
+      required: ["query"]
+    returns:
+      type: object
+      properties:
+        results:
+          type: array
+  - name: "memory_search"
+    description: "Search agent memory"
+    parameters:
+      type: object
+      properties:
+        query:
+          type: string
+      required: ["query"]
+    returns:
+      type: object
+      properties:
+        memories:
+          type: array
+
+session:
+  maxHistory: 50
+  memoryEnabled: true
+  memoryType: "sqlite"
+  autoBrief: true
+  goalTracking: true
+
+safety:
+  sandboxEnabled: true
+  maxSteps: 50
+  approvedTools: ["web_search", "memory_search"]
+  deniedTools: []
+  admissionGate: true
+  policyFile: "charter.md"
+
+output:
+  markdown: true
+  codeHighlighting: true
+  thinkingBlocks: true
+  citations: true
+  format: "markdown"

@@ -246,8 +246,9 @@ async function runAgent(opts) {
     if (agentCompact && iterations > 1 && require('../capsule').shouldCompact(msgs, typeof agentCompact === 'number' ? agentCompact : 0.8)) {
       require('../capsule').write(capsuleSession || 'default', msgs, { reason: 'auto-compact', iteration: iterations });
       const system = msgs.filter((m) => m.role === 'system');
+      const removed = msgs.slice(0, -6).filter((m) => m.role !== 'system');
+      archive.push(...removed);
       msgs = system.concat(msgs.slice(-6));
-      archive.push(...(system.length ? [] : []));
     }
     // stop conditions
     if (stopWhen) {
@@ -268,7 +269,6 @@ async function runAgent(opts) {
     iterations += 1;
     onEvent({ type: 'status', message: 'calling model' });
     require('../profiler').recordIteration();
-    require('../profiler').recordTokens(data?.prompt_eval_count || 0 + data?.eval_count || 0);
     const iterSpan = tracer ? tracer.startSpan('iteration', { iteration: iterations }) : null;
     if (iterations === 1) await hooks.run('SessionStart', { hasTools: tools.length > 0, hasApproval: !!approvalHandler });
     await hooks.run('beforeModel', { messages: msgs, tools, iteration: iterations });
@@ -307,7 +307,7 @@ async function runAgent(opts) {
     let toolCalls = msg.tool_calls;
     const thinking = msg.thinking || msg.reasoning_content || '';
     totalTokens += (data.prompt_eval_count || 0) + (data.eval_count || 0);
-    require('../profiler').recordTokens(data.prompt_eval_count || 0 + data.eval_count || 0);
+    require('../profiler').recordTokens((data.prompt_eval_count || 0) + (data.eval_count || 0));
     totalTokensRef = totalTokens;
     if (iterSpan) tracer.endSpan(iterSpan, { tokens: data.eval_count || 0 });
 
@@ -609,7 +609,7 @@ async function runAgent(opts) {
         const denied = 'BLOCKED (approval denied): ' + r.name;
         toolLog.push({ name: r.name, args: r.args, resultPreview: denied });
         onEvent({ type: 'approval_denied', name: r.name });
-        msgs.push({ role: 'tool', content: denied, name: r.name });
+        msgs.push({ role: 'tool', content: denied, name: r.name, tool_call_id: r.toolCallId });
         continue;
       }
       let preview = '';
