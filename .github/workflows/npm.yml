@@ -20,7 +20,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
       - name: Verify tag matches package.json
         env:
-          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          RELEASE_TAG: ${{ github.ref_name }}
         run: test "${RELEASE_TAG#v}" = "$(node -p "require('./package.json').version")"
       - run: npm test
       - run: node scripts/check-version-consistency.js
