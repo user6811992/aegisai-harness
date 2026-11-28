@@ -5,6 +5,11 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ## Status & next
 - **Shipped:** v0.1–v1.0.62. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
 - **Current version:** v1.0.62
+- **Next priorities (agreed 2026-11-28 — address tomorrow after Arc A770 tests):**
+  1. **Backend lifecycle control in the UI** — highest value. Stop / start / restart `llama-server` from one button, applying the active profile's `model`, `context`, `threads`, `gpuLayers` and `device`, plus a live health indicator. Reuses `backend_setup` + `hardware_profile`; removes the manual shell steps used to switch power/model settings.
+  2. **Phase 6 items 1 and 3** — model interoperability spec export and community hardware-profile exchange are now feasible plumbing (model registry/store + hardware profiles already exist), not new research.
+  3. **Web UI hardware status card** — small polish exposing `hardware_probe` (Vulkan/CUDA/Metal) through one API route and a panel.
+- **Validation pending:** tests on a different machine with an **Intel Arc A770 16 GB** — check llama.cpp Vulkan backend, profile generation and prebuilt binary behavior there before the next implementation batch.
 - **New in v1.0.61:** Fixed platform-specific test path in hardware_profile tests.
 - **New in v1.0.60:** Hardware profile system (shareable JSON, startup loader, UI/API/MCP tools) and a research/future queue for Kunlun K200, multi-model slots and CUDA validation.
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
@@ -440,14 +445,15 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 
 ### 🌱 Phase 6 — Community / Ecosystem (opportunistic)
 
-> **Feasibility at v1.0.60:** items 1 and 3 are locally feasible now (the registry,
-> dedup and hardware-probe layers already exist). Items 2 and 4 need a community
+> **Feasibility at v1.0.62:** items 1 and 3 are locally feasible now and are the
+> next planned implementation batch (after Arc A770 validation). The registry,
+> dedup and hardware-profile layers already exist. Items 2 and 4 need a community
 > protocol/transport decision before real implementation — contract-level work is
 > possible, but adoption cannot be validated locally.
 
-- [ ] **Model interoperability standard** — publish the dedup/registry layer as a shared spec. **Feasible now** (local spec/export via `model_registry.js`, `model_store.js`); wider adoption needs community review.
+- [ ] **Model interoperability standard** — publish the dedup/registry layer as a shared spec. **Planned next** — feasible now (local spec/export via `model_registry.js`, `model_store.js`); wider adoption needs community review.
 - [ ] **Optional-research-module marketplace** — generalize lazy submodule discovery to community modules. **Needs research**: module manifest format, trust/signing, and version resolution.
-- [ ] **Hardware profile contributions** — community-submitted profiles beyond DGX Spark/Apple Silicon/Blackwell. **Feasible now** (`hardware_probe.js`, `hardware.js`); submission workflow needs a source-trust policy.
+- [ ] **Hardware profile contributions** — community-submitted profiles beyond DGX Spark/Apple Silicon/Blackwell. **Planned next** — feasible now (`hardware_probe.js`, `hardware_profile.js`, `hardware.js`); submission workflow needs a source-trust policy.
 - [ ] **Offline-first verification network** — peers exchange verification certificates without a central service. **Needs research**: transport choice (QUIC/WebSocket), peer discovery without a central service, and replay protection; local contracts exist in `p2p_messaging.js` and `ed25519_signing.js`.
 
 ---
@@ -459,6 +465,10 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 | Backend auto-setup (Ollama/llama.cpp) | **Shipped** v1.0.56–v1.0.59 | Done — opt-in, offline-safe, explicit confirmation |
 | llama.cpp prebuilt packaging | **Shipped** v1.0.59 | Done — official MIT binaries, no vendored source |
 | Hardware profiles | **Shipped** v1.0.60 | Done — local JSON, startup loader, validation whitelist |
+| Backend lifecycle control (stop/start/restart + health) | **Planned — highest value** | Small; reuses `backend_setup` + `hardware_profile`; apply active profile flags |
+| Phase 6 items 1 & 3 (interop spec, community profiles) | **Planned — feasible now** | Export/validation plumbing over existing registry and profile modules |
+| Web UI hardware status card | **Planned polish** | Small; `hardware_probe` already exists |
+| Intel Arc A770 16 GB machine tests | **Scheduled (tomorrow)** | Validate llama.cpp Vulkan, profile generation, prebuilt binary on Intel GPU |
 | Kunlun K200 (Baidu XPU) | Research — vendor email sent | **Needs research**: Linux-only kernel driver, PaddlePaddle XPU, no llama.cpp/vLLM K200 support |
 | Custom Windows driver/firmware via REA | Research only | **Needs research**: no admin/signing, device Code 12, firmware likely vendor-signed |
 | Multi-model llama.cpp slots + router | Deferred by user | Feasible but memory-bound on 8 GB VRAM |
