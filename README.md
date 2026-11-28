@@ -2,15 +2,15 @@
 
 [![CI](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml/badge.svg)](https://github.com/user6811992/aegisai-harness/actions/workflows/harness-check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-371933?logo=node.js&logoColor=white)](https://nodejs.org)
+[![Node.js](https://img.shields.io/badge/Node.js-22.13%2B-372033?logo=node.js&logoColor=white)](https://nodejs.org)
 [![GitHub release](https://img.shields.io/github/v/release/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/releases)
 [![GitHub stars](https://img.shields.io/github/stars/user6811992/aegisai-harness)](https://github.com/user6811992/aegisai-harness/stargazers)
 
 A **feature-rich, local-only AI agent harness** — OpenCode-class runtime, but
 offline-first: no cloud dependencies, no telemetry. Phases 1–5 complete
-(92/96 roadmap items), 384 modules, 719 tests, CI green.
+(92/96 roadmap items), 384 modules, 720 tests, CI green.
 
-> Status: v1.0.57 (see [ROADMAP.md](./ROADMAP.md)).
+> Status: v1.0.58 (see [ROADMAP.md](./ROADMAP.md)).
 > **Successor to [aegisai-next](https://github.com/user6811992/aegisai-next)** — that project is deprecated; all features have been ported here.
 > **Live docs:** https://user6811992.github.io/aegisai-harness/
 
@@ -106,14 +106,19 @@ silently, and installation is blocked in offline mode.
 
 - **Ollama** — installs via winget (Windows), Homebrew (macOS) or the official
   install script (Linux), then starts `ollama serve` and waits for `/api/tags`.
-- **llama.cpp / LM Studio** — no universal installer exists; the UI links to the
-  official download and you start the server yourself.
+- **llama.cpp** — downloads the official MIT-licensed prebuilt binary from the
+  latest `b*` release (Windows Vulkan, with a CPU fallback), extracts
+  `llama-server.exe` into `data/backends/llama.cpp`, and starts it with the GGUF
+  model path you provide on port 8081. No source is vendored or compiled.
+- **LM Studio** — no universal installer exists; the UI links to the official
+  download and you start the server yourself.
 - **OpenAI / router** — remote or user-supplied URLs; configure `BACKEND_URL`
   (and `BACKEND_API_KEY`) instead.
 
 The same flow is available programmatically: `GET /api/backend/setup?type=ollama`
 (report only) and `POST /api/backend/setup` with
 `{ "type": "ollama", "install": true, "start": true, "confirmed": true }`.
+For llama.cpp add `"model": "D:\\models\\model-q4_k_m.gguf"`.
 
 ### Terminal UI
 
@@ -158,7 +163,7 @@ CI enforces `node scripts/check-version-consistency.js` so `package.json`, the i
 
 ```bash
 # PowerShell (in the download folder)
-Get-FileHash .\AegisAi-Harness-1.0.57-Setup.exe -Algorithm SHA256
+Get-FileHash .\AegisAi-Harness-1.0.58-Setup.exe -Algorithm SHA256
 ```
 
 ## Environment variables
@@ -190,7 +195,7 @@ See [docs/TROUBLESHOOTING.md](./docs/TROUBLESHOOTING.md) for full details. Quick
 ```
 src/              384 modules (agent, tools, backends, storage, integrations, ...)
 public/           web UI (Preact + Tailwind vendored locally, no build step)
-tests/            719 tests (node:test)
+tests/            720 tests (node:test)
 packaging/        Windows/macOS/Linux installers + binary build
 docs/             landing page, setup guides, future integrations matrix
 vendor/aegis      Aegis Method Pack (git submodule, 22 skills)

@@ -98,6 +98,7 @@ function OnboardingWizard({ onComplete }) {
   const [token, setToken] = useState('');
   const [backendInfo, setBackendInfo] = useState(null);
   const [setupBusy, setSetupBusy] = useState(false);
+  const [modelPath, setModelPath] = useState('');
   const steps = ['Welcome', 'Backend', 'Model', 'Security', 'Done'];
 
   async function loadBackendInfo(b) {
@@ -112,9 +113,11 @@ function OnboardingWizard({ onComplete }) {
   async function setupBackend() {
     setSetupBusy(true);
     try {
+      const body = { type: backend, install: true, start: true, confirmed: true };
+      if (backend === 'llamacpp' && modelPath) body.model = modelPath;
       const r = await apiFetch('/api/backend/setup', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: backend, install: true, start: true, confirmed: true }),
+        body: JSON.stringify(body),
       });
       const d = await r.json().catch(() => ({}));
       if (!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
@@ -173,6 +176,10 @@ function OnboardingWizard({ onComplete }) {
               <p class="hint">No automatic installer for ${backend}. <a href=${backendInfo.docs} target="_blank" rel="noopener">Install instructions</a>, then return here.</p>
             ` : null}
           ` : html`<p class="hint">Checking backend status…</p>`}
+          ${backend === 'llamacpp' ? html`
+            <p class="hint">GGUF model path (required to start llama.cpp):</p>
+            <input class="onboarding-input" value=${modelPath} onInput=${(e) => setModelPath(e.target.value)} placeholder="D:\\models\\model-q4_k_m.gguf" />
+          ` : null}
           <p class="hint">Ollama is recommended for local use. You can change this later in Settings.</p>
         ` : null}
         ${step === 2 ? html`

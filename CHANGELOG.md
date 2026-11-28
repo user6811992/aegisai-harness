@@ -2,6 +2,17 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.58] - 2026-11-27
+
+### Added (llama.cpp packaging)
+- `backend_setup` can now install llama.cpp from the official MIT-licensed prebuilt binaries in the latest `b*` release: Windows Vulkan (AMD-friendly) with CPU fallback, Linux Ubuntu Vulkan, macOS arm64/x64. No source is vendored or compiled locally; `llama-server.exe` lands in `data/backends/llama.cpp`.
+- `POST /api/backend/setup` accepts `model` (GGUF path) and starts `llama-server --host 127.0.0.1 --port 8081 -m <model>`; the onboarding UI adds a GGUF path input for the `llamacpp` backend.
+- `THIRD_PARTY_NOTICES.md` records the distributed llama.cpp binary and its MIT attribution.
+- One new backend_setup test (7 total).
+
+### Verification
+- 720 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.57] - 2026-11-27
 
 ### Fixed

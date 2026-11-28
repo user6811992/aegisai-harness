@@ -35,6 +35,16 @@ test('backend_setup: offline mode blocks install', async () => {
   if (prev == null) delete process.env.AEGISAI_OFFLINE; else process.env.AEGISAI_OFFLINE = prev;
 });
 
+test('backend_setup: llama.cpp uses official prebuilt binaries and a model path', async () => {
+  const s = bs.SPECS.llamacpp;
+  assert.deepEqual(s.download.win32, ['win-vulkan-x64', 'win-cpu-x64']);
+  assert.ok(s.download.linux.includes('ubuntu-vulkan-x64'));
+  assert.ok(bs.knownPaths('llama-server')[0].endsWith('llama-server.exe'));
+  const p = await bs.plan('llamacpp');
+  assert.ok(Array.isArray(p.download) && p.download.includes('win-vulkan-x64'));
+  assert.deepEqual(s.start.args, ['--host', '127.0.0.1', '--port', '8081']);
+});
+
 test('backend_setup: status returns structured capability', async () => {
   const s = await bs.status('ollama');
   assert.equal(s.ok, true);

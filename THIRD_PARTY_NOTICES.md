@@ -63,6 +63,13 @@ opt-in, offline contract modules. Their external neural/training backends are
 - **tensorbend-predictor** (MIT) — https://github.com/eelbaz/tensorbend-predictor
   - MoE expert prefetch documented as an optional research module in `src/optional_modules.js`
 
+## Distributed third-party binaries (not vendored source)
+- **ggml-org/llama.cpp** (MIT) — https://github.com/ggml-org/llama.cpp
+  - The opt-in llama.cpp backend downloads the official prebuilt `llama-server`
+    binary from the latest `b*` GitHub release into local `data/backends/llama.cpp`.
+    No llama.cpp source is vendored or compiled by this project; the MIT license
+    and upstream attribution are preserved.
+
 ## Clean-room implementations (inspired, not copied)
 The following projects inspired functionality that was **independently
 reimplemented** in AegisAi Harness. No source code was copied; only the ideas
