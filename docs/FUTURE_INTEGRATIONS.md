@@ -345,3 +345,16 @@ See also: `ROADMAP.md` (phased backlog), `CHANGELOG.md`, `THIRD_PARTY_NOTICES.md
 | BaaRai/ARTEX (23,403★) | Self-hosted model-agnostic autonomous pentest system | Optional security research, opt-in only | M / M |
 | aidenybai/react-scan (21,879★) | React performance scanner | Optional UI review aid | M / M |
 | morluto/rea (480,991★) | Reverse engineer anything | Already attributed; no change | — |
+
+---
+
+## Research & future queue (2026-11-28)
+
+| Source / item | Status | Notes |
+|---|---|---|
+| Backend auto-setup (`src/backend_setup.js`) | Shipped v1.0.56 | Opt-in install/start; offline-safe; explicit confirmation required |
+| ggml-org/llama.cpp prebuilt binaries | Shipped v1.0.59 | Official MIT `b*` release downloads; no source vendored; Windows Vulkan + CPU, Linux, macOS |
+| Hardware profiles (`src/hardware_profile.js`) | Shipped v1.0.60 | Local shareable JSON, startup apply, strict field whitelist |
+| mobius/kunlun_k200 + ChargerLAB teardown | Research only | KL1 XPU, 16 GB HBM, Linux kernel driver + PaddlePaddle; vendor contacted for firmware/driver access |
+| Multi-model llama.cpp slots | Deferred | Router backend exists; memory-bound on 8 GB VRAM |
+| CUDA validation | Blocked | GTX 1660 Super PnP Code 12 prevents NVML/CUDA use |

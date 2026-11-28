@@ -89,6 +89,11 @@ async function main() {
     if (saved && saved.BACKEND_URL) process.env.BACKEND_URL = saved.BACKEND_URL;
     if (saved && saved.AEGISAI_MODEL) process.env.AEGISAI_MODEL = saved.AEGISAI_MODEL;
   } catch (e) {}
+  // A saved hardware profile overrides settings at startup (explicit user choice).
+  try {
+    const applied = require('./hardware_profile').applyActive();
+    if (applied && applied.ok) logger.info('hardware profile applied', { name: applied.profile.name });
+  } catch (e) {}
   if (process.env.BACKEND_TYPE || process.env.BACKEND_URL) {
     try { require('./backends').setBackend(process.env.BACKEND_TYPE, process.env.BACKEND_URL || undefined); } catch (e) {}
   }
@@ -525,6 +530,28 @@ async function main() {
           }
           sendJson(res, s.ok ? 200 : 400, s);
           return;
+        }
+        if (urlPathOnly === '/api/hardware-profile') {
+          const hp = require('./hardware_profile');
+          if (req.method === 'GET') {
+            sendJson(res, 200, { ok: true, profiles: hp.list(), active: hp.active(), platform: process.platform, arch: process.arch });
+            return;
+          }
+          if (req.method === 'POST') {
+            const parsed = await readJson(req);
+            const action = String((parsed && parsed.action) || 'save');
+            let r;
+            if (action === 'save') r = hp.save(parsed.name, parsed.profile);
+            else if (action === 'apply') r = hp.dispatch('hardware_profile_apply', parsed);
+            else if (action === 'active') r = hp.setActive(parsed.name);
+            else if (action === 'remove') r = hp.remove(parsed.name);
+            else if (action === 'export') r = hp.exportProfile(parsed.name);
+            else if (action === 'import') r = hp.importProfile(parsed.json);
+            else if (action === 'suggest') r = hp.suggest();
+            else r = { ok: false, error: 'unknown action' };
+            sendJson(res, r.ok ? 200 : 400, r);
+            return;
+          }
         }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models') {
           let models = [];

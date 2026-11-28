@@ -211,4 +211,8 @@ opt-in where network or heavy toolchains are involved.
 | travisgoodspeed/symgrate2-ida-plugin, Ghidra BSim | MIT/Apache-2.0 | Thumb2 research note (roadmap) |
 | BaaRai/ARTEX, aidenybai/react-scan | MIT | Optional research notes (roadmap) |
 
+## Research-only references (no code adapted)
+- **mobius/kunlun_k200** — KL1/XPU driver and benchmark reference; no source used.
+- **ChargerLAB K200 teardown** — hardware documentation used for research notes only.
+
 All third-party components retain their respective licenses. See each project for full license text.

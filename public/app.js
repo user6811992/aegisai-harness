@@ -256,6 +256,25 @@ function ConfigModal({ cfg, setCfg, onClose }) {
   const [scanning, setScanning] = useState(false);
   const [searching, setSearching] = useState(false);
   const [scanRoot, setScanRoot] = useState('');
+  const [profiles, setProfiles] = useState([]);
+  const [importText, setImportText] = useState('');
+
+  async function loadProfiles() {
+    try {
+      const d = await API('/api/hardware-profile');
+      setProfiles(d.profiles || []);
+    } catch (e) {}
+  }
+  useEffect(() => { if (tab === 'hardware') loadProfiles(); }, [tab]);
+  async function postProfile(body) {
+    try {
+      const r = await apiFetch('/api/hardware-profile', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      await loadProfiles();
+      return d;
+    } catch (e) { toast('Profile action failed: ' + (e && e.message ? e.message : e), 'error'); return null; }
+  }
 
   useEffect(() => {
     if (tab === 'models') {
@@ -305,6 +324,7 @@ function ConfigModal({ cfg, setCfg, onClose }) {
           <button class=${'tab' + (tab === 'config' ? ' active' : '')} onClick=${() => setTab('config')}>Config</button>
           <button class=${'tab' + (tab === 'models' ? ' active' : '')} onClick=${() => setTab('models')}>Models</button>
           <button class=${'tab' + (tab === 'discover' ? ' active' : '')} onClick=${() => setTab('discover')}>Discover</button>
+          <button class=${'tab' + (tab === 'hardware' ? ' active' : '')} onClick=${() => setTab('hardware')}>Hardware</button>
         </div>
         ${tab === 'config' ? html`
           ${keys.map((k) => html`
@@ -337,6 +357,31 @@ function ConfigModal({ cfg, setCfg, onClose }) {
               </div>
             `)}
             <button class="btn-secondary" onClick=${() => API('/api/models').then((d) => setModels(d.models || []))}>Refresh</button>
+          </div>
+        ` : null}
+        ${tab === 'hardware' ? html`
+          <div class="discover-section">
+            <h3>Hardware Profiles</h3>
+            <p class="hint">Profiles are local JSON files under <code>data/profiles</code>. The active profile is applied at startup.</p>
+            <button class="btn-secondary" onClick=${async () => {
+              const s = await postProfile({ action: 'suggest' });
+              if (s && s.profile) {
+                const saved = await postProfile({ action: 'save', name: s.profile.name, profile: s.profile });
+                if (saved) toast('Saved ' + s.profile.name, 'success');
+              }
+            }}>Suggest from hardware</button>
+            ${profiles.length === 0 ? html`<p class="hint">No profiles saved yet.</p>` : null}
+            ${profiles.map((p) => html`
+              <div class="model-item">
+                <span class="model-name">${p.name}${p.active ? ' (active)' : ''}</span>
+                <span class="hint">${p.engine || p.backendType || ''} ${p.quant || ''} ${p.context || ''}</span>
+                <button class="btn-sm" onClick=${() => postProfile({ action: 'apply', name: p.name })}>Apply</button>
+                <button class="btn-sm" onClick=${() => postProfile({ action: 'remove', name: p.name })}>Delete</button>
+              </div>
+            `)}
+            <h3>Import a shared profile</h3>
+            <textarea rows="4" style="width:100%" value=${importText} onInput=${(e) => setImportText(e.target.value)} placeholder="Paste profile JSON"></textarea>
+            <button class="btn-secondary" onClick=${() => postProfile({ action: 'import', json: importText })}>Import</button>
           </div>
         ` : null}
         ${tab === 'discover' ? html`

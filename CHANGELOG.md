@@ -2,6 +2,22 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.60] - 2026-11-28
+
+### Added (hardware profiles)
+- **`src/hardware_profile.js`** — portable, shareable hardware optimization profiles stored in `data/profiles/`. Strict field whitelist: unknown fields, unsafe flags and invalid values are dropped with warnings, so a shared file can never carry a command or script. Save/list/import/export/apply/set-active, plus `hardware_profile_*` MCP tools.
+- **Startup loader** — `src/index.js` applies the active profile before backend detection; explicit user choice overrides saved settings.
+- `GET/POST /api/hardware-profile` and a **Settings → Hardware** tab in the web UI (suggest-from-hardware, apply, delete, import).
+- New `docs/HARDWARE_PROFILES.md` with the format and an AMD Vulkan example; README linked.
+- New `tests/hardware_profile.test.js` (5 tests).
+
+### Documentation / roadmap
+- ROADMAP: added a **Research & future queue** (Kunlun K200, Windows driver/firmware RE, multi-model slots, CUDA validation, queued polish); marked historical re-evaluation snapshot; fixed malformed "New in" markers and the stale "All complete — v1.0.48" line.
+- `docs/FUTURE_INTEGRATIONS.md` and `THIRD_PARTY_NOTICES.md` updated with recent backend/profile work and research-only references.
+
+### Verification
+- 725 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.59] - 2026-11-27
 
 ### Fixed

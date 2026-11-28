@@ -25,6 +25,7 @@ function toolsList() {
   out.push(...require('./influxdb').tools());
   out.push(...require('./performance_dashboard').tools());
   out.push(...require('./hardware_autotune').tools());
+  out.push(...require('./hardware_profile').tools());
   out.push(...require('./model_registry').tools());
   out.push(...require('./optional_modules').tools());
   out.push(...require('./verification_cert').tools());
@@ -168,7 +169,8 @@ async function callTool(name, args) {
   const p5mods = { mlattice_: './mlattice', jit_lora_: './jit_lora', miras_: './miras_memory', expert_prefetch_: './expert_prefetch', fixed_point_: './fixed_point', peerhive_: './peerhive', shortcut_debt: './shortcut_debt' };
   const p5key = Object.keys(p5mods).find((k) => name.startsWith(k));
   if (p5key) { const r = require(p5mods[p5key]).dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
-  if (name.startsWith('hardware_')) { const r = require('./hardware_probe').dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
+  if (name.startsWith('hardware_profile')) { const r = await require('./hardware_profile').dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r) }] }; }
+  if (name.startsWith('hardware_probe')) { const r = require('./hardware_probe').dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] }; }
   if (name.startsWith('hf_model_')) {
     if (process.env.AEGISAI_OFFLINE === 'true') return { content: [{ type: 'text', text: 'disabled in offline mode' }], isError: true };
     const r = await require('./hf_download').dispatch(name, args);
