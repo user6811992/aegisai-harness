@@ -2,6 +2,14 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.57] - 2026-11-27
+
+### Fixed
+- Backend detection now checks known per-user install paths (e.g. `%LOCALAPPDATA%\Programs\Ollama\ollama.exe`) in addition to `PATH`, so a backend installed by winget is recognized even when the harness process started before the install. The start action uses the resolved binary path.
+
+### Verification
+- 719 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.56] - 2026-11-27
 
 ### Added (opt-in backend auto-setup)

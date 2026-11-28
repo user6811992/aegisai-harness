@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Tag to release (e.g. v1.0.56)'
+        description: 'Tag to release (e.g. v1.0.57)'
         required: true
 
 jobs:

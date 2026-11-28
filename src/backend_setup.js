@@ -2,6 +2,8 @@
 // Opt-in backend installation/startup. Nothing is downloaded or launched unless
 // the caller explicitly confirms. Works offline for already-installed backends.
 const { spawnSync, spawn } = require('child_process');
+const fs = require('fs');
+const path = require('path');
 const { DEFAULT_URLS, isSupportedBackend, normalizeBackendType } = require('./backends');
 
 const SPECS = {
@@ -27,12 +29,22 @@ function spec(type) {
   return { ok: true, type: t, ...(SPECS[t] || { binary: null, health: '/api/tags', docs: '', install: null, start: null }) };
 }
 
-function hasBinary(name) {
+// An installer can add a binary to the user PATH after this process started,
+// so also check the known per-user install locations.
+function knownPaths(name) {
+  const local = process.env.LOCALAPPDATA || '';
+  if (name === 'ollama' && local) return [path.join(local, 'Programs', 'Ollama', 'ollama.exe')];
+  if (name === 'llama-server' && local) return [path.join(local, 'Programs', 'llama.cpp', 'llama-server.exe')];
+  return [];
+}
+function binaryPath(name) {
   if (!name) return null;
   const tool = process.platform === 'win32' ? 'where' : 'which';
   const r = spawnSync(tool, [name], { encoding: 'utf8', timeout: 5000, windowsHide: true });
-  return r.status === 0;
+  if (r.status === 0) return String(r.stdout || '').split(/\r?\n/)[0].trim() || name;
+  return knownPaths(name).find((p) => fs.existsSync(p)) || null;
 }
+function hasBinary(name) { return !!binaryPath(name); }
 
 async function healthy(type, url, timeoutMs) {
   const s = spec(type);
@@ -88,7 +100,7 @@ async function ensure(type, opts) {
 
   let started = false;
   if (opts.start && s.start && installed && !(await healthy(s.type, url, 1000))) {
-    const child = spawn(s.start.cmd, s.start.args, { detached: true, stdio: 'ignore', windowsHide: true });
+    const child = spawn(binaryPath(s.binary) || s.start.cmd, s.start.args, { detached: true, stdio: 'ignore', windowsHide: true });
     child.unref();
     started = true;
   }
@@ -117,4 +129,4 @@ async function dispatch(name, args) {
   if (name === 'backend_ensure') return ensure(args.type, args);
   throw new Error('unknown backend_setup tool: ' + name);
 }
-module.exports = { SPECS, spec, hasBinary, healthy, status, plan, ensure, tools, dispatch };
+module.exports = { SPECS, spec, knownPaths, binaryPath, hasBinary, healthy, status, plan, ensure, tools, dispatch };

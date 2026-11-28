@@ -3,8 +3,8 @@
 Tracked milestones. Checkboxes are the source of truth; update as work lands.
 
 ## Status & next
-- **Shipped:** v0.1–v1.0.56. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
-- **Current version:** v1.0.56
+- **Shipped:** v0.1–v1.0.57. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
+- **Current version:** v1.0.57
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
 - **New in v1.0.47: Phase 2 modules: model_fit, code_graph, prometheus, data_query, escalation_router (5 new, 14 tests). Added harnessrouter/virgilio/tt-a1i/walkinglabs/martin-olivier/vectifyai findings.
 - **New in v1.0.46: Phase 1 complete (18/18): safe_config, council, skill_sync, memory_bridge, model_recipes, reliability_skills, weekly submodule-bump workflow. Added ix-infrastructure findings. 21/91 items implemented.
@@ -129,7 +129,7 @@ All items below are implemented; native toolchain integrations remain optional e
 
 All other backlog items from prior milestones have corresponding src/*.js modules and tests and are considered implemented.
 
-- **Current version:** v1.0.56
+- **Current version:** v1.0.57
 
 ---
 
