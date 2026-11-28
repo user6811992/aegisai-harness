@@ -5,11 +5,11 @@ Tracked milestones. Checkboxes are the source of truth; update as work lands.
 ## Status & next
 - **Shipped:** v0.1–v1.0.62. See git history / CHANGELOG.md for per-version detail. The harness now has a polished, user-friendly GUI with streaming chat, model discovery, file browser, session search, conversation export, multi-model comparison, TUI, LSP, browser automation, reverse engineering, observability, and a full security/audit suite.
 - **Current version:** v1.0.62
-- **Next priorities (agreed 2026-11-28 — address tomorrow after Arc A770 tests):**
+- **Next priorities (agreed 2026-11-28 — address after pending cross-hardware validation):** these features must stay backend- and vendor-neutral; the tests below are examples, not target platforms.
   1. **Backend lifecycle control in the UI** — highest value. Stop / start / restart `llama-server` from one button, applying the active profile's `model`, `context`, `threads`, `gpuLayers` and `device`, plus a live health indicator. Reuses `backend_setup` + `hardware_profile`; removes the manual shell steps used to switch power/model settings.
   2. **Phase 6 items 1 and 3** — model interoperability spec export and community hardware-profile exchange are now feasible plumbing (model registry/store + hardware profiles already exist), not new research.
   3. **Web UI hardware status card** — small polish exposing `hardware_probe` (Vulkan/CUDA/Metal) through one API route and a panel.
-- **Validation pending:** tests on a different machine with an **Intel Arc A770 16 GB** — check llama.cpp Vulkan backend, profile generation and prebuilt binary behavior there before the next implementation batch.
+- **Validation pending:** cross-hardware checks including a second machine with an **Intel Arc A770 16 GB** — verify that backend setup, profile generation and prebuilt binaries work on a different vendor/architecture before the next implementation batch. Any result must be generalized, not hard-coded.
 - **New in v1.0.61:** Fixed platform-specific test path in hardware_profile tests.
 - **New in v1.0.60:** Hardware profile system (shareable JSON, startup loader, UI/API/MCP tools) and a research/future queue for Kunlun K200, multi-model slots and CUDA validation.
 - **New in v1.0.48:** Phase 2 batch 2: reasoning tree index, network assertions, backend sweeps, token-lean code selection (4 modules, 10 tests); full staleness audit.
@@ -427,13 +427,14 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 ---
 
 
-### Hardware validation status (local machine, 2026-11-27)
-- **Vulkan / AMD RX 5700 XT — VERIFIED PRESENT** (Vulkan 1.4.357, driver 26.11.2). `src/hardware_probe.js` reads it read-only. Can validate backend-agnostic behavior (ABI guards, fit/parallel load plans, GBNF output) against a real Vulkan runtime once a model/runtime is installed.
+### Local validation notes (reference examples only — not product constraints)
+These observations come from one development machine. **The harness is universal**: it ships no hardware-specific defaults, detects whatever is present via `hardware_probe`, and lets each user choose profiles and backends. Nothing below is a requirement or a target platform.
+- **Vulkan / AMD RX 5700 XT — local example that works** (Vulkan 1.4.357, driver 26.11.2). `src/hardware_probe.js` reads it read-only. Used to validate backend-agnostic behavior (ABI guards, fit/parallel load plans, GBNF output) against a real Vulkan runtime.
 - **CUDA / GTX 1660 Super — hardware present but NOT VALIDATABLE**: driver listed in Device Manager and `nvcuda.dll` exists, but `nvidia-smi` fails (`Failed to initialize NVML`) and no CUDA toolkit / `nvcc` is installed. CUDA-specific k-quant and MoE flags cannot be validated here yet.
 - **MLX — NOT VALIDATABLE locally**: requires Apple Silicon + macOS Metal. IQ_K kernels stay contracts until tested on an Apple device.
 - **Tauri FFI — partially testable**: Rust/cargo are available and `cargo check --locked` passes, but real FFI inference needs a built native engine + model; the worker-process strategy is a contract only.
 - **Ghidra — NOT VALIDATABLE locally**: no JDK and no `GHIDRA_INSTALL_DIR`; Thumb2/BSim work remains a contract.
-- **No GGUF models are installed locally**, so no end-to-end inference test is possible in this pass.
+- **Local GGUF models are available** and one small dense Q6_K model was validated end-to-end; other quantizations, model architectures and GPU vendors remain untested here.
 
 ### Research scan 2026-11-27 — hardware verification + account sweep
 - **Verified / corrected Phase 4 contracts:** MLX IQ_K codec set is IQ1_S_R4 / IQ2_KS / IQ2_K (mlx-iqk, MIT); IQ3_K/IQ4_K belong to mlx-kquant. MoE offload must **not** use `-rtr` with hybrid CPU/GPU (forces CPU matmul for k-quants); prefer smallest `--n-cpu-moe` that fits plus `--fit` with a 1024 MiB margin. In-process Tauri FFI can crash the host — prefer a supervised worker process, pin the upstream commit/tag, and feature-gate native compilation. Implemented as corrections in `backend_variants.js`, `moe_engine.js`, `quant_advisor.js`, `native_bindings.js`.
@@ -469,7 +470,7 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 | Phase 6 items 1 & 3 (interop spec, community profiles) | **Planned — feasible now** | Export/validation plumbing over existing registry and profile modules |
 | Web UI hardware status card | **Planned polish** | Small; `hardware_probe` already exists |
 | Intel Arc A770 16 GB machine tests | **Scheduled (tomorrow)** | Validate llama.cpp Vulkan, profile generation, prebuilt binary on Intel GPU |
-| Niko1221/Strata (MIT, 48.8k⭐) | **Research — useful ideas, not a backend swap** | MoE expert-cache strategy (hot experts in VRAM, all experts in RAM, n-gram table on SSD) and "guess-then-check" MTP drafting could inform `expert_prefetch`/`compact_index` and a future speculative-decoding contract. OpenAI/Anthropic-compatible API means it could be pointed at as an external backend. Hardware caveat: RX 5700 XT is gfx1010 and needs a hand-built HIP engine; Intel Arc is Linux-only — llama.cpp Vulkan remains the practical engine here |
+| Niko1221/Strata (MIT, 48.8k⭐) | **Research — useful ideas, not a bundled backend** | MoE expert-cache strategy (hot experts in VRAM, all experts in RAM, n-gram table on SSD) and "guess-then-check" MTP drafting could inform `expert_prefetch`/`compact_index` and a future speculative-decoding contract. OpenAI/Anthropic-compatible API means users can point the harness at it as an external backend if they install it. Vendor support varies by architecture and OS (some GPUs need source builds); the harness must stay backend-neutral and never assume a specific device |
 | Kunlun K200 (Baidu XPU) | Research — vendor email sent | **Needs research**: Linux-only kernel driver, PaddlePaddle XPU, no llama.cpp/vLLM K200 support |
 | Custom Windows driver/firmware via REA | Research only | **Needs research**: no admin/signing, device Code 12, firmware likely vendor-signed |
 | Multi-model llama.cpp slots + router | Deferred by user | Feasible but memory-bound on 8 GB VRAM |
