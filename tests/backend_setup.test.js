@@ -39,9 +39,11 @@ test('backend_setup: llama.cpp uses official prebuilt binaries and a model path'
   const s = bs.SPECS.llamacpp;
   assert.deepEqual(s.download.win32, ['win-vulkan-x64', 'win-cpu-x64']);
   assert.ok(s.download.linux.includes('ubuntu-vulkan-x64'));
-  assert.ok(bs.knownPaths('llama-server')[0].endsWith('llama-server.exe'));
+  const exe = process.platform === 'win32' ? 'llama-server.exe' : 'llama-server';
+  assert.ok(bs.knownPaths('llama-server')[0].endsWith(exe));
   const p = await bs.plan('llamacpp');
-  assert.ok(Array.isArray(p.download) && p.download.includes('win-vulkan-x64'));
+  assert.ok(Array.isArray(p.download) && p.download.length > 0);
+  assert.ok(p.download.includes(s.download[process.platform][0]));
   assert.deepEqual(s.start.args, ['--host', '127.0.0.1', '--port', '8081']);
 });
 

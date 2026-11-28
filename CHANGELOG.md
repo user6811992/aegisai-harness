@@ -2,6 +2,14 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.59] - 2026-11-27
+
+### Fixed
+- Made the llama.cpp setup regression test platform-neutral; CI on Linux failed because it asserted a Windows `.exe` path.
+
+### Verification
+- 720 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.58] - 2026-11-27
 
 ### Added (llama.cpp packaging)
