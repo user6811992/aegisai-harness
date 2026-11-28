@@ -253,7 +253,7 @@ Built with inspiration from the open-source community.
 - **Search & retrieval research** — xerj-org/xerj, VectifyAI (PageIndex, ChatIndex, ConDB), StarTrail-org (LEANN, PixelRAG), morluto/leantoken
 - **Visual & desktop** — lightpanda-io/browser, kepano/defuddle + vault, obsidianmd/obsidian-skills, tt-a1i/Archify + hive
 - **Inference optimization** — raketenkater/ggrun, alesha-pro (inference playbook, vllm-cross-model-kv), ikawrakow/ik_llama.cpp, mozilla-ai/llamafile, ix-infrastructure/Ix, mlx-iqk, pxq_llama, memex-engine, stable-diffusion.cpp
-- **Methodology & research scan** — DietrichGebert/ponytail, steadfastgaze (mlx-iqk, MoEspresso), tleyden/tauri2-local-llm, janhq/jan, symgrate2 + Ghidra BSim, BaaRai/ARTEX, aidenybai/react-scan
+- **Methodology & research scan** — DietrichGebert/ponytail, steadfastgaze (mlx-iqk, MoEspresso), tleyden/tauri2-local-llm, janhq/jan, symgrate2 + Ghidra BSim, BaaRai/ARTEX, aidenybai/react-scan, mobius/kunlun_k200 + ChargerLAB (Kunlun K200 research)
 - **Native & security research** — ik-llama-cpp-rs, parallel-gpu-weight-loading, aws (credential-daemon, aws-emulator), hardbyte/paillier.js, 0xNyk/termpeek, Ghidra Thumb2, morluto (kuna, reef)
 - **Local inference research (@eelbaz)** — mLattice, JIT LoRA, olmo3-miras, Recursive-Self-Improving-Loopers, lyra, ollama-lmstudio-bridge, dgx-spark-vllm-setup, cdnshare, tensorbend-predictor, Rule30PrizeKit, peerhive
 
