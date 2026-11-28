@@ -374,6 +374,12 @@ async function backendChat(bodyObj, onChunk, signal) {
       if (i < retries - 1) await new Promise((res) => setTimeout(res, 500 * (i + 1)));
     }
   }
+  if (lastErr && /fetch failed|ECONNREFUSED|ENOTFOUND|EAI_AGAIN|socket hang up/i.test(String(lastErr.message || lastErr))) {
+    const hint = state.type === 'openai'
+      ? 'Check BACKEND_API_KEY and BACKEND_URL.'
+      : `No backend is reachable at ${getUrl()} (${state.type || 'ollama'}). Use Settings → Backend → Install & start, or set BACKEND_URL to a running server.`;
+    throw new Error(hint + ' (' + String(lastErr.message || lastErr) + ')');
+  }
   throw lastErr;
 }
 

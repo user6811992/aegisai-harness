@@ -60,6 +60,7 @@ function toolsList() {
   out.push(...require('./harness_protocol').tools());
   out.push(...require('./embedding_registry').tools());
   out.push(...require('./backend_variants').tools());
+  out.push(...require('./backend_setup').tools());
   out.push(...require('./compact_index').tools());
   out.push(...require('./visual_retrieval').tools());
   out.push(...require('./proxy_guardrails').tools());
@@ -143,6 +144,7 @@ async function callTool(name, args) {
     return { content: [{ type: 'text', text: JSON.stringify(r instanceof Promise ? await r : r) }] };
   }
   if (name.startsWith('backend_sweep')) return { content: [{ type: 'text', text: JSON.stringify(require('./backend_sweeps').dispatch(name, args)) }] };
+  if (name.startsWith('backend_status') || name.startsWith('backend_plan') || name.startsWith('backend_ensure')) { const r = await require('./backend_setup').dispatch(name, args); return { content: [{ type: 'text', text: JSON.stringify(r) }] }; }
   if (name.startsWith('code_select')) return { content: [{ type: 'text', text: JSON.stringify(require('./code_intelligence').dispatch(name, args)) }] };
   const mods = { p2p_: './p2p_messaging', diagram_: './diagram_gen', harness_: './harness_protocol', embed_: './embedding_registry', backend_variant: './backend_variants', backend_abi: './backend_variants', compact_: './compact_index', visual_: './visual_retrieval', proxy_: './proxy_guardrails', kv_: './kv_transfer' };
   const modKey = Object.keys(mods).find((k) => name.startsWith(k));

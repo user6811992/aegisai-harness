@@ -96,7 +96,33 @@ function OnboardingWizard({ onComplete }) {
   const [backend, setBackend] = useState('ollama');
   const [model, setModel] = useState('');
   const [token, setToken] = useState('');
+  const [backendInfo, setBackendInfo] = useState(null);
+  const [setupBusy, setSetupBusy] = useState(false);
   const steps = ['Welcome', 'Backend', 'Model', 'Security', 'Done'];
+
+  async function loadBackendInfo(b) {
+    setBackendInfo(null);
+    try {
+      const r = await apiFetch('/api/backend/setup?type=' + encodeURIComponent(b));
+      if (r.ok) setBackendInfo(await r.json());
+    } catch (e) {}
+  }
+  useEffect(() => { loadBackendInfo(backend); }, [backend]);
+
+  async function setupBackend() {
+    setSetupBusy(true);
+    try {
+      const r = await apiFetch('/api/backend/setup', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: backend, install: true, start: true, confirmed: true }),
+      });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok || !d.ok) throw new Error(d.error || ('HTTP ' + r.status));
+      toast(backend + ' is ready', 'success');
+      await loadBackendInfo(backend);
+    } catch (e) { toast('Backend setup failed: ' + (e && e.message ? e.message : e), 'error'); }
+    finally { setSetupBusy(false); }
+  }
 
   async function finish() {
     try {
@@ -138,6 +164,15 @@ function OnboardingWizard({ onComplete }) {
               <button class=${'option-btn' + (backend === b ? ' selected' : '')} onClick=${() => setBackend(b)}>${b}</button>
             `)}
           </div>
+          ${backendInfo ? html`
+            <p class="hint">${backendInfo.running ? '✅ Running' : backendInfo.installed ? '⚠️ Installed but not running' : '❌ Not installed'} · ${backendInfo.url}</p>
+            ${!backendInfo.running && backendInfo.canInstall ? html`
+              <button class="btn-secondary" disabled=${setupBusy} onClick=${setupBackend}>${setupBusy ? 'Installing…' : 'Install & start ' + backend}</button>
+            ` : null}
+            ${!backendInfo.running && !backendInfo.canInstall && backendInfo.docs ? html`
+              <p class="hint">No automatic installer for ${backend}. <a href=${backendInfo.docs} target="_blank" rel="noopener">Install instructions</a>, then return here.</p>
+            ` : null}
+          ` : html`<p class="hint">Checking backend status…</p>`}
           <p class="hint">Ollama is recommended for local use. You can change this later in Settings.</p>
         ` : null}
         ${step === 2 ? html`

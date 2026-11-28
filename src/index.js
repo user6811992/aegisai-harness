@@ -501,6 +501,31 @@ async function main() {
           sendJson(res, 200, { ok: true, type: b.getType(), url: b.getUrl() });
           return;
         }
+        if (req.method === 'GET' && urlPathOnly === '/api/backend/setup') {
+          const type = String(new URL(req.url, 'http://127.0.0.1').searchParams.get('type') || require('./backends').getType() || 'ollama');
+          const setup = require('./backend_setup');
+          const s = await setup.status(type);
+          sendJson(res, s.ok ? 200 : 400, s.ok ? { ...s, plan: await setup.plan(type) } : s);
+          return;
+        }
+        if (req.method === 'POST' && urlPathOnly === '/api/backend/setup') {
+          const parsed = await readJson(req);
+          const s = await require('./backend_setup').ensure(parsed && parsed.type, parsed || {});
+          if (s.ok) {
+            const b = require('./backends');
+            b.setBackend(s.type, s.url);
+            process.env.BACKEND_TYPE = b.getType();
+            process.env.BACKEND_URL = b.getUrl();
+            try {
+              const saved = require('./settings').load();
+              saved.BACKEND_TYPE = b.getType();
+              saved.BACKEND_URL = b.getUrl();
+              require('./settings').save(saved);
+            } catch (e) {}
+          }
+          sendJson(res, s.ok ? 200 : 400, s);
+          return;
+        }
         if (req.method === 'GET' && req.url.split('?')[0] === '/api/models') {
           let models = [];
           try { const r = await require('./backends').backendListModels(); models = r.models || []; } catch (e) {}

@@ -1,5 +1,15 @@
 # Troubleshooting installation and stale versions
 
+## Chat returns `error: fetch failed`
+
+The configured backend is not reachable. Check `GET /api/backends` and
+`GET /api/backend/setup?type=ollama` (or your chosen type). In the web UI, use
+**Install & start** on the Backend step, or install/start the backend yourself:
+`curl http://127.0.0.1:11434/api/tags` (Ollama),
+`http://127.0.0.1:8081/v1/models` (llama.cpp) or
+`http://127.0.0.1:1234/v1/models` (LM Studio). The error message now names the
+backend and URL it tried.
+
 ## Node.js is missing or `.js` files open in Notepad
 
 AegisAi Harness is a Node.js application. **Neither the Windows installer nor the npm package installs Node.js.**
@@ -30,7 +40,7 @@ rd /s /q "%LOCALAPPDATA%\AegisAiHarness\node_modules"
 "%LOCALAPPDATA%\Programs\AegisAiHarness\aegisai-harness.cmd" --version
 ```
 
-The expected version for this release is **1.0.55**. `data/` inside the install folder holds your sessions and memories — back it up before deleting if you want to keep it.
+The expected version for this release is **1.0.56**. `data/` inside the install folder holds your sessions and memories — back it up before deleting if you want to keep it.
 
 ## Stale version after `npm i -g`
 

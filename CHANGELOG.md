@@ -2,6 +2,21 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.56] - 2026-11-27
+
+### Added (opt-in backend auto-setup)
+- **`src/backend_setup.js`** — status/plan/ensure for local backends. Installs and starts Ollama via winget/Homebrew/official script; manual instructions for llama.cpp and LM Studio. Requires explicit confirmation; install blocked offline; no user-supplied commands are executed.
+- `GET /api/backend/setup?type=…` (report only) and `POST /api/backend/setup` (`install`, `start`, `confirmed`) wired into the HTTP server and MCP tools.
+- Web onboarding: shows "Install & start" for the selected backend and a link to manual instructions when no universal installer exists.
+- New `tests/backend_setup.test.js` (6 tests).
+
+### Fixed
+- Connection failures now report the backend type and URL that was tried, plus the setup hint, instead of a bare `fetch failed`.
+- `docs/TROUBLESHOOTING.md` and README document the new flow.
+
+### Verification
+- 719 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.55] - 2026-11-27
 
 ### Fixed (found during full installer smoke test)
