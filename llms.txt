@@ -1,6 +1,6 @@
 # AegisAi Harness — agent-readable catalog
 
-A feature-rich, local-only AI agent harness. CLI-first, offline-first. v1.0.61.
+A feature-rich, local-only AI agent harness. CLI-first, offline-first. v1.0.62.
 
 ## Capabilities
 - Multi-backend LLM adapter (Ollama + OpenAI-compatible + 18 providers)

@@ -126,6 +126,19 @@ async function plan(type) {
     note: step || s.download ? 'Install and start require explicit confirmation; offline mode blocks install. llama.cpp uses official MIT-licensed prebuilt binaries (no source vendored).' : 'No universal installer — follow the docs link, then use Start.' };
 }
 
+function launchArgs(s, opts) {
+  const args = s.start.args.slice();
+  if (s.type === 'llamacpp') {
+    if (!opts.model) return null;
+    args.unshift('-m', String(opts.model));
+    if (opts.context) args.push('-c', String(opts.context));
+    if (opts.threads) args.push('-t', String(opts.threads));
+    if (opts.gpuLayers !== undefined) args.push('-ngl', String(opts.gpuLayers));
+    if (opts.device) args.push('-dev', String(opts.device));
+  }
+  return args;
+}
+
 async function ensure(type, opts) {
   opts = opts || {};
   const s = spec(type);
@@ -155,11 +168,8 @@ async function ensure(type, opts) {
   let started = false;
   const alreadyRunning = await healthy(s.type, url, 1000);
   if (opts.start && s.start && installed && !alreadyRunning) {
-    const args = s.start.args.slice();
-    if (s.type === 'llamacpp') {
-      if (!opts.model) return { ok: false, error: 'a GGUF model path is required to start llama.cpp (pass "model")', installed, docs: s.docs };
-      args.unshift('-m', String(opts.model));
-    }
+    const args = launchArgs(s, opts);
+    if (!args) return { ok: false, error: 'a GGUF model path is required to start llama.cpp (pass "model")', installed, docs: s.docs };
     const child = spawn(binaryPath(s.binary) || s.start.cmd, args, { detached: true, stdio: 'ignore', windowsHide: true });
     child.unref();
     started = true;
@@ -179,7 +189,7 @@ function tools() {
   return [
     { name: 'backend_status', description: 'Check whether a backend is installed and reachable.', inputSchema: { type: 'object', properties: { type: { type: 'string' } }, required: ['type'] } },
     { name: 'backend_plan', description: 'Plan an opt-in backend install/start.', inputSchema: { type: 'object', properties: { type: { type: 'string' } }, required: ['type'] } },
-    { name: 'backend_ensure', description: 'Install/start a backend with explicit confirmation.', inputSchema: { type: 'object', properties: { type: { type: 'string' }, install: { type: 'boolean' }, start: { type: 'boolean' }, confirmed: { type: 'boolean' }, model: { type: 'string' } }, required: ['type','confirmed'] } },
+    { name: 'backend_ensure', description: 'Install/start a backend with explicit confirmation.', inputSchema: { type: 'object', properties: { type: { type: 'string' }, install: { type: 'boolean' }, start: { type: 'boolean' }, confirmed: { type: 'boolean' }, model: { type: 'string' }, context: { type: 'number' }, threads: { type: 'number' }, gpuLayers: { type: 'number' }, device: { type: 'string' } }, required: ['type','confirmed'] } },
   ];
 }
 async function dispatch(name, args) {
@@ -189,4 +199,4 @@ async function dispatch(name, args) {
   if (name === 'backend_ensure') return ensure(args.type, args);
   throw new Error('unknown backend_setup tool: ' + name);
 }
-module.exports = { SPECS, BACKEND_DIR, resolveAsset, downloadBackend, spec, knownPaths, binaryPath, hasBinary, healthy, status, plan, ensure, tools, dispatch };
+module.exports = { SPECS, BACKEND_DIR, resolveAsset, downloadBackend, spec, knownPaths, binaryPath, hasBinary, healthy, launchArgs, status, plan, ensure, tools, dispatch };

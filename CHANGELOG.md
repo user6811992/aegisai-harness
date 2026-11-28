@@ -2,6 +2,15 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.62] - 2026-11-28
+
+### Fixed
+- `POST /api/hardware-profile` with `action: "apply"` now awaits the async dispatch and returns the real result instead of `{}`.
+- llama.cpp launch now accepts hardware-profile fields: `context` (`-c`), `threads` (`-t`), `gpuLayers` (`-ngl`) and `device` (`-dev`), exposed as `launchArgs()` with a unit test.
+
+### Verification
+- 726 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.61] - 2026-11-28
 
 ### Fixed

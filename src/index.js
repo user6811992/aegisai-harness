@@ -542,7 +542,7 @@ async function main() {
             const action = String((parsed && parsed.action) || 'save');
             let r;
             if (action === 'save') r = hp.save(parsed.name, parsed.profile);
-            else if (action === 'apply') r = hp.dispatch('hardware_profile_apply', parsed);
+            else if (action === 'apply') r = await hp.dispatch('hardware_profile_apply', parsed);
             else if (action === 'active') r = hp.setActive(parsed.name);
             else if (action === 'remove') r = hp.remove(parsed.name);
             else if (action === 'export') r = hp.exportProfile(parsed.name);

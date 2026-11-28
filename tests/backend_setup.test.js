@@ -47,6 +47,13 @@ test('backend_setup: llama.cpp uses official prebuilt binaries and a model path'
   assert.deepEqual(s.start.args, ['--host', '127.0.0.1', '--port', '8081']);
 });
 
+test('backend_setup: hardware profile fields become llama-server args', () => {
+  const s = bs.spec('llamacpp');
+  const args = bs.launchArgs(s, { model: 'D:\\m.gguf', context: 16384, threads: 12, gpuLayers: 999, device: 'Vulkan0' });
+  assert.deepEqual(args, ['-m', 'D:\\m.gguf', '--host', '127.0.0.1', '--port', '8081', '-c', '16384', '-t', '12', '-ngl', '999', '-dev', 'Vulkan0']);
+  assert.equal(bs.launchArgs(s, {}), null);
+});
+
 test('backend_setup: status returns structured capability', async () => {
   const s = await bs.status('ollama');
   assert.equal(s.ok, true);
