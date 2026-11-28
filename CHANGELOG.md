@@ -2,6 +2,14 @@
 
 All notable changes to AegisAi Harness are documented here.
 
+## [1.0.61] - 2026-11-28
+
+### Fixed
+- `tests/hardware_profile.test.js` used a hardcoded Windows source path and failed to load on Linux CI; now derives the path from `__dirname`.
+
+### Verification
+- 725 tests pass, 0 failures, 1 skipped. Version consistency ok.
+
 ## [1.0.60] - 2026-11-28
 
 ### Added (hardware profiles)

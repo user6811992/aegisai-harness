@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
-const SRC = 'C:\\Users\\poonjab\\Documents\\Default Project\\repo-clone\\src';
+const SRC = path.join(__dirname, '..', 'src');
 const originalDataDir = process.env.AEGISAI_DATA_DIR;
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'aegisai-hwprof-'));
 process.env.AEGISAI_DATA_DIR = tmp;
