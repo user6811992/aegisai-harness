@@ -469,6 +469,7 @@ inside an agent CLI via a tmux sidebar; PostToolUse hook auto-previews generated
 | Phase 6 items 1 & 3 (interop spec, community profiles) | **Planned — feasible now** | Export/validation plumbing over existing registry and profile modules |
 | Web UI hardware status card | **Planned polish** | Small; `hardware_probe` already exists |
 | Intel Arc A770 16 GB machine tests | **Scheduled (tomorrow)** | Validate llama.cpp Vulkan, profile generation, prebuilt binary on Intel GPU |
+| Niko1221/Strata (MIT, 48.8k⭐) | **Research — useful ideas, not a backend swap** | MoE expert-cache strategy (hot experts in VRAM, all experts in RAM, n-gram table on SSD) and "guess-then-check" MTP drafting could inform `expert_prefetch`/`compact_index` and a future speculative-decoding contract. OpenAI/Anthropic-compatible API means it could be pointed at as an external backend. Hardware caveat: RX 5700 XT is gfx1010 and needs a hand-built HIP engine; Intel Arc is Linux-only — llama.cpp Vulkan remains the practical engine here |
 | Kunlun K200 (Baidu XPU) | Research — vendor email sent | **Needs research**: Linux-only kernel driver, PaddlePaddle XPU, no llama.cpp/vLLM K200 support |
 | Custom Windows driver/firmware via REA | Research only | **Needs research**: no admin/signing, device Code 12, firmware likely vendor-signed |
 | Multi-model llama.cpp slots + router | Deferred by user | Feasible but memory-bound on 8 GB VRAM |
